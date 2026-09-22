@@ -1,0 +1,259 @@
+import React, { useMemo, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
+import { radius, useTheme } from '../../theme';
+import {
+  AppText,
+  Card,
+  Checkbox,
+  EmptyState,
+  Ionicons,
+  ListGroup,
+  ListRow,
+  NavBar,
+  ProgressBar,
+  Screen,
+} from '../../ui';
+import { useAppSelector } from '../../store/hooks';
+import { selectMemberAssignments } from '../../store/slices/assignmentsSlice';
+import { selectExerciseById, formatMetrics } from '../../store/slices/exercisesSlice';
+import { selectCompletionsForDate } from '../../store/slices/completionsSlice';
+import { selectMeasurementsSorted } from '../../store/slices/measurementsSlice';
+import { setCompletion } from '../../services/completions';
+import { DatePager } from '../../components/DatePager';
+import { ExerciseDetailSheet } from '../../components/ExerciseDetailSheet';
+import { isToday, toDateKey } from '../../utils/date';
+import {
+  DEFAULT_BODY_WEIGHT_KG,
+  estimateCalories,
+} from '../../utils/calories';
+import type { Assignment, Completion } from '../../types';
+
+/** Member home: their personalized exercises for the day, one checkbox each. */
+export function TodayScreen() {
+  const { colors } = useTheme();
+  const profile = useAppSelector((state) => state.auth.profile);
+  const [selectedDate, setSelectedDate] = useState(() => new Date());
+  const [detailAssignmentId, setDetailAssignmentId] = useState<string | null>(null);
+
+  const dateKey = toDateKey(selectedDate);
+  const assignments = useAppSelector((state) =>
+    profile ? selectMemberAssignments(state, dateKey, profile.uid) : [],
+  );
+  const completions = useAppSelector((state) =>
+    profile ? selectCompletionsForDate(state, profile.uid, dateKey) : {},
+  );
+  const completionDays = useAppSelector((state) =>
+    profile ? Object.keys(state.completions.byUser[profile.uid] ?? {}) : [],
+  );
+  const exercisesById = useAppSelector((state) => state.exercises.byId);
+  const latestWeight = useAppSelector(
+    (state) => selectMeasurementsSorted(state)[0]?.weightKg ?? DEFAULT_BODY_WEIGHT_KG,
+  );
+  const detailAssignment = useAppSelector((state) =>
+    detailAssignmentId && state.assignments.byDate[dateKey]
+      ? state.assignments.byDate[dateKey][detailAssignmentId] ?? null
+      : null,
+  );
+  const detailExercise = useAppSelector((state) =>
+    detailAssignment ? selectExerciseById(state, detailAssignment.exerciseId) : undefined,
+  );
+
+  const caloriesFor = (assignment: Assignment): number =>
+    estimateCalories(
+      exercisesById[assignment.exerciseId],
+      assignment.metrics,
+      latestWeight,
+    );
+
+  const markedDays = new Set(completionDays);
+
+  const doneCount = useMemo(
+    () => assignments.filter((assignment) => completions[assignment.id] != null).length,
+    [assignments, completions],
+  );
+  const burnedKcal = useMemo(
+    () =>
+      assignments
+        .filter((assignment) => completions[assignment.id] != null)
+        .reduce((total, assignment) => total + caloriesFor(assignment), 0),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [assignments, completions, exercisesById, latestWeight],
+  );
+  const allDone = assignments.length > 0 && doneCount === assignments.length;
+
+  if (!profile) return null;
+
+  const toggle = async (assignment: Assignment) => {
+    const done = completions[assignment.id] != null;
+    try {
+      await setCompletion(profile.uid, dateKey, assignment.id, !done);
+    } catch (error) {
+      console.warn('[TodayScreen] toggle failed', error);
+    }
+  };
+
+  return (
+    <Screen>
+      <NavBar
+        large
+        title="Today"
+        subtitle={`Welcome back, ${profile.name.split(' ')[0]}`}
+      />
+      <DatePager date={selectedDate} onChange={setSelectedDate} markedDays={markedDays} />
+
+      {assignments.length === 0 ? (
+        <Card>
+          <EmptyState
+            icon="barbell-outline"
+            title={isToday(selectedDate) ? 'No exercises yet' : 'Nothing planned'}
+            message={
+              isToday(selectedDate)
+                ? "Your coach hasn't posted your workout yet. Check back later."
+                : 'No workout was planned for you on this day.'
+            }
+          />
+        </Card>
+      ) : (
+        <Card style={styles.progressCard}>
+          <View style={styles.progressHeader}>
+            <View style={{ flex: 1 }}>
+              <AppText variant="headline">
+                {allDone ? 'All done — great work!' : `${doneCount} of ${assignments.length} done`}
+              </AppText>
+              <AppText variant="footnote" color={colors.secondaryLabel}>
+                {allDone
+                  ? 'Every exercise checked off for this day.'
+                  : `${Math.round((doneCount / assignments.length) * 100)}% complete`}
+              </AppText>
+            </View>
+            <View
+              style={[
+                styles.checkBadge,
+                { backgroundColor: allDone ? colors.systemGreen : colors.fill },
+              ]}
+            >
+              <Ionicons
+                name="checkmark"
+                size={20}
+                color={allDone ? '#FFFFFF' : colors.systemGray2}
+              />
+            </View>
+          </View>
+          <ProgressBar
+            progress={doneCount / assignments.length}
+            color={allDone ? colors.systemGreen : colors.systemBlue}
+          />
+          <View style={styles.kcalRow}>
+            <Ionicons name="flame" size={16} color={colors.systemOrange} />
+            <AppText variant="footnote" color={colors.secondaryLabel}>
+              ≈ <AppText variant="footnote" style={{ color: colors.systemOrange, fontWeight: '700' }}>
+                {burnedKcal} kcal
+              </AppText>{' '}
+              burned from {doneCount} completed {doneCount === 1 ? 'exercise' : 'exercises'} (estimated)
+            </AppText>
+          </View>
+        </Card>
+      )}
+
+      {assignments.length > 0 ? (
+        <View style={styles.list}>
+          <ListGroup>
+            {assignments.map((assignment) => (
+              <AssignmentRow
+                key={assignment.id}
+                assignment={assignment}
+                completion={completions[assignment.id]}
+                kcal={caloriesFor(assignment)}
+                onToggle={() => toggle(assignment)}
+                onOpenDetail={() => setDetailAssignmentId(assignment.id)}
+              />
+            ))}
+          </ListGroup>
+          <AppText variant="caption1" color={colors.tertiaryLabel} style={styles.hint}>
+            Tap an exercise to see the demo video and your coach’s notes.
+          </AppText>
+        </View>
+      ) : null}
+
+      <ExerciseDetailSheet
+        visible={detailAssignment != null}
+        onClose={() => setDetailAssignmentId(null)}
+        exercise={detailExercise}
+        assignment={detailAssignment}
+        completion={detailAssignment ? completions[detailAssignment.id] : undefined}
+        onToggle={() => {
+          if (detailAssignment) toggle(detailAssignment);
+        }}
+      />
+    </Screen>
+  );
+}
+
+function AssignmentRow({
+  assignment,
+  completion,
+  kcal,
+  onToggle,
+  onOpenDetail,
+}: {
+  assignment: Assignment;
+  completion?: Completion;
+  kcal: number;
+  onToggle: () => void;
+  onOpenDetail: () => void;
+}) {
+  const { colors } = useTheme();
+  const exercise = useAppSelector((state) =>
+    selectExerciseById(state, assignment.exerciseId),
+  );
+  const done = completion != null;
+  const summary = exercise ? formatMetrics(exercise.metricFields, assignment.metrics) : '';
+  const doneAt = done
+    ? ` · done at ${new Date(completion.completedAt).toLocaleTimeString(undefined, {
+        hour: '2-digit',
+        minute: '2-digit',
+      })}`
+    : '';
+  const subtitle = done
+    ? `${summary}${doneAt} · ~${kcal} kcal`
+    : `${summary} · ~${kcal} kcal${assignment.notes ? `\n${assignment.notes}` : ''}`;
+  const icon =
+    exercise?.type === 'cardio'
+      ? {
+          name: 'speedometer-outline' as const,
+          color: colors.systemOrange,
+          background: colors.orangeTint,
+        }
+      : {
+          name: 'barbell-outline' as const,
+          color: colors.systemBlue,
+          background: colors.blueTint,
+        };
+
+  return (
+    <ListRow
+      title={exercise?.name ?? 'Exercise'}
+      subtitle={subtitle}
+      icon={icon}
+      dimmed={done}
+      titleStrike={done}
+      control={<Checkbox checked={done} onPress={onToggle} />}
+      onPress={onOpenDetail}
+    />
+  );
+}
+
+const styles = StyleSheet.create({
+  progressCard: { marginBottom: 16, gap: 12 },
+  progressHeader: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  checkBadge: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  kcalRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  list: { borderRadius: radius.md, overflow: 'hidden', gap: 8 },
+  hint: { marginLeft: 4 },
+});

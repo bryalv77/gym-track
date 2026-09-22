@@ -5,6 +5,7 @@ import { exercisesReducer } from './slices/exercisesSlice';
 import { gymsReducer } from './slices/gymsSlice';
 import { completionsReducer } from './slices/completionsSlice';
 import { measurementsReducer } from './slices/measurementsSlice';
+import { selfiesReducer } from './slices/selfiesSlice';
 import { membersReducer } from './slices/membersSlice';
 
 export const store = configureStore({
@@ -15,6 +16,7 @@ export const store = configureStore({
     gyms: gymsReducer,
     completions: completionsReducer,
     measurements: measurementsReducer,
+    selfies: selfiesReducer,
     members: membersReducer,
   },
 });

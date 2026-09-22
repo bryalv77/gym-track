@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
-import { useTheme } from '../../theme';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
+import { radius, useTheme } from '../../theme';
 import {
   AppText,
   BarChart,
@@ -16,19 +16,25 @@ import {
 } from '../../ui';
 import { useAppSelector } from '../../store/hooks';
 import { selectMeasurementsSorted } from '../../store/slices/measurementsSlice';
+import { selectSelfiesSorted } from '../../store/slices/selfiesSlice';
 import { deleteMeasurement } from '../../services/measurements';
+import { deleteSelfie } from '../../services/selfies';
 import { MeasurementFormModal } from '../../components/MeasurementFormModal';
+import { SelfieFormModal } from '../../components/SelfieFormModal';
 import { confirmAction } from '../../utils/confirm';
 import { formatShortDate, formatMonthDay, parseDateKey } from '../../utils/date';
-import type { Measurement } from '../../types';
+import type { DailySelfie, Measurement } from '../../types';
 
 /** Weight & body measurements: latest snapshot, weight trend and history. */
 export function ProgressScreen() {
   const { colors } = useTheme();
   const profile = useAppSelector((state) => state.auth.profile);
   const measurements = useAppSelector(selectMeasurementsSorted);
+  const selfies = useAppSelector(selectSelfiesSorted);
   const [formVisible, setFormVisible] = useState(false);
   const [editing, setEditing] = useState<Measurement | null>(null);
+  const [selfieModalVisible, setSelfieModalVisible] = useState(false);
+  const [editingSelfie, setEditingSelfie] = useState<DailySelfie | null>(null);
 
   const openAdd = () => {
     setEditing(null);
@@ -38,6 +44,26 @@ export function ProgressScreen() {
   const openEdit = (entry: Measurement) => {
     setEditing(entry);
     setFormVisible(true);
+  };
+
+  const openEditSelfie = (entry: DailySelfie) => {
+    setEditingSelfie(entry);
+    setSelfieModalVisible(true);
+  };
+
+  const handleDeleteSelfie = (entry: DailySelfie) => {
+    if (!profile) return;
+    confirmAction(
+      'Delete Selfie',
+      'This selfie will be permanently removed.',
+      async () => {
+        try {
+          await deleteSelfie(profile.uid, entry.id);
+        } catch (error) {
+          console.warn('[ProgressScreen] delete selfie failed', error);
+        }
+      },
+    );
   };
 
   const latest = measurements[0];
@@ -161,10 +187,53 @@ export function ProgressScreen() {
         </View>
       ) : null}
 
+      {selfies.length > 0 ? (
+        <View style={styles.history}>
+          <ListGroupHeader label="Selfie timeline" />
+          <ListGroup>
+            {selfies.map((entry) => (
+              <ListRow
+                key={entry.id}
+                title={formatShortDate(parseDateKey(entry.dateKey))}
+                subtitle={entry.notes || 'Daily selfie'}
+                leading={
+                  <Image
+                    source={{ uri: entry.photoData }}
+                    style={styles.thumb}
+                    resizeMode="cover"
+                  />
+                }
+                control={
+                  <Pressable
+                    onPress={(event) => {
+                      if (event.stopPropagation) event.stopPropagation();
+                      handleDeleteSelfie(entry);
+                    }}
+                    hitSlop={10}
+                    accessibilityLabel="Delete selfie"
+                  >
+                    <Ionicons name="trash-outline" size={19} color={colors.systemRed} />
+                  </Pressable>
+                }
+                chevron
+                onPress={() => openEditSelfie(entry)}
+              />
+            ))}
+          </ListGroup>
+        </View>
+      ) : null}
+
       <MeasurementFormModal
         visible={formVisible}
         onClose={() => setFormVisible(false)}
         editing={editing}
+      />
+
+      <SelfieFormModal
+        visible={selfieModalVisible}
+        onClose={() => setSelfieModalVisible(false)}
+        dateKey={editingSelfie?.dateKey ?? ''}
+        editing={editingSelfie}
       />
     </Screen>
   );
@@ -195,4 +264,10 @@ const styles = StyleSheet.create({
   metricValueRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 3 },
   chartCard: { gap: 10, marginBottom: 8 },
   history: { marginTop: 8 },
+  thumb: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.sm,
+    overflow: 'hidden',
+  },
 });

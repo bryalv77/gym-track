@@ -6,6 +6,7 @@ import { subscribeToExercises } from '../services/exercises';
 import { subscribeToGyms } from '../services/gyms';
 import { subscribeToAllCompletions, subscribeToCompletions } from '../services/completions';
 import { subscribeToMeasurements } from '../services/measurements';
+import { subscribeToSelfies } from '../services/selfies';
 import { subscribeToUsers } from '../services/users';
 import { assignmentsUpdated } from '../store/slices/assignmentsSlice';
 import { exercisesUpdated } from '../store/slices/exercisesSlice';
@@ -15,6 +16,7 @@ import {
   completionsUserUpdated,
 } from '../store/slices/completionsSlice';
 import { measurementsUpdated } from '../store/slices/measurementsSlice';
+import { selfiesUpdated } from '../store/slices/selfiesSlice';
 import { membersUpdated } from '../store/slices/membersSlice';
 
 /**
@@ -50,6 +52,9 @@ export function DataSync() {
         ),
         subscribeToMeasurements(profile.uid, (value) =>
           dispatch(measurementsUpdated(value)),
+        ),
+        subscribeToSelfies(profile.uid, (value) =>
+          dispatch(selfiesUpdated(value)),
         ),
       );
     }

@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
 import { radius, useTheme } from '../../theme';
 import {
   AppText,
+  Button,
   Card,
   Checkbox,
   EmptyState,
@@ -18,9 +19,13 @@ import { selectMemberAssignments } from '../../store/slices/assignmentsSlice';
 import { selectExerciseById, formatMetrics } from '../../store/slices/exercisesSlice';
 import { selectCompletionsForDate } from '../../store/slices/completionsSlice';
 import { selectMeasurementsSorted } from '../../store/slices/measurementsSlice';
+import { selectSelfieForDate } from '../../store/slices/selfiesSlice';
 import { setCompletion } from '../../services/completions';
+import { deleteSelfie } from '../../services/selfies';
 import { DatePager } from '../../components/DatePager';
 import { ExerciseDetailSheet } from '../../components/ExerciseDetailSheet';
+import { SelfieFormModal } from '../../components/SelfieFormModal';
+import { confirmAction } from '../../utils/confirm';
 import { isToday, toDateKey } from '../../utils/date';
 import {
   DEFAULT_BODY_WEIGHT_KG,
@@ -34,6 +39,7 @@ export function TodayScreen() {
   const profile = useAppSelector((state) => state.auth.profile);
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [detailAssignmentId, setDetailAssignmentId] = useState<string | null>(null);
+  const [selfieModalVisible, setSelfieModalVisible] = useState(false);
 
   const dateKey = toDateKey(selectedDate);
   const assignments = useAppSelector((state) =>
@@ -48,6 +54,9 @@ export function TodayScreen() {
   const exercisesById = useAppSelector((state) => state.exercises.byId);
   const latestWeight = useAppSelector(
     (state) => selectMeasurementsSorted(state)[0]?.weightKg ?? DEFAULT_BODY_WEIGHT_KG,
+  );
+  const selfie = useAppSelector((state) =>
+    profile ? selectSelfieForDate(state, profile.uid, dateKey) : undefined,
   );
   const detailAssignment = useAppSelector((state) =>
     detailAssignmentId && state.assignments.byDate[dateKey]
@@ -90,6 +99,21 @@ export function TodayScreen() {
     } catch (error) {
       console.warn('[TodayScreen] toggle failed', error);
     }
+  };
+
+  const handleDeleteSelfie = () => {
+    if (!selfie) return;
+    confirmAction(
+      'Delete Selfie',
+      'This selfie will be permanently removed.',
+      async () => {
+        try {
+          await deleteSelfie(profile.uid, selfie.id);
+        } catch (error) {
+          console.warn('[TodayScreen] delete selfie failed', error);
+        }
+      },
+    );
   };
 
   return (
@@ -155,6 +179,58 @@ export function TodayScreen() {
         </Card>
       )}
 
+      <Card style={styles.selfieCard}>
+        {selfie ? (
+          <>
+            <View style={styles.selfieHeader}>
+              <AppText variant="footnote" color={colors.secondaryLabel}>
+                DAILY SELFIE
+              </AppText>
+              <View style={styles.selfieActions}>
+                <Pressable
+                  onPress={() => setSelfieModalVisible(true)}
+                  hitSlop={10}
+                  accessibilityLabel="Edit selfie"
+                >
+                  <Ionicons name="pencil" size={18} color={colors.systemBlue} />
+                </Pressable>
+                <Pressable
+                  onPress={handleDeleteSelfie}
+                  hitSlop={10}
+                  accessibilityLabel="Delete selfie"
+                >
+                  <Ionicons name="trash-outline" size={18} color={colors.systemRed} />
+                </Pressable>
+              </View>
+            </View>
+            <Image source={{ uri: selfie.photoData }} style={styles.selfieImage} resizeMode="cover" />
+            {selfie.notes ? (
+              <AppText variant="footnote" color={colors.secondaryLabel}>
+                {selfie.notes}
+              </AppText>
+            ) : null}
+          </>
+        ) : (
+          <>
+            <View style={styles.selfieHeader}>
+              <AppText variant="footnote" color={colors.secondaryLabel}>
+                DAILY SELFIE
+              </AppText>
+              <AppText variant="footnote" color={colors.tertiaryLabel}>
+                Optional
+              </AppText>
+            </View>
+            <Button
+              label={isToday(selectedDate) ? "Take today's selfie" : 'Add a selfie'}
+              icon="camera"
+              variant="tinted"
+              size="md"
+              onPress={() => setSelfieModalVisible(true)}
+            />
+          </>
+        )}
+      </Card>
+
       {assignments.length > 0 ? (
         <View style={styles.list}>
           <ListGroup>
@@ -184,6 +260,13 @@ export function TodayScreen() {
         onToggle={() => {
           if (detailAssignment) toggle(detailAssignment);
         }}
+      />
+
+      <SelfieFormModal
+        visible={selfieModalVisible}
+        onClose={() => setSelfieModalVisible(false)}
+        dateKey={dateKey}
+        editing={selfie ?? null}
       />
     </Screen>
   );
@@ -254,6 +337,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   kcalRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  selfieCard: { marginBottom: 16, gap: 10 },
+  selfieHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  selfieActions: { flexDirection: 'row', gap: 14 },
+  selfieImage: {
+    width: '100%',
+    aspectRatio: 3 / 4,
+    borderRadius: radius.md,
+    maxHeight: 320,
+    overflow: 'hidden',
+  },
   list: { borderRadius: radius.md, overflow: 'hidden', gap: 8 },
   hint: { marginLeft: 4 },
 });

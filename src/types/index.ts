@@ -96,3 +96,17 @@ export type CompletionsByDate = Record<string, Record<string, Completion>>;
 export type CompletionsByUser = Record<string, CompletionsByDate>;
 
 export type MeasurementsById = Record<string, Measurement>;
+
+/** Daily selfie photo logged by a member. */
+export interface DailySelfie {
+  id: string;
+  /** Local calendar day, format YYYY-MM-DD */
+  dateKey: string;
+  /** Photo as a base64 data URL (data:image/jpeg;base64,…). */
+  photoData: string;
+  notes?: string;
+  takenAt: number;
+  createdAt: number;
+}
+
+export type SelfiesById = Record<string, DailySelfie>;

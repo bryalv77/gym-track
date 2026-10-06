@@ -20,7 +20,7 @@ The exercise library holds each exercise with **demo media** (inline image/GIF +
 | Layer | Choice |
 | --- | --- |
 | App | React Native (Expo) + TypeScript |
-| Web | React Native Web (`npm run web`) |
+| Web | React Native Web (`pnpm web`) |
 | State | Redux Toolkit (`src/store`) |
 | UI | Custom iOS-style component kit (`src/ui`) |
 | Backend | Firebase Auth + Firebase Realtime Database |
@@ -74,12 +74,12 @@ measurements/{uid}/{entryId}          → { dateKey, weightKg?, chestCm?, waistC
 ## Running the app
 
 ```bash
-npm install
-npm run web         # http://localhost:8081
-npm run ios         # Expo Go / simulator
-npm run android
-npm run typecheck   # tsc --noEmit
-npm run build:web   # static site in dist/
+pnpm install
+pnpm web         # http://localhost:8081
+pnpm ios         # Expo Go / simulator
+pnpm android
+pnpm typecheck   # tsc --noEmit
+pnpm build:web   # static site in dist/
 ```
 
 ## How it works

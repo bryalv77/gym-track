@@ -20,6 +20,18 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "ded529f9-5a54-4e2c-914c-590a0b6b8a10"
+      }
+    },
+    "owner": "bryalv77",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/ded529f9-5a54-4e2c-914c-590a0b6b8a10"
     }
   }
 }

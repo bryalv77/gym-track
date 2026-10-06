@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Animated, Pressable, StyleSheet, View } from 'react-native';
 import { useTheme } from '../theme';
 import { AppText } from './Text';
@@ -15,7 +15,7 @@ export function SegmentedControl({
 }) {
   const { colors } = useTheme();
   const [width, setWidth] = useState(0);
-  const position = useRef(new Animated.Value(0)).current;
+  const [position] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
     if (width === 0 || options.length === 0) return;

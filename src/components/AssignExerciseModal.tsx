@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { radius, useTheme } from '../theme';
@@ -69,28 +69,37 @@ export function AssignExerciseModal({
     return exercises.filter((exercise) => exercise.name.toLowerCase().includes(needle));
   }, [exercises, exerciseQuery]);
 
-  useEffect(() => {
-    if (!visible) return;
-    setMemberId(assignment?.memberId ?? initialMemberId ?? null);
-    setExerciseId(assignment?.exerciseId ?? null);
-    setNotes(assignment?.notes ?? '');
-    setExerciseQuery('');
-    setError(null);
-  }, [visible, assignment, initialMemberId]);
+  // Re-initialize the form whenever it opens or its inputs change.
+  const [synced1, setSynced1] = useState<unknown[]>([]);
+  const deps1 = [visible, assignment, initialMemberId];
+  if (deps1.some((value, index) => value !== synced1[index])) {
+    setSynced1(deps1);
+    if (visible) {
+      setMemberId(assignment?.memberId ?? initialMemberId ?? null);
+      setExerciseId(assignment?.exerciseId ?? null);
+      setNotes(assignment?.notes ?? '');
+      setExerciseQuery('');
+      setError(null);
+    }
+  }
 
   // When an exercise is picked, initialize metrics with the assignment's
   // existing values or the exercise defaults.
-  useEffect(() => {
-    if (!visible || !selectedExercise) return;
-    const initial: Record<string, number> = {};
-    for (const field of selectedExercise.metricFields) {
-      initial[field.key] =
-        assignment && assignment.exerciseId === selectedExercise.id
-          ? assignment.metrics[field.key] ?? field.defaultValue
-          : field.defaultValue;
+  const [synced2, setSynced2] = useState<unknown[]>([]);
+  const deps2 = [visible, selectedExercise, assignment];
+  if (deps2.some((value, index) => value !== synced2[index])) {
+    setSynced2(deps2);
+    if (visible && selectedExercise) {
+      const initial: Record<string, number> = {};
+      for (const field of selectedExercise.metricFields) {
+        initial[field.key] =
+          assignment && assignment.exerciseId === selectedExercise.id
+            ? assignment.metrics[field.key] ?? field.defaultValue
+            : field.defaultValue;
+      }
+      setMetrics(initial);
     }
-    setMetrics(initial);
-  }, [visible, selectedExercise, assignment]);
+  }
 
   if (!coach) return null;
 

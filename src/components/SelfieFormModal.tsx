@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { radius, useTheme } from '../theme';
@@ -31,12 +31,17 @@ export function SelfieFormModal({
   const [saving, setSaving] = useState(false);
   const [picking, setPicking] = useState(false);
 
-  useEffect(() => {
-    if (!visible) return;
-    setPhotoData(editing?.photoData ?? null);
-    setNotes(editing?.notes ?? '');
-    setError(null);
-  }, [visible, editing]);
+  // Re-initialize the form whenever it opens or its inputs change.
+  const [synced1, setSynced1] = useState<unknown[]>([]);
+  const deps1 = [visible, editing];
+  if (deps1.some((value, index) => value !== synced1[index])) {
+    setSynced1(deps1);
+    if (visible) {
+      setPhotoData(editing?.photoData ?? null);
+      setNotes(editing?.notes ?? '');
+      setError(null);
+    }
+  }
 
   if (!profile) return null;
 

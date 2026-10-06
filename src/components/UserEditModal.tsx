@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../theme';
@@ -27,12 +27,17 @@ export function UserEditModal({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!visible || !user) return;
-    setRole(user.role);
-    setGymId(user.gymId);
-    setError(null);
-  }, [visible, user]);
+  // Re-initialize the form whenever it opens or its inputs change.
+  const [synced1, setSynced1] = useState<unknown[]>([]);
+  const deps1 = [visible, user];
+  if (deps1.some((value, index) => value !== synced1[index])) {
+    setSynced1(deps1);
+    if (visible && user) {
+      setRole(user.role);
+      setGymId(user.gymId);
+      setError(null);
+    }
+  }
 
   if (!user) return null;
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { radius, useTheme } from '../theme';
@@ -35,17 +35,22 @@ export function MeasurementFormModal({
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    if (!visible) return;
-    setDateKey(editing?.dateKey ?? toDateKey(new Date()));
-    setWeight(editing?.weightKg != null ? String(editing.weightKg) : '');
-    setChest(editing?.chestCm != null ? String(editing.chestCm) : '');
-    setWaist(editing?.waistCm != null ? String(editing.waistCm) : '');
-    setArm(editing?.armCm != null ? String(editing.armCm) : '');
-    setThigh(editing?.thighCm != null ? String(editing.thighCm) : '');
-    setNotes(editing?.notes ?? '');
-    setError(null);
-  }, [visible, editing]);
+  // Re-initialize the form whenever it opens or its inputs change.
+  const [synced1, setSynced1] = useState<unknown[]>([]);
+  const deps1 = [visible, editing];
+  if (deps1.some((value, index) => value !== synced1[index])) {
+    setSynced1(deps1);
+    if (visible) {
+      setDateKey(editing?.dateKey ?? toDateKey(new Date()));
+      setWeight(editing?.weightKg != null ? String(editing.weightKg) : '');
+      setChest(editing?.chestCm != null ? String(editing.chestCm) : '');
+      setWaist(editing?.waistCm != null ? String(editing.waistCm) : '');
+      setArm(editing?.armCm != null ? String(editing.armCm) : '');
+      setThigh(editing?.thighCm != null ? String(editing.thighCm) : '');
+      setNotes(editing?.notes ?? '');
+      setError(null);
+    }
+  }
 
   if (!profile) return null;
 

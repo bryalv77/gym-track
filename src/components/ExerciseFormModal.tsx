@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { radius, useTheme } from '../theme';
@@ -52,21 +52,26 @@ export function ExerciseFormModal({
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    if (!visible) return;
-    setName(editing?.name ?? '');
-    setType(editing?.type ?? 'strength');
-    setFields(
-      editing && editing.metricFields.length > 0
-        ? editing.metricFields
-        : EXERCISE_PRESETS[editing?.type ?? 'strength'],
-    );
-    setImageUrl(editing?.imageUrl ?? '');
-    setVideoUrl(editing?.videoUrl ?? '');
-    setDescription(editing?.description ?? '');
-    setMet(editing?.met != null ? String(editing.met) : '');
-    setError(null);
-  }, [visible, editing]);
+  // Re-initialize the form whenever it opens or its inputs change.
+  const [synced1, setSynced1] = useState<unknown[]>([]);
+  const deps1 = [visible, editing];
+  if (deps1.some((value, index) => value !== synced1[index])) {
+    setSynced1(deps1);
+    if (visible) {
+      setName(editing?.name ?? '');
+      setType(editing?.type ?? 'strength');
+      setFields(
+        editing && editing.metricFields.length > 0
+          ? editing.metricFields
+          : EXERCISE_PRESETS[editing?.type ?? 'strength'],
+      );
+      setImageUrl(editing?.imageUrl ?? '');
+      setVideoUrl(editing?.videoUrl ?? '');
+      setDescription(editing?.description ?? '');
+      setMet(editing?.met != null ? String(editing.met) : '');
+      setError(null);
+    }
+  }
 
   if (!profile) return null;
 

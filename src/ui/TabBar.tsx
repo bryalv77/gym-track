@@ -2,12 +2,14 @@ import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../theme';
 import { AppText } from './Text';
 
 /** iOS-style tab bar: themed surface, hairline top border, blue active tint. */
 export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   return (
     <View
@@ -24,7 +26,7 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
       {state.routes.map((route, index) => {
         const { options } = descriptors[route.key];
         const focused = state.index === index;
-        const label = typeof options.tabBarLabel === 'string' ? options.tabBarLabel : route.name;
+        const label = typeof options.tabBarLabel === 'string' ? options.tabBarLabel : t(`common.tabs.${route.name}`, route.name);
         const icon = options.tabBarIcon?.({
           focused,
           color: focused ? colors.systemBlue : colors.tabBarInactive,

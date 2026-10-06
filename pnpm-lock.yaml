@@ -35,6 +35,9 @@ dependencies:
   expo-image-picker:
     specifier: ~57.0.19
     version: 57.0.19(expo@57.0.24)
+  expo-localization:
+    specifier: ~57.0.2
+    version: 57.0.2(expo@57.0.24)(react@19.2.3)
   expo-status-bar:
     specifier: ~57.0.1
     version: 57.0.1(expo@57.0.24)(react-native@0.86.3)(react@19.2.3)
@@ -44,12 +47,18 @@ dependencies:
   firebase:
     specifier: ^12.19.0
     version: 12.19.0(@react-native-async-storage/async-storage@2.2.0)
+  i18next:
+    specifier: ^26.4.2
+    version: 26.4.2(typescript@6.0.3)
   react:
     specifier: 19.2.3
     version: 19.2.3
   react-dom:
     specifier: 19.2.3
     version: 19.2.3(react@19.2.3)
+  react-i18next:
+    specifier: ^17.0.16
+    version: 17.0.16(i18next@26.4.2)(react-dom@19.2.3)(react-native@0.86.3)(react@19.2.3)(typescript@6.0.3)
   react-native:
     specifier: 0.86.3
     version: 0.86.3(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.3)
@@ -76,6 +85,9 @@ devDependencies:
   eslint-config-expo:
     specifier: ~57.0.2
     version: 57.0.2(eslint@9.39.5)(typescript@6.0.3)
+  husky:
+    specifier: ^9.1.7
+    version: 9.1.7
   typescript:
     specifier: ~6.0.3
     version: 6.0.3
@@ -4108,6 +4120,17 @@ packages:
       react: 19.2.3
     dev: false
 
+  /expo-localization@57.0.2(expo@57.0.24)(react@19.2.3):
+    resolution: {integrity: sha512-sIKYH3Ivddoge568WY6j+Kp2MAAZzWWqEnY2bokLkJFwX366tGL1mEnoY2WUi/qHatFFPop2yqDdurzbhnnimQ==}
+    peerDependencies:
+      expo: '*'
+      react: '*'
+    dependencies:
+      expo: 57.0.24(@babel/core@7.29.7)(@expo/dom-webview@57.0.1)(@expo/metro-runtime@57.0.16)(react-dom@19.2.3)(react-native-web@0.21.2)(react-native@0.86.3)(react@19.2.3)(typescript@6.0.3)
+      react: 19.2.3
+      rtl-detect: 1.1.2
+    dev: false
+
   /expo-manifests@57.0.2(expo@57.0.24):
     resolution: {integrity: sha512-pPIIcKR73OShwlWMg8H90WRzKUd2krDdKlKAwuQV1FtUwE7H3hQEFw0ePFQY9yFoGMF/77ryYwNKfI5umMcCog==}
     peerDependencies:
@@ -4671,6 +4694,10 @@ packages:
       lru-cache: 10.4.3
     dev: false
 
+  /html-parse-stringify@4.0.1:
+    resolution: {integrity: sha512-0zHsZJrK7S3K2aucXWL6ycoYJ/iNtIcFHC/nYQgFklPtrv5LpJctIiSCroWZWeuoXvuyFdzp6KzjJQ+OT5MfFw==}
+    dev: false
+
   /http-errors@2.0.1:
     resolution: {integrity: sha512-4FbRdAX+bSdmo4AUFuS0WNiPz8NgFt+r8ThgNWmlrjQjt1Q7ZR9+zTlce2859x4KSXrwIsaeTqDoKQmtP8pLmQ==}
     engines: {node: '>= 0.8'}
@@ -4696,8 +4723,25 @@ packages:
       - supports-color
     dev: false
 
+  /husky@9.1.7:
+    resolution: {integrity: sha512-5gs5ytaNjBrh5Ow3zrvdUUY+0VxIuWVL4i9irt6friV+BqdCfmV11CQTWMiBYWHbXhco+J1kHfTOUkePhCDvMA==}
+    engines: {node: '>=18'}
+    hasBin: true
+    dev: true
+
   /hyphenate-style-name@1.1.0:
     resolution: {integrity: sha512-WDC/ui2VVRrz3jOVi+XtjqkDjiVjTtFaAGiW37k6b+ohyQ5wYDOGkvCZa8+H0nx3gyvv0+BST9xuOgIyGQ00gw==}
+    dev: false
+
+  /i18next@26.4.2(typescript@6.0.3):
+    resolution: {integrity: sha512-RX+R0VLg13IbvRuJSxnqykUFS9vQZTl8wYpWPCIUDWVrSGjsQywB5Y+pjzrkboxGAuYfJZVH1InFTdgBdxq6ug==}
+    peerDependencies:
+      typescript: ^5 || ^6 || ^7
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+    dependencies:
+      typescript: 6.0.3
     dev: false
 
   /idb@7.1.1:
@@ -6065,6 +6109,32 @@ packages:
       react: 19.2.3
     dev: false
 
+  /react-i18next@17.0.16(i18next@26.4.2)(react-dom@19.2.3)(react-native@0.86.3)(react@19.2.3)(typescript@6.0.3):
+    resolution: {integrity: sha512-7uImVD9hG5yUOaP5KHVied1x0A004Di/KU031ULR35Ma+9e9H5GdnNZHgQEIByyAz+IAXBkRDTedNVzjPUH8ZA==}
+    peerDependencies:
+      i18next: '>= 26.2.0'
+      react: '>= 16.8.0'
+      react-dom: '*'
+      react-native: '*'
+      typescript: ^5 || ^6 || ^7
+    peerDependenciesMeta:
+      react-dom:
+        optional: true
+      react-native:
+        optional: true
+      typescript:
+        optional: true
+    dependencies:
+      '@babel/runtime': 7.29.7
+      html-parse-stringify: 4.0.1
+      i18next: 26.4.2(typescript@6.0.3)
+      react: 19.2.3
+      react-dom: 19.2.3(react@19.2.3)
+      react-native: 0.86.3(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.2.3)
+      typescript: 6.0.3
+      use-sync-external-store: 1.7.0(react@19.2.3)
+    dev: false
+
   /react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
     dev: true
@@ -6338,6 +6408,10 @@ packages:
     dependencies:
       onetime: 2.0.1
       signal-exit: 3.0.7
+    dev: false
+
+  /rtl-detect@1.1.2:
+    resolution: {integrity: sha512-PGMBq03+TTG/p/cRB7HCLKJ1MgDIi07+QU1faSjiYRfmY5UsAttV9Hs08jDAHVwcOwmVLcSJkpwyfXszVjWfIQ==}
     dev: false
 
   /safe-array-concat@1.1.4:

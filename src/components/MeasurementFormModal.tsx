@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { radius, useTheme } from '../theme';
 import { AppText, Button, SheetModal, TextField } from '../ui';
 import { useAppSelector } from '../store/hooks';
@@ -21,6 +22,7 @@ export function MeasurementFormModal({
   editing?: import('../types').Measurement | null;
 }) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const profile = useAppSelector((state) => state.auth.profile);
 
   const [dateKey, setDateKey] = useState(toDateKey(new Date()));
@@ -49,7 +51,7 @@ export function MeasurementFormModal({
 
   const handleSave = async () => {
     if (!isValidDateKey(dateKey.trim())) {
-      setError('Date must be in YYYY-MM-DD format.');
+      setError(t('member.measure.dateError'));
       return;
     }
     const weightKg = parseOptionalNumber(weight);
@@ -64,7 +66,7 @@ export function MeasurementFormModal({
       armCm === undefined &&
       thighCm === undefined
     ) {
-      setError('Enter at least one measurement.');
+      setError(t('member.measure.needOne'));
       return;
     }
     setSaving(true);
@@ -91,7 +93,7 @@ export function MeasurementFormModal({
       onClose();
     } catch (saveError) {
       console.warn('[MeasurementFormModal] save failed', saveError);
-      setError('Could not save. Check your connection and rules.');
+      setError(t('member.selfie.saveError'));
     } finally {
       setSaving(false);
     }
@@ -101,19 +103,19 @@ export function MeasurementFormModal({
     <SheetModal
       visible={visible}
       onClose={onClose}
-      title={editing ? 'Edit Measurement' : 'Add Measurement'}
-      footer={<Button label={editing ? 'Save Changes' : 'Save Entry'} onPress={handleSave} loading={saving} />}
+      title={editing ? t('member.measure.editTitle') : t('member.progress.add')}
+      footer={<Button label={editing ? t('member.selfie.saveChanges') : t('member.measure.save')} onPress={handleSave} loading={saving} />}
     >
       <View style={styles.form}>
         <TextField
-          label="Date (YYYY-MM-DD)"
+          label={t('member.measure.date')}
           placeholder={toDateKey(new Date())}
           value={dateKey}
           onChangeText={setDateKey}
           autoCapitalize="none"
         />
         <TextField
-          label="Weight (kg)"
+          label={t('member.measure.weight')}
           placeholder="75.5"
           value={weight}
           onChangeText={setWeight}
@@ -122,7 +124,7 @@ export function MeasurementFormModal({
         <View style={styles.row}>
           <View style={styles.half}>
             <TextField
-              label="Chest (cm)"
+              label={t('member.measure.chest')}
               placeholder="102"
               value={chest}
               onChangeText={setChest}
@@ -131,7 +133,7 @@ export function MeasurementFormModal({
           </View>
           <View style={styles.half}>
             <TextField
-              label="Waist (cm)"
+              label={t('member.measure.waist')}
               placeholder="84"
               value={waist}
               onChangeText={setWaist}
@@ -142,7 +144,7 @@ export function MeasurementFormModal({
         <View style={styles.row}>
           <View style={styles.half}>
             <TextField
-              label="Arm (cm)"
+              label={t('member.measure.arm')}
               placeholder="38"
               value={arm}
               onChangeText={setArm}
@@ -151,7 +153,7 @@ export function MeasurementFormModal({
           </View>
           <View style={styles.half}>
             <TextField
-              label="Thigh (cm)"
+              label={t('member.measure.thigh')}
               placeholder="58"
               value={thigh}
               onChangeText={setThigh}
@@ -160,8 +162,8 @@ export function MeasurementFormModal({
           </View>
         </View>
         <TextField
-          label="Notes (optional)"
-          placeholder="How you felt, hydration…"
+          label={t('member.selfie.notes')}
+          placeholder={t('member.measure.notesPlaceholder')}
           value={notes}
           onChangeText={setNotes}
           multiline

@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../theme';
 import { AppText, Badge, Button, ListGroup, ListRow, SheetModal } from '../ui';
 import { formatMetrics } from '../store/slices/exercisesSlice';
@@ -27,6 +28,7 @@ export function ExerciseDetailSheet({
   onToggle: () => void;
 }) {
   const { colors } = useTheme();
+  const { t, i18n } = useTranslation();
   const bodyWeight = useAppSelector(
     (state) => selectMeasurementsSorted(state)[0]?.weightKg ?? DEFAULT_BODY_WEIGHT_KG,
   );
@@ -34,7 +36,7 @@ export function ExerciseDetailSheet({
   const done = completion != null;
   const kcal = estimateCalories(exercise, assignment.metrics, bodyWeight);
   const doneAt = done
-    ? new Date((completion as Completion).completedAt).toLocaleTimeString(undefined, {
+    ? new Date((completion as Completion).completedAt).toLocaleTimeString(i18n.language, {
         hour: '2-digit',
         minute: '2-digit',
       })
@@ -47,7 +49,7 @@ export function ExerciseDetailSheet({
       title={exercise.name}
       footer={
         <Button
-          label={done ? 'Mark as not done' : 'Mark as done'}
+          label={done ? t('member.detail.markNotDone') : t('member.detail.markDone')}
           icon={done ? 'close-circle-outline' : 'checkmark-circle-outline'}
           variant={done ? 'gray' : 'filled'}
           onPress={onToggle}
@@ -59,11 +61,11 @@ export function ExerciseDetailSheet({
         <View style={styles.badgeRow}>
           <Badge
             label={
-              exercise.type === 'strength' ? 'Strength' : exercise.type === 'cardio' ? 'Cardio' : 'General'
+              t(`member.detail.types.${exercise.type === 'strength' || exercise.type === 'cardio' ? exercise.type : 'general'}`)
             }
             variant={exercise.type === 'cardio' ? 'orange' : 'blue'}
           />
-          {done && doneAt ? <Badge label={`Done at ${doneAt}`} variant="green" /> : null}
+          {done && doneAt ? <Badge label={t('member.detail.doneAt', { time: doneAt })} variant="green" /> : null}
         </View>
         {exercise.description ? (
           <AppText variant="subheadline" color={colors.secondaryLabel}>
@@ -72,18 +74,18 @@ export function ExerciseDetailSheet({
         ) : null}
         <ListGroup>
           <ListRow
-            title="Prescription"
+            title={t('member.detail.prescription')}
             subtitle={formatMetrics(exercise.metricFields, assignment.metrics)}
             icon={{ name: 'clipboard-outline' }}
           />
           <ListRow
-            title="Estimated burn"
-            subtitle={`≈ ${kcal} kcal (based on ${bodyWeight} kg body weight)`}
+            title={t('member.detail.estimatedBurn')}
+            subtitle={t('member.detail.burnBasis', { kcal, weight: bodyWeight })}
             icon={{ name: 'flame-outline', color: colors.systemOrange, background: colors.orangeTint }}
           />
           {assignment.notes ? (
             <ListRow
-              title="Coach notes"
+              title={t('member.detail.coachNotes')}
               subtitle={assignment.notes}
               icon={{ name: 'chatbubble-ellipses-outline', color: colors.systemPurple }}
             />

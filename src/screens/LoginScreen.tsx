@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { radius, useTheme } from '../theme';
 import {
@@ -19,6 +20,7 @@ type LoginScreenProps = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
 export function LoginScreen({ navigation }: LoginScreenProps) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const { loading, error } = useAppSelector((state) => state.auth);
   const [email, setEmail] = useState('');
@@ -31,14 +33,14 @@ export function LoginScreen({ navigation }: LoginScreenProps) {
 
   return (
     <Screen scroll contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}>
-      <NavBar title="Sign In" />
+      <NavBar title={t('auth.signIn')} />
       <View style={styles.header}>
         <View style={[styles.logo, { backgroundColor: colors.systemBlue }]}>
           <Ionicons name="barbell" size={42} color="#FFFFFF" />
         </View>
         <AppText variant="largeTitle">GymTrack</AppText>
         <AppText variant="subheadline" color={colors.secondaryLabel}>
-          Train. Track. Progress.
+          {t('auth.tagline')}
         </AppText>
       </View>
 
@@ -46,16 +48,15 @@ export function LoginScreen({ navigation }: LoginScreenProps) {
         <View style={[styles.banner, { backgroundColor: colors.orangeTint }]}>
           <Ionicons name="warning" size={16} color={colors.systemOrange} />
           <AppText variant="footnote" color={colors.systemOrange} style={{ flex: 1 }}>
-            Firebase is not configured yet — add your keys in src/config/firebase.ts
-            (see README.md).
+            {t('auth.firebaseWarning')}
           </AppText>
         </View>
       ) : null}
 
       <View style={styles.form}>
         <TextField
-          label="Email"
-          placeholder="you@example.com"
+          label={t('auth.email')}
+          placeholder={t('auth.emailPlaceholder')}
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
@@ -64,7 +65,7 @@ export function LoginScreen({ navigation }: LoginScreenProps) {
           returnKeyType="next"
         />
         <TextField
-          label="Password"
+          label={t('auth.password')}
           placeholder="••••••••"
           value={password}
           onChangeText={setPassword}
@@ -77,9 +78,9 @@ export function LoginScreen({ navigation }: LoginScreenProps) {
             {error}
           </AppText>
         ) : null}
-        <Button label="Sign In" onPress={handleSignIn} loading={loading} />
+        <Button label={t('auth.signIn')} onPress={handleSignIn} loading={loading} />
         <Button
-          label="Create an account"
+          label={t('auth.createAccountLink')}
           variant="plain"
           size="md"
           onPress={() => {

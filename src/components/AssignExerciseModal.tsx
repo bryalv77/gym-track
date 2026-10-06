@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { radius, useTheme } from '../theme';
 import {
   AppText,
@@ -42,6 +43,7 @@ export function AssignExerciseModal({
   initialMemberId?: string | null;
 }) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const coach = useAppSelector((state) => state.auth.profile);
   const gymMembers = useAppSelector((state) =>
     selectGymMembers(state, state.auth.profile?.gymId),
@@ -94,11 +96,11 @@ export function AssignExerciseModal({
 
   const handleSave = async () => {
     if (!memberId) {
-      setError('Pick a member.');
+      setError(t('coach.assign.pickMember'));
       return;
     }
     if (!selectedExercise) {
-      setError('Pick an exercise from the library.');
+      setError(t('coach.assign.pickExercise'));
       return;
     }
     setSaving(true);
@@ -124,7 +126,7 @@ export function AssignExerciseModal({
       onClose();
     } catch (saveError) {
       console.warn('[AssignExerciseModal] save failed', saveError);
-      setError('Could not save. Check your connection and rules.');
+      setError(t('coach.assign.saveFailed'));
     } finally {
       setSaving(false);
     }
@@ -133,8 +135,8 @@ export function AssignExerciseModal({
   const handleUnassign = () => {
     if (!assignment) return;
     confirmAction(
-      'Unassign Exercise',
-      'The exercise will be removed from this member’s day.',
+      t('coach.assign.unassignTitle'),
+      t('coach.assign.unassignMessage'),
       async () => {
         try {
           await deleteAssignment(dateKey, assignment.id);
@@ -143,19 +145,19 @@ export function AssignExerciseModal({
           console.warn('[AssignExerciseModal] unassign failed', deleteError);
         }
       },
-      'Unassign',
+      t('coach.assign.unassign'),
     );
   };
 
   const memberChips = assignment ? (
     <View style={[styles.memberPill, { backgroundColor: colors.background }]}>
       <Avatar
-        name={gymMembers.find((member) => member.uid === assignment.memberId)?.name ?? 'Member'}
+        name={gymMembers.find((member) => member.uid === assignment.memberId)?.name ?? t('coach.assign.memberFallback')}
         size={26}
         photoUrl={gymMembers.find((member) => member.uid === assignment.memberId)?.photoData}
       />
       <AppText variant="subheadline">
-        {gymMembers.find((member) => member.uid === assignment.memberId)?.name ?? 'Member'}
+        {gymMembers.find((member) => member.uid === assignment.memberId)?.name ?? t('coach.assign.memberFallback')}
       </AppText>
     </View>
   ) : (
@@ -170,7 +172,7 @@ export function AssignExerciseModal({
       ))}
       {gymMembers.length === 0 ? (
         <AppText variant="footnote" color={colors.secondaryLabel}>
-          No members in your gym yet.
+          {t('coach.assign.noMembers')}
         </AppText>
       ) : null}
     </View>
@@ -180,19 +182,19 @@ export function AssignExerciseModal({
     <SheetModal
       visible={visible}
       onClose={onClose}
-      title={assignment ? 'Edit Assignment' : 'Assign Exercise'}
+      title={assignment ? t('coach.assign.editTitle') : t('coach.assign.newTitle')}
       footer={
         <View style={styles.footer}>
           {assignment ? (
             <Button
-              label="Unassign"
+              label={t('coach.assign.unassign')}
               variant="destructive"
               onPress={handleUnassign}
               disabled={saving}
             />
           ) : null}
           <Button
-            label={assignment ? 'Save Changes' : 'Assign'}
+            label={assignment ? t('coach.assign.saveChanges') : t('coach.assign.assign')}
             onPress={handleSave}
             loading={saving}
           />
@@ -202,19 +204,19 @@ export function AssignExerciseModal({
       <View style={styles.form}>
         <View style={styles.section}>
           <AppText variant="footnote" color={colors.secondaryLabel}>
-            MEMBER
+            {t('coach.assign.memberHeader')}
           </AppText>
           {memberChips}
         </View>
 
         <View style={styles.section}>
           <AppText variant="footnote" color={colors.secondaryLabel}>
-            EXERCISE FROM LIBRARY
+            {t('coach.assign.exerciseHeader')}
           </AppText>
           <SearchField
             value={exerciseQuery}
             onChangeText={setExerciseQuery}
-            placeholder="Search exercises"
+            placeholder={t('coach.assign.searchExercises')}
           />
           <View style={styles.chips}>
             {visibleExercises.map((exercise) => (
@@ -227,7 +229,7 @@ export function AssignExerciseModal({
             ))}
             {visibleExercises.length === 0 ? (
               <AppText variant="footnote" color={colors.secondaryLabel}>
-                No exercise matches “{exerciseQuery}”.
+                {t('coach.assign.noExerciseMatch', { query: exerciseQuery })}
               </AppText>
             ) : null}
           </View>
@@ -236,7 +238,7 @@ export function AssignExerciseModal({
         {selectedExercise ? (
           <View style={styles.section}>
             <AppText variant="footnote" color={colors.secondaryLabel}>
-              PRESCRIPTION — {selectedExercise.name.toUpperCase()}
+              {t('coach.assign.prescription', { name: selectedExercise.name.toUpperCase() })}
             </AppText>
             <View style={[styles.metricsBox, { backgroundColor: colors.background }]}>
               {selectedExercise.metricFields.map((field: MetricField) => (
@@ -257,8 +259,8 @@ export function AssignExerciseModal({
         ) : null}
 
         <TextField
-          label="Notes (optional)"
-          placeholder="Cues, rest time, alternatives…"
+          label={t('coach.assign.notesLabel')}
+          placeholder={t('coach.assign.notesPlaceholder')}
           value={notes}
           onChangeText={setNotes}
           multiline

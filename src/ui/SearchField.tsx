@@ -1,5 +1,6 @@
 import React from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { radius, useTheme } from '../theme';
 import { Ionicons } from './icons';
 
@@ -7,13 +8,14 @@ import { Ionicons } from './icons';
 export function SearchField({
   value,
   onChangeText,
-  placeholder = 'Search',
+  placeholder,
 }: {
   value: string;
   onChangeText: (text: string) => void;
   placeholder?: string;
 }) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   return (
     <View
       style={[styles.container, { backgroundColor: colors.fill }]}
@@ -24,14 +26,14 @@ export function SearchField({
         style={[styles.input, { color: colors.label }]}
         value={value}
         onChangeText={onChangeText}
-        placeholder={placeholder}
+        placeholder={placeholder ?? t('common.search')}
         placeholderTextColor={colors.tertiaryLabel}
         returnKeyType="search"
         autoCapitalize="none"
         autoCorrect={false}
       />
       {value.length > 0 ? (
-        <Pressable onPress={() => onChangeText('')} hitSlop={8} accessibilityLabel="Clear search">
+        <Pressable onPress={() => onChangeText('')} hitSlop={8} accessibilityLabel={t('common.clearSearch')}>
           <Ionicons name="close-circle" size={16} color={colors.tertiaryLabel} />
         </Pressable>
       ) : null}

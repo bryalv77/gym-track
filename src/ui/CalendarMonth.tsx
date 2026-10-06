@@ -1,14 +1,14 @@
 import React, { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../theme';
 import { AppText } from './Text';
 import { Ionicons } from './icons';
+import { formatMonthYear, weekdayInitial } from '../utils/date';
 
-const WEEKDAY_INITIALS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-const MONTH_NAMES = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
-];
+/** Sunday-first weekday initials in the active language (2023-01-01 is a Sunday). */
+const weekdayInitials = () =>
+  Array.from({ length: 7 }, (_, index) => weekdayInitial(new Date(2023, 0, 1 + index)));
 
 const sameDay = (a: Date, b: Date) =>
   a.getFullYear() === b.getFullYear() &&
@@ -37,6 +37,8 @@ export function CalendarMonth({
   toKey = defaultKey,
 }: CalendarMonthProps) {
   const { colors } = useTheme();
+  const { t, i18n } = useTranslation();
+  const initials = weekdayInitials();
   const [cursor, setCursor] = useState(
     new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1),
   );
@@ -57,19 +59,19 @@ export function CalendarMonth({
   return (
     <View>
       <View style={styles.header}>
-        <Pressable onPress={() => goMonth(-1)} hitSlop={10} accessibilityLabel="Previous month">
+        <Pressable onPress={() => goMonth(-1)} hitSlop={10} accessibilityLabel={t('member.calendar.previousMonth')}>
           <Ionicons name="chevron-back" size={20} color={colors.systemBlue} />
         </Pressable>
         <AppText variant="headline">
-          {MONTH_NAMES[cursor.getMonth()]} {cursor.getFullYear()}
+          {formatMonthYear(cursor)}
         </AppText>
-        <Pressable onPress={() => goMonth(1)} hitSlop={10} accessibilityLabel="Next month">
+        <Pressable onPress={() => goMonth(1)} hitSlop={10} accessibilityLabel={t('member.calendar.nextMonth')}>
           <Ionicons name="chevron-forward" size={20} color={colors.systemBlue} />
         </Pressable>
       </View>
 
       <View style={styles.weekdayRow}>
-        {WEEKDAY_INITIALS.map((initial, index) => (
+        {initials.map((initial, index) => (
           <AppText key={`${initial}-${index}`} variant="caption1" color={colors.secondaryLabel} style={styles.weekday}>
             {initial}
           </AppText>

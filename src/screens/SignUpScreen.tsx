@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { radius, useTheme } from '../theme';
 import { AppText, Button, Chip, NavBar, Screen, TextField } from '../ui';
@@ -15,6 +16,7 @@ type SignUpScreenProps = NativeStackScreenProps<AuthStackParamList, 'SignUp'>;
 
 export function SignUpScreen({ navigation }: SignUpScreenProps) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const { loading, error } = useAppSelector((state) => state.auth);
   const [name, setName] = useState('');
@@ -33,17 +35,17 @@ export function SignUpScreen({ navigation }: SignUpScreenProps) {
   const handleSignUp = () => {
     setLocalError(null);
     if (!name.trim() || !email.trim() || password.length < 6) {
-      setLocalError('Fill in your name, email and a password of at least 6 characters.');
+      setLocalError(t('auth.errors.fillFields'));
       return;
     }
     const trimmedCode = coachCode.trim();
     if (trimmedCode.length > 0 && trimmedCode.toUpperCase() !== COACH_SIGNUP_CODE) {
-      setLocalError('That coach code is not valid. Leave it empty to join as a member.');
+      setLocalError(t('auth.errors.invalidCoachCode'));
       return;
     }
     const isCoach = trimmedCode.toUpperCase() === COACH_SIGNUP_CODE;
     if ((isCoach || sortedGyms.length > 0) && !gymId) {
-      setLocalError('Choose your gym to continue.');
+      setLocalError(t('auth.errors.chooseGym'));
       return;
     }
     dispatch(
@@ -60,7 +62,7 @@ export function SignUpScreen({ navigation }: SignUpScreenProps) {
   return (
     <Screen scroll contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}>
       <NavBar
-        title="Create Account"
+        title={t('auth.createAccount')}
         large={false}
         onBack={() => {
           dispatch(clearAuthError());
@@ -69,16 +71,16 @@ export function SignUpScreen({ navigation }: SignUpScreenProps) {
       />
       <View style={styles.form}>
         <TextField
-          label="Name"
-          placeholder="Brian Alvarez"
+          label={t('auth.name')}
+          placeholder={t('auth.namePlaceholder')}
           value={name}
           onChangeText={setName}
           autoCapitalize="words"
           returnKeyType="next"
         />
         <TextField
-          label="Email"
-          placeholder="you@example.com"
+          label={t('auth.email')}
+          placeholder={t('auth.emailPlaceholder')}
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
@@ -87,7 +89,7 @@ export function SignUpScreen({ navigation }: SignUpScreenProps) {
           returnKeyType="next"
         />
         <TextField
-          label="Password (min. 6 characters)"
+          label={t('auth.passwordMin')}
           placeholder="••••••••"
           value={password}
           onChangeText={setPassword}
@@ -98,7 +100,7 @@ export function SignUpScreen({ navigation }: SignUpScreenProps) {
         {sortedGyms.length > 0 ? (
           <View style={styles.gymSection}>
             <AppText variant="footnote" color={colors.secondaryLabel}>
-              YOUR GYM
+              {t('auth.yourGym')}
             </AppText>
             <View style={styles.chips}>
               {sortedGyms.map((gym) => (
@@ -114,8 +116,8 @@ export function SignUpScreen({ navigation }: SignUpScreenProps) {
         ) : null}
 
         <TextField
-          label="Coach code (optional)"
-          placeholder="Coaches only"
+          label={t('auth.coachCode')}
+          placeholder={t('auth.coachCodePlaceholder')}
           value={coachCode}
           onChangeText={setCoachCode}
           autoCapitalize="characters"
@@ -123,18 +125,17 @@ export function SignUpScreen({ navigation }: SignUpScreenProps) {
           onSubmitEditing={handleSignUp}
         />
         <AppText variant="footnote" color={colors.secondaryLabel} style={styles.hint}>
-          Leave the coach code empty to create a member account. Ask your gym for the
-          code if you are the coach.
+          {t('auth.coachCodeHint')}
         </AppText>
         {localError ?? error ? (
           <AppText variant="footnote" color={colors.systemRed}>
             {localError ?? error}
           </AppText>
         ) : null}
-        <Button label="Create Account" onPress={handleSignUp} loading={loading} />
+        <Button label={t('auth.createAccount')} onPress={handleSignUp} loading={loading} />
         <View style={[styles.noteBox, { backgroundColor: colors.blueTint }]}>
           <AppText variant="footnote" color={colors.secondaryLabel}>
-            Your coach sees your daily checkmarks, streak and body measurements.
+            {t('auth.coachSeesNote')}
           </AppText>
         </View>
       </View>

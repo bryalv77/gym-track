@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../theme';
 import {
   AppText,
@@ -17,20 +18,16 @@ import {
 } from '../../ui';
 import { useAppSelector } from '../../store/hooks';
 import { selectExercisesSorted } from '../../store/slices/exercisesSlice';
+import { metricLabel } from '../../utils/exercisePresets';
 import { ExerciseFormModal } from '../../components/ExerciseFormModal';
 
 type TypeFilter = 'all' | 'strength' | 'cardio' | 'other';
 
-const FILTERS: Array<{ key: TypeFilter; label: string }> = [
-  { key: 'all', label: 'All' },
-  { key: 'strength', label: 'Strength' },
-  { key: 'cardio', label: 'Cardio' },
-  { key: 'other', label: 'General' },
-];
+const FILTERS: TypeFilter[] = ['all', 'strength', 'cardio', 'other'];
 
 /** Exercise library — shared by coaches and admins, with search and filters. */
 export function ExercisesLibraryScreen() {
-  const { colors } = useTheme();
+  const { t } = useTranslation();
   const exercises = useAppSelector(selectExercisesSorted);
   const [formVisible, setFormVisible] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -57,19 +54,19 @@ export function ExercisesLibraryScreen() {
     <Screen>
       <NavBar
         large
-        title="Exercise Library"
-        subtitle={`${exercises.length} exercises with demo media`}
+        title={t('library.title')}
+        subtitle={t('library.subtitle', { count: exercises.length })}
       />
 
       <View style={styles.filters}>
-        <SearchField value={query} onChangeText={setQuery} placeholder="Search exercises" />
+        <SearchField value={query} onChangeText={setQuery} placeholder={t('library.search')} />
         <View style={styles.filterRow}>
           {FILTERS.map((filter) => (
             <Chip
-              key={filter.key}
-              label={filter.label}
-              selected={typeFilter === filter.key}
-              onPress={() => setTypeFilter(filter.key)}
+              key={filter}
+              label={t(`library.filters.${filter}`)}
+              selected={typeFilter === filter}
+              onPress={() => setTypeFilter(filter)}
             />
           ))}
         </View>
@@ -79,31 +76,31 @@ export function ExercisesLibraryScreen() {
         <Card>
           <EmptyState
             icon="barbell-outline"
-            title={query.length > 0 || typeFilter !== 'all' ? 'No results' : 'Empty library'}
+            title={query.length > 0 || typeFilter !== 'all' ? t('library.noResults') : t('library.emptyLibrary')}
             message={
               query.length > 0 || typeFilter !== 'all'
-                ? 'Try another search or filter.'
-                : "Create the gym's exercise collection. Add an image, GIF or video showing how to perform each one."
+                ? t('library.tryAnother')
+                : t('library.emptyMessage')
             }
           />
         </Card>
       ) : (
         <View style={styles.list}>
           {byType.strength.length > 0 ? (
-            <TypeSection label="Strength" exercises={byType.strength} onEdit={openEdit} />
+            <TypeSection type="strength" exercises={byType.strength} onEdit={openEdit} />
           ) : null}
           {byType.cardio.length > 0 ? (
-            <TypeSection label="Cardio" exercises={byType.cardio} onEdit={openEdit} />
+            <TypeSection type="cardio" exercises={byType.cardio} onEdit={openEdit} />
           ) : null}
           {byType.other.length > 0 ? (
-            <TypeSection label="General" exercises={byType.other} onEdit={openEdit} />
+            <TypeSection type="other" exercises={byType.other} onEdit={openEdit} />
           ) : null}
-          <ListGroupFooter label="Tap an exercise to edit its metrics or demo media." />
+          <ListGroupFooter label={t('library.tapToEdit')} />
         </View>
       )}
 
       <Button
-        label="New Exercise"
+        label={t('library.newExercise')}
         icon="add"
         size="md"
         onPress={() => {
@@ -128,11 +125,11 @@ export function ExercisesLibraryScreen() {
 }
 
 function TypeSection({
-  label,
+  type,
   exercises,
   onEdit,
 }: {
-  label: string;
+  type: 'strength' | 'cardio' | 'other';
   exercises: Array<{
     id: string;
     name: string;
@@ -143,10 +140,11 @@ function TypeSection({
   onEdit: (id: string) => void;
 }) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   return (
     <View>
       <AppText variant="footnote" color={colors.secondaryLabel} style={styles.typeHeader}>
-        {label.toUpperCase()}
+        {t(`library.types.${type}`).toUpperCase()}
       </AppText>
       <ListGroup>
         {exercises.map((exercise) => (
@@ -154,13 +152,13 @@ function TypeSection({
             key={exercise.id}
             title={exercise.name}
             subtitle={exercise.metricFields
-              .map((field) => (field.unit ? `${field.label} (${field.unit})` : field.label))
+              .map((field) => (field.unit ? `${metricLabel(field)} (${field.unit})` : metricLabel(field)))
               .join(' · ')}
-            icon={{ name: label === 'Cardio' ? 'speedometer-outline' : 'barbell-outline' }}
+            icon={{ name: type === 'cardio' ? 'speedometer-outline' : 'barbell-outline' }}
             control={
               <View style={styles.mediaRow}>
-                {exercise.imageUrl ? <Badge label="IMG" variant="neutral" /> : null}
-                {exercise.videoUrl ? <Badge label="VIDEO" variant="blue" /> : null}
+                {exercise.imageUrl ? <Badge label={t('library.badgeImg')} variant="neutral" /> : null}
+                {exercise.videoUrl ? <Badge label={t('library.badgeVideo')} variant="blue" /> : null}
               </View>
             }
             chevron

@@ -1,6 +1,8 @@
 /** Date helpers. All keys are LOCAL calendar days in YYYY-MM-DD format, which is
  *  how workouts are bucketed in the database. */
 
+import i18n from '../i18n';
+
 const pad = (n: number) => String(n).padStart(2, '0');
 
 export function toDateKey(date: Date): string {
@@ -31,31 +33,33 @@ export function isToday(date: Date): boolean {
   return isSameDay(date, new Date());
 }
 
-const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const MONTHS_LONG = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
-];
+const locale = () => i18n.language || 'en';
+const fmt = (date: Date, options: Intl.DateTimeFormatOptions) =>
+  new Intl.DateTimeFormat(locale(), options).format(date);
 
-/** "Monday, September 22" */
+/** "Monday, September 22" (localized) */
 export function formatFullDate(date: Date): string {
-  return `${WEEKDAYS[date.getDay()]}, ${MONTHS_LONG[date.getMonth()]} ${date.getDate()}`;
+  return fmt(date, { weekday: 'long', month: 'long', day: 'numeric' });
 }
 
-/** "Mon, Sep 22" */
+/** "Mon, Sep 22" (localized) */
 export function formatShortDate(date: Date): string {
-  return `${WEEKDAYS[date.getDay()].slice(0, 3)}, ${MONTHS_SHORT[date.getMonth()]} ${date.getDate()}`;
+  return fmt(date, { weekday: 'short', month: 'short', day: 'numeric' });
 }
 
-/** "Sep 22" */
+/** "Sep 22" (localized) */
 export function formatMonthDay(date: Date): string {
-  return `${MONTHS_SHORT[date.getMonth()]} ${date.getDate()}`;
+  return fmt(date, { month: 'short', day: 'numeric' });
 }
 
-/** "M" / "T" / "W" ... */
+/** "September 2025" (localized) */
+export function formatMonthYear(date: Date): string {
+  return fmt(date, { month: 'long', year: 'numeric' });
+}
+
+/** Narrow weekday letter: "M" / "T" / "W" ... (localized) */
 export function weekdayInitial(date: Date): string {
-  return WEEKDAYS[date.getDay()].charAt(0);
+  return fmt(date, { weekday: 'narrow' });
 }
 
 /**

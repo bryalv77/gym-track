@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../theme';
 import {
   Avatar,
@@ -22,15 +23,16 @@ import type { Role, UserProfile } from '../../types';
 
 type RoleFilter = 'all' | Role;
 
-const FILTERS: Array<{ key: RoleFilter; label: string }> = [
-  { key: 'all', label: 'All' },
-  { key: 'member', label: 'Members' },
-  { key: 'coach', label: 'Coaches' },
-  { key: 'admin', label: 'Admins' },
+const FILTERS: Array<{ key: RoleFilter; labelKey: string }> = [
+  { key: 'all', labelKey: 'admin.users.filterAll' },
+  { key: 'member', labelKey: 'admin.users.filterMembers' },
+  { key: 'coach', labelKey: 'admin.users.filterCoaches' },
+  { key: 'admin', labelKey: 'admin.users.filterAdmins' },
 ];
 
 /** Admin: every account with role/gym filters and search. */
 export function UsersScreen() {
+  const { t } = useTranslation();
   const users = useAppSelector(selectUsersSorted);
   const [editing, setEditing] = useState<UserProfile | null>(null);
   const [query, setQuery] = useState('');
@@ -61,17 +63,17 @@ export function UsersScreen() {
     <Screen>
       <NavBar
         large
-        title="Users"
-        subtitle={`${counts.members} members · ${counts.coaches} coaches · ${counts.admins} admin${counts.admins === 1 ? '' : 's'}`}
+        title={t('admin.users.title')}
+        subtitle={t('admin.users.subtitle', counts)}
       />
 
       <View style={styles.filters}>
-        <SearchField value={query} onChangeText={setQuery} placeholder="Search name or email" />
+        <SearchField value={query} onChangeText={setQuery} placeholder={t('admin.users.searchPlaceholder')} />
         <View style={styles.filterRow}>
           {FILTERS.map((filter) => (
             <Chip
               key={filter.key}
-              label={filter.label}
+              label={t(filter.labelKey)}
               selected={roleFilter === filter.key}
               onPress={() => setRoleFilter(filter.key)}
             />
@@ -83,12 +85,16 @@ export function UsersScreen() {
         <Card>
           <EmptyState
             icon="people-outline"
-            title={query.length > 0 || roleFilter !== 'all' ? 'No results' : 'No accounts yet'}
+            title={
+              query.length > 0 || roleFilter !== 'all'
+                ? t('admin.users.noResults')
+                : t('admin.users.noAccounts')
+            }
           />
         </Card>
       ) : (
         <View>
-          <ListGroupHeader label="All accounts — tap to edit role or gym" />
+          <ListGroupHeader label={t('admin.users.header')} />
           <ListGroup>
             {visibleUsers.map((user) => (
               <UserRow key={user.uid} uid={user.uid} onEdit={() => setEditing(user)} />
@@ -103,14 +109,15 @@ export function UsersScreen() {
 }
 
 function UserRow({ uid, onEdit }: { uid: string; onEdit: () => void }) {
+  const { t } = useTranslation();
   const user = useAppSelector((state) => state.members.byUid[uid] ?? null);
   const gymName = useAppSelector((state) => selectGymName(state, user?.gymId));
   if (!user) return null;
   const roleBadge =
     user.role === 'admin' ? (
-      <Badge label="Admin" variant="orange" />
+      <Badge label={t('admin.roles.admin')} variant="orange" />
     ) : user.role === 'coach' ? (
-      <Badge label="Coach" variant="blue" />
+      <Badge label={t('admin.roles.coach')} variant="blue" />
     ) : null;
   return (
     <ListRow

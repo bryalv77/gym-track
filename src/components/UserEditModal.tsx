@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../theme';
 import { AppText, Avatar, Button, Chip, SegmentedControl, SheetModal } from '../ui';
 import { useAppSelector } from '../store/hooks';
@@ -8,12 +9,6 @@ import { updateUserProfile } from '../services/auth';
 import type { Role, UserProfile } from '../types';
 
 const ROLE_OPTIONS: Role[] = ['member', 'coach', 'admin'];
-const ROLE_LABELS: Record<Role, string> = {
-  member: 'Member',
-  coach: 'Coach',
-  admin: 'Admin',
-};
-
 /** Admin sheet to change a user's role and gym membership. */
 export function UserEditModal({
   visible,
@@ -25,6 +20,7 @@ export function UserEditModal({
   user: UserProfile | null;
 }) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const gyms = useAppSelector(selectGymsSorted);
   const [role, setRole] = useState<Role>('member');
   const [gymId, setGymId] = useState<string | undefined>(undefined);
@@ -51,7 +47,7 @@ export function UserEditModal({
       onClose();
     } catch (saveError) {
       console.warn('[UserEditModal] save failed', saveError);
-      setError('Could not save. Check your connection and rules.');
+      setError(t('admin.userEdit.saveFailed'));
     } finally {
       setSaving(false);
     }
@@ -62,7 +58,7 @@ export function UserEditModal({
       visible={visible}
       onClose={onClose}
       title={user.name}
-      footer={<Button label="Save Changes" onPress={handleSave} loading={saving} />}
+      footer={<Button label={t('admin.userEdit.saveChanges')} onPress={handleSave} loading={saving} />}
     >
       <View style={styles.form}>
         <View style={styles.header}>
@@ -77,10 +73,10 @@ export function UserEditModal({
 
         <View style={styles.section}>
           <AppText variant="footnote" color={colors.secondaryLabel}>
-            ROLE
+            {t('admin.userEdit.role')}
           </AppText>
           <SegmentedControl
-            options={ROLE_OPTIONS.map((option) => ROLE_LABELS[option])}
+            options={ROLE_OPTIONS.map((option) => t(`admin.roles.${option}`))}
             selectedIndex={ROLE_OPTIONS.indexOf(role)}
             onChange={(index) => setRole(ROLE_OPTIONS[index])}
           />
@@ -89,7 +85,7 @@ export function UserEditModal({
         {role !== 'admin' ? (
           <View style={styles.section}>
             <AppText variant="footnote" color={colors.secondaryLabel}>
-              GYM
+              {t('admin.userEdit.gym')}
             </AppText>
             <View style={styles.chips}>
               {gyms.map((gym) => (
@@ -101,20 +97,20 @@ export function UserEditModal({
                 />
               ))}
               <Chip
-                label="No gym"
+                label={t('admin.userEdit.noGym')}
                 selected={gymId == null}
                 onPress={() => setGymId(undefined)}
               />
               {gyms.length === 0 ? (
                 <AppText variant="footnote" color={colors.secondaryLabel}>
-                  No gyms yet — create one in the Gyms tab first.
+                  {t('admin.userEdit.noGymsYet')}
                 </AppText>
               ) : null}
             </View>
           </View>
         ) : (
           <AppText variant="footnote" color={colors.secondaryLabel}>
-            Admins manage every gym, no membership needed.
+            {t('admin.userEdit.adminNote')}
           </AppText>
         )}
 

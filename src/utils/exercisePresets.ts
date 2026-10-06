@@ -1,3 +1,4 @@
+import i18n from '../i18n';
 import type { ExerciseType, MetricField } from '../types';
 
 /** Default metric fields per exercise type. Coaches can tweak them per exercise. */
@@ -16,11 +17,25 @@ export const EXERCISE_PRESETS: Record<ExerciseType, MetricField[]> = {
   ],
 };
 
-export const EXERCISE_TYPE_LABELS: Record<ExerciseType, string> = {
-  strength: 'Strength',
-  cardio: 'Cardio',
-  other: 'Other',
+/** Localized display label of an exercise type. */
+export function exerciseTypeLabel(type: ExerciseType): string {
+  return i18n.t(`library.types.${type}`);
+}
+
+const PRESET_LABEL_KEYS: Record<string, string> = {
+  sets: 'sets',
+  reps: 'reps',
+  weight: 'weight',
+  time: 'time',
+  speed: 'speed',
 };
+
+/** Localized display label of a metric field. Stored labels stay as saved
+ *  (English preset names); only untouched preset labels are translated. */
+export function metricLabel(field: Pick<MetricField, 'label'>): string {
+  const key = PRESET_LABEL_KEYS[field.label];
+  return key ? i18n.t(`library.metricLabels.${key}`) : field.label;
+}
 
 /** Stable unique metric key derived from its label. */
 export function slugifyKey(label: string, existing: string[]): string {

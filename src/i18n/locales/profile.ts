@@ -1,0 +1,167 @@
+export const profile = {
+  en: {
+    "roles": {
+      "admin": "Admin",
+      "coach": "Coach",
+      "member": "Member"
+    },
+    "title": "Profile",
+    "subtitle": "Your account",
+    "changePhoto": "Change photo",
+    "removePhoto": "Remove photo",
+    "name": "Name",
+    "saveName": "Save name",
+    "nameError": "Could not save your name. Try again.",
+    "appearance": "Appearance",
+    "appearanceHint": "Dark mode follows System by default until you pick a style.",
+    "themes": {
+      "system": "System",
+      "light": "Light",
+      "dark": "Dark"
+    },
+    "language": "Language",
+    "languageHint": "Choose the language of the app.",
+    "systemDefault": "System default",
+    "changePassword": "Change password",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "updatePassword": "Update password",
+    "passwordRequired": "Enter your current password and a new one (min. 6 characters).",
+    "passwordUpdated": "Password updated.",
+    "passwordFailed": "Could not change the password.",
+    "session": "Session",
+    "signOut": "Sign out"
+  },
+  es: {
+    "roles": {
+      "admin": "Admin",
+      "coach": "Entrenador",
+      "member": "Miembro"
+    },
+    "title": "Perfil",
+    "subtitle": "Tu cuenta",
+    "changePhoto": "Cambiar foto",
+    "removePhoto": "Quitar foto",
+    "name": "Nombre",
+    "saveName": "Guardar nombre",
+    "nameError": "No se pudo guardar tu nombre. Inténtalo de nuevo.",
+    "appearance": "Apariencia",
+    "appearanceHint": "El modo oscuro sigue al Sistema por defecto hasta que elijas un estilo.",
+    "themes": {
+      "system": "Sistema",
+      "light": "Claro",
+      "dark": "Oscuro"
+    },
+    "language": "Idioma",
+    "languageHint": "Elige el idioma de la aplicación.",
+    "systemDefault": "Predeterminado del sistema",
+    "changePassword": "Cambiar contraseña",
+    "currentPassword": "Contraseña actual",
+    "newPassword": "Nueva contraseña",
+    "updatePassword": "Actualizar contraseña",
+    "passwordRequired": "Introduce tu contraseña actual y una nueva (mín. 6 caracteres).",
+    "passwordUpdated": "Contraseña actualizada.",
+    "passwordFailed": "No se pudo cambiar la contraseña.",
+    "session": "Sesión",
+    "signOut": "Cerrar sesión"
+  },
+  pt: {
+    "roles": {
+      "admin": "Admin",
+      "coach": "Treinador",
+      "member": "Membro"
+    },
+    "title": "Perfil",
+    "subtitle": "Sua conta",
+    "changePhoto": "Alterar foto",
+    "removePhoto": "Remover foto",
+    "name": "Nome",
+    "saveName": "Salvar nome",
+    "nameError": "Não foi possível salvar seu nome. Tente novamente.",
+    "appearance": "Aparência",
+    "appearanceHint": "O modo escuro segue o Sistema por padrão até você escolher um estilo.",
+    "themes": {
+      "system": "Sistema",
+      "light": "Claro",
+      "dark": "Escuro"
+    },
+    "language": "Idioma",
+    "languageHint": "Escolha o idioma do aplicativo.",
+    "systemDefault": "Padrão do sistema",
+    "changePassword": "Alterar senha",
+    "currentPassword": "Senha atual",
+    "newPassword": "Nova senha",
+    "updatePassword": "Atualizar senha",
+    "passwordRequired": "Digite sua senha atual e uma nova (mín. 6 caracteres).",
+    "passwordUpdated": "Senha atualizada.",
+    "passwordFailed": "Não foi possível alterar a senha.",
+    "session": "Sessão",
+    "signOut": "Sair"
+  },
+  de: {
+    "roles": {
+      "admin": "Admin",
+      "coach": "Trainer",
+      "member": "Mitglied"
+    },
+    "title": "Profil",
+    "subtitle": "Dein Konto",
+    "changePhoto": "Foto ändern",
+    "removePhoto": "Foto entfernen",
+    "name": "Name",
+    "saveName": "Namen speichern",
+    "nameError": "Dein Name konnte nicht gespeichert werden. Versuche es erneut.",
+    "appearance": "Darstellung",
+    "appearanceHint": "Der Dunkelmodus folgt standardmäßig dem System, bis du einen Stil wählst.",
+    "themes": {
+      "system": "System",
+      "light": "Hell",
+      "dark": "Dunkel"
+    },
+    "language": "Sprache",
+    "languageHint": "Wähle die Sprache der App.",
+    "systemDefault": "Systemstandard",
+    "changePassword": "Passwort ändern",
+    "currentPassword": "Aktuelles Passwort",
+    "newPassword": "Neues Passwort",
+    "updatePassword": "Passwort aktualisieren",
+    "passwordRequired": "Gib dein aktuelles und ein neues Passwort ein (mind. 6 Zeichen).",
+    "passwordUpdated": "Passwort aktualisiert.",
+    "passwordFailed": "Das Passwort konnte nicht geändert werden.",
+    "session": "Sitzung",
+    "signOut": "Abmelden"
+  },
+  fr: {
+    "roles": {
+      "admin": "Admin",
+      "coach": "Coach",
+      "member": "Membre"
+    },
+    "title": "Profil",
+    "subtitle": "Ton compte",
+    "changePhoto": "Changer la photo",
+    "removePhoto": "Supprimer la photo",
+    "name": "Nom",
+    "saveName": "Enregistrer le nom",
+    "nameError": "Impossible d'enregistrer ton nom. Réessaie.",
+    "appearance": "Apparence",
+    "appearanceHint": "Le mode sombre suit le système par défaut tant que tu ne choisis pas un style.",
+    "themes": {
+      "system": "Système",
+      "light": "Clair",
+      "dark": "Sombre"
+    },
+    "language": "Langue",
+    "languageHint": "Choisis la langue de l'application.",
+    "systemDefault": "Par défaut du système",
+    "changePassword": "Changer le mot de passe",
+    "currentPassword": "Mot de passe actuel",
+    "newPassword": "Nouveau mot de passe",
+    "updatePassword": "Mettre à jour le mot de passe",
+    "passwordRequired": "Saisis ton mot de passe actuel et un nouveau (6 caractères min.).",
+    "passwordUpdated": "Mot de passe mis à jour.",
+    "passwordFailed": "Impossible de changer le mot de passe.",
+    "session": "Session",
+    "signOut": "Se déconnecter"
+  },
+} as Record<'en' | 'es' | 'pt' | 'de' | 'fr', Record<string, any>>;

@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Image, Pressable, StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { radius, useTheme } from '../../theme';
 import {
   AppText,
@@ -28,6 +29,7 @@ import type { DailySelfie, Measurement } from '../../types';
 /** Weight & body measurements: latest snapshot, weight trend and history. */
 export function ProgressScreen() {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const profile = useAppSelector((state) => state.auth.profile);
   const measurements = useAppSelector(selectMeasurementsSorted);
   const selfies = useAppSelector(selectSelfiesSorted);
@@ -54,8 +56,8 @@ export function ProgressScreen() {
   const handleDeleteSelfie = (entry: DailySelfie) => {
     if (!profile) return;
     confirmAction(
-      'Delete Selfie',
-      'This selfie will be permanently removed.',
+      t('member.selfie.deleteTitle'),
+      t('member.selfie.deleteMessage'),
       async () => {
         try {
           await deleteSelfie(profile.uid, entry.id);
@@ -86,8 +88,8 @@ export function ProgressScreen() {
 
   const handleDelete = (entry: Measurement) => {
     confirmAction(
-      'Delete Entry',
-      'This measurement entry will be permanently removed.',
+      t('member.progress.deleteTitle'),
+      t('member.progress.deleteMessage'),
       async () => {
         try {
           await deleteMeasurement(profile.uid, entry.id);
@@ -100,19 +102,19 @@ export function ProgressScreen() {
 
   const summary = (entry: Measurement): string => {
     const parts: string[] = [];
-    if (entry.weightKg != null) parts.push(`${entry.weightKg} kg`);
-    if (entry.chestCm != null) parts.push(`Chest ${entry.chestCm}`);
-    if (entry.waistCm != null) parts.push(`Waist ${entry.waistCm}`);
-    if (entry.armCm != null) parts.push(`Arm ${entry.armCm}`);
-    if (entry.thighCm != null) parts.push(`Thigh ${entry.thighCm}`);
+    if (entry.weightKg != null) parts.push(`${entry.weightKg} ${t('member.units.kg')}`);
+    if (entry.chestCm != null) parts.push(`${t('member.progress.chest')} ${entry.chestCm}`);
+    if (entry.waistCm != null) parts.push(`${t('member.progress.waist')} ${entry.waistCm}`);
+    if (entry.armCm != null) parts.push(`${t('member.progress.arm')} ${entry.armCm}`);
+    if (entry.thighCm != null) parts.push(`${t('member.progress.thigh')} ${entry.thighCm}`);
     return parts.join(' · ');
   };
 
   return (
     <Screen>
-      <NavBar large title="Weight & Measures" subtitle="Track your body progress" />
+      <NavBar large title={t('member.progress.title')} subtitle={t('member.progress.subtitle')} />
       <Button
-        label="Add Measurement"
+        label={t('member.progress.add')}
         icon="add"
         size="md"
         onPress={openAdd}
@@ -122,14 +124,14 @@ export function ProgressScreen() {
       {latest ? (
         <Card style={styles.latestCard}>
           <AppText variant="footnote" color={colors.secondaryLabel}>
-            LATEST — {formatShortDate(parseDateKey(latest.dateKey)).toUpperCase()}
+            {t('member.progress.latest', { date: formatShortDate(parseDateKey(latest.dateKey)) }).toUpperCase()}
           </AppText>
           <View style={styles.latestGrid}>
-            <Metric value={latest.weightKg != null ? `${latest.weightKg}` : '—'} unit="kg" label="Weight" />
-            <Metric value={latest.chestCm != null ? `${latest.chestCm}` : '—'} unit="cm" label="Chest" />
-            <Metric value={latest.waistCm != null ? `${latest.waistCm}` : '—'} unit="cm" label="Waist" />
-            <Metric value={latest.armCm != null ? `${latest.armCm}` : '—'} unit="cm" label="Arm" />
-            <Metric value={latest.thighCm != null ? `${latest.thighCm}` : '—'} unit="cm" label="Thigh" />
+            <Metric value={latest.weightKg != null ? `${latest.weightKg}` : '—'} unit={t('member.units.kg')} label={t('member.progress.weight')} />
+            <Metric value={latest.chestCm != null ? `${latest.chestCm}` : '—'} unit={t('member.units.cm')} label={t('member.progress.chest')} />
+            <Metric value={latest.waistCm != null ? `${latest.waistCm}` : '—'} unit={t('member.units.cm')} label={t('member.progress.waist')} />
+            <Metric value={latest.armCm != null ? `${latest.armCm}` : '—'} unit={t('member.units.cm')} label={t('member.progress.arm')} />
+            <Metric value={latest.thighCm != null ? `${latest.thighCm}` : '—'} unit={t('member.units.cm')} label={t('member.progress.thigh')} />
           </View>
           {latest.notes ? (
             <AppText variant="footnote" color={colors.secondaryLabel} style={{ marginTop: 10 }}>
@@ -141,17 +143,17 @@ export function ProgressScreen() {
         <Card>
           <EmptyState
             icon="body-outline"
-            title="No measurements yet"
-            message="Log your weight and body measurements to see your progress over time."
+            title={t('member.progress.noneTitle')}
+            message={t('member.progress.noneMsg')}
           />
         </Card>
       )}
 
       {weightEntries.length >= 2 ? (
         <Card style={styles.chartCard}>
-          <AppText variant="headline">Weight trend</AppText>
+          <AppText variant="headline">{t('member.progress.trend')}</AppText>
           <AppText variant="footnote" color={colors.secondaryLabel}>
-            Last {weightEntries.length} entries (kg)
+            {t('member.progress.lastEntries', { count: weightEntries.length })}
           </AppText>
           <BarChart data={weightEntries} baseline="min" barColor={colors.systemBlue} />
         </Card>
@@ -159,7 +161,7 @@ export function ProgressScreen() {
 
       {measurements.length > 0 ? (
         <View style={styles.history}>
-          <ListGroupHeader label="History" />
+          <ListGroupHeader label={t('member.progress.history')} />
           <ListGroup>
             {measurements.map((entry) => (
               <ListRow
@@ -174,7 +176,7 @@ export function ProgressScreen() {
                       handleDelete(entry);
                     }}
                     hitSlop={10}
-                    accessibilityLabel="Delete entry"
+                    accessibilityLabel={t('member.progress.deleteEntry')}
                   >
                     <Ionicons name="trash-outline" size={19} color={colors.systemRed} />
                   </Pressable>
@@ -189,13 +191,13 @@ export function ProgressScreen() {
 
       {selfies.length > 0 ? (
         <View style={styles.history}>
-          <ListGroupHeader label="Selfie timeline" />
+          <ListGroupHeader label={t('member.progress.selfieTimeline')} />
           <ListGroup>
             {selfies.map((entry) => (
               <ListRow
                 key={entry.id}
                 title={formatShortDate(parseDateKey(entry.dateKey))}
-                subtitle={entry.notes || 'Daily selfie'}
+                subtitle={entry.notes || t('member.selfie.daily')}
                 leading={
                   <Image
                     source={{ uri: entry.photoData }}
@@ -210,7 +212,7 @@ export function ProgressScreen() {
                       handleDeleteSelfie(entry);
                     }}
                     hitSlop={10}
-                    accessibilityLabel="Delete selfie"
+                    accessibilityLabel={t('member.selfie.deleteA11y')}
                   >
                     <Ionicons name="trash-outline" size={19} color={colors.systemRed} />
                   </Pressable>

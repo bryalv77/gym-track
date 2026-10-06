@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useTheme, type ThemePreference } from '../../theme/ThemeProvider';
 import {
   AppText,
@@ -7,6 +8,7 @@ import {
   Badge,
   Button,
   Card,
+  Chip,
   Ionicons,
   ListGroup,
   ListGroupHeader,
@@ -28,16 +30,22 @@ import {
 import { fetchOrCreateProfile } from '../../services/auth';
 import { firebaseAuth } from '../../config/firebase';
 import { pickAvatarDataUrl } from '../../utils/photo';
-
-const ROLE_LABELS: Record<string, string> = {
-  admin: 'Admin',
-  coach: 'Coach',
-  member: 'Member',
-};
+import { LANGUAGES, getLanguageOverride, setLanguage, type LanguageCode } from '../../i18n';
 
 /** Profile for every role: photo, name, password, appearance, sign out. */
 export function ProfileScreen() {
   const { colors, preference, setPreference } = useTheme();
+  const { t } = useTranslation();
+  const [languageOverride, setLanguageOverride] = useState<LanguageCode | null>(null);
+
+  useEffect(() => {
+    getLanguageOverride().then(setLanguageOverride);
+  }, []);
+
+  const chooseLanguage = (code: LanguageCode | null) => {
+    setLanguageOverride(code);
+    setLanguage(code);
+  };
   const dispatch = useAppDispatch();
   const profile = useAppSelector((state) => state.auth.profile);
   const gymName = useAppSelector((state) => selectGymName(state, profile?.gymId));
@@ -70,7 +78,7 @@ export function ProfileScreen() {
       }
     } catch (error) {
       console.warn('[ProfileScreen] name save failed', error);
-      setNameError('Could not save your name. Try again.');
+      setNameError(t('profile.nameError'));
     } finally {
       setSavingName(false);
     }
@@ -115,18 +123,18 @@ export function ProfileScreen() {
     setPasswordMessage(null);
     setPasswordError(false);
     if (currentPassword.length === 0 || newPassword.length < 6) {
-      setPasswordMessage('Enter your current password and a new one (min. 6 characters).');
+      setPasswordMessage(t('profile.passwordRequired'));
       setPasswordError(true);
       return;
     }
     setSavingPassword(true);
     try {
       await changeUserPassword(profile.email, currentPassword, newPassword);
-      setPasswordMessage('Password updated.');
+      setPasswordMessage(t('profile.passwordUpdated'));
       setCurrentPassword('');
       setNewPassword('');
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Could not change the password.';
+      const message = error instanceof Error ? error.message : t('profile.passwordFailed');
       setPasswordMessage(message);
       setPasswordError(true);
     } finally {
@@ -136,11 +144,11 @@ export function ProfileScreen() {
 
   return (
     <Screen>
-      <NavBar large title="Profile" subtitle="Your account" />
+      <NavBar large title={t('profile.title')} subtitle={t('profile.subtitle')} />
 
       <Card style={styles.headerCard}>
         <View style={styles.headerRow}>
-          <Pressable onPress={handleChangePhoto} disabled={photoBusy} accessibilityLabel="Change photo">
+          <Pressable onPress={handleChangePhoto} disabled={photoBusy} accessibilityLabel={t('profile.changePhoto')}>
             <View>
               <Avatar name={profile.name} size={84} photoUrl={profile.photoData} />
               <View
@@ -163,17 +171,17 @@ export function ProfileScreen() {
               {profile.email}
             </AppText>
             <View style={styles.badgeRow}>
-              <Badge label={ROLE_LABELS[profile.role] ?? 'Member'} variant={profile.role === 'admin' ? 'orange' : profile.role === 'coach' ? 'blue' : 'green'} />
+              <Badge label={t(`profile.roles.${profile.role}`)} variant={profile.role === 'admin' ? 'orange' : profile.role === 'coach' ? 'blue' : 'green'} />
               {profile.gymId ? <Badge label={gymName} variant="neutral" /> : null}
             </View>
           </View>
         </View>
         {profile.photoData ? (
-          <Button label="Remove photo" variant="plain" size="sm" onPress={handleRemovePhoto} disabled={photoBusy} />
+          <Button label={t('profile.removePhoto')} variant="plain" size="sm" onPress={handleRemovePhoto} disabled={photoBusy} />
         ) : null}
       </Card>
 
-      <ListGroupHeader label="Name" />
+      <ListGroupHeader label={t('profile.name')} />
       <Card style={styles.sectionCard}>
         <TextField
           value={name}
@@ -184,7 +192,7 @@ export function ProfileScreen() {
           error={nameError}
         />
         <Button
-          label="Save name"
+          label={t('profile.saveName')}
           variant="tinted"
           size="md"
           onPress={handleSaveName}
@@ -193,29 +201,51 @@ export function ProfileScreen() {
         />
       </Card>
 
-      <ListGroupHeader label="Appearance" />
+      <ListGroupHeader label={t('profile.appearance')} />
       <Card style={styles.sectionCard}>
         <AppText variant="footnote" color={colors.secondaryLabel}>
-          Dark mode follows System by default until you pick a style.
+          {t('profile.appearanceHint')}
         </AppText>
         <SegmentedControl
-          options={['System', 'Light', 'Dark']}
+          options={[t('profile.themes.system'), t('profile.themes.light'), t('profile.themes.dark')]}
           selectedIndex={['system', 'light', 'dark'].indexOf(preference)}
           onChange={(index) => setPreference((['system', 'light', 'dark'] as ThemePreference[])[index])}
         />
       </Card>
 
-      <ListGroupHeader label="Change password" />
+      <ListGroupHeader label={t('profile.language')} />
+      <Card style={styles.sectionCard}>
+        <AppText variant="footnote" color={colors.secondaryLabel}>
+          {t('profile.languageHint')}
+        </AppText>
+        <View style={styles.languageChips}>
+          <Chip
+            label={t('profile.systemDefault')}
+            selected={languageOverride === null}
+            onPress={() => chooseLanguage(null)}
+          />
+          {LANGUAGES.map((language) => (
+            <Chip
+              key={language.code}
+              label={language.label}
+              selected={languageOverride === language.code}
+              onPress={() => chooseLanguage(language.code)}
+            />
+          ))}
+        </View>
+      </Card>
+
+      <ListGroupHeader label={t('profile.changePassword')} />
       <Card style={styles.sectionCard}>
         <TextField
-          label="Current password"
+          label={t('profile.currentPassword')}
           placeholder="••••••••"
           value={currentPassword}
           onChangeText={setCurrentPassword}
           secureTextEntry
         />
         <TextField
-          label="New password"
+          label={t('profile.newPassword')}
           placeholder="••••••••"
           value={newPassword}
           onChangeText={setNewPassword}
@@ -227,7 +257,7 @@ export function ProfileScreen() {
           </AppText>
         ) : null}
         <Button
-          label="Update password"
+          label={t('profile.updatePassword')}
           variant="tinted"
           size="md"
           onPress={handleChangePassword}
@@ -235,10 +265,10 @@ export function ProfileScreen() {
         />
       </Card>
 
-      <ListGroupHeader label="Session" />
+      <ListGroupHeader label={t('profile.session')} />
       <ListGroup>
         <ListRow
-          title="Sign out"
+          title={t('profile.signOut')}
           icon={{ name: 'log-out-outline', color: colors.systemRed, background: colors.redTint }}
           destructive
           onPress={() => dispatch(signOutThunk())}
@@ -264,4 +294,5 @@ const styles = StyleSheet.create({
   },
   badgeRow: { flexDirection: 'row', gap: 8, marginTop: 6 },
   sectionCard: { gap: 12 },
+  languageChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
 });

@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../theme';
 import {
   AppText,
@@ -26,6 +27,7 @@ import type { Assignment } from '../../types';
 /** Coach planner: browse a day, assign library exercises to members
  *  individually, edit the prescription or unassign. */
 export function PlanScreen() {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const profile = useAppSelector((state) => state.auth.profile);
   const gymMembers = useAppSelector((state) =>
@@ -96,8 +98,8 @@ export function PlanScreen() {
     <Screen>
       <NavBar
         large
-        title="Workout Plan"
-        subtitle={isToday(selectedDate) ? 'Today' : 'Plan any day'}
+        title={t('coach.plan.title')}
+        subtitle={isToday(selectedDate) ? t('coach.plan.today') : t('coach.plan.anyDay')}
       />
       <DatePager
         date={selectedDate}
@@ -109,7 +111,7 @@ export function PlanScreen() {
         {gymMembers.length > 0 ? (
           <View style={styles.filterRow}>
             <Chip
-              label="All members"
+              label={t('coach.plan.allMembers')}
               selected={memberFilter === 'all'}
               onPress={() => setMemberFilter('all')}
             />
@@ -126,26 +128,26 @@ export function PlanScreen() {
         <SearchField
           value={query}
           onChangeText={setQuery}
-          placeholder="Search exercise or member"
+          placeholder={t('coach.plan.searchPlaceholder')}
         />
       </View>
 
       <AppText variant="footnote" color={colors.secondaryLabel} style={styles.summary}>
         {visibleAssignments.length === 0
           ? query.length > 0
-            ? 'No assignments match your search.'
-            : 'No exercises assigned for this day yet.'
-          : `${visibleAssignments.length} assignment${visibleAssignments.length === 1 ? '' : 's'} for this day.`}
+            ? t('coach.plan.noMatch')
+            : t('coach.plan.noneForDay')
+          : t('coach.plan.summary', { count: visibleAssignments.length })}
       </AppText>
 
       {visibleAssignments.length === 0 ? (
         <EmptyState
           icon="calendar-outline"
-          title={query.length > 0 ? 'No results' : 'Empty day'}
+          title={query.length > 0 ? t('coach.plan.noResults') : t('coach.plan.emptyDay')}
           message={
             query.length > 0
-              ? 'Try another name or exercise.'
-              : 'Assign an exercise to a member — they will see it instantly on their Today tab.'
+              ? t('coach.plan.tryAnother')
+              : t('coach.plan.emptyMessage')
           }
         />
       ) : (
@@ -160,11 +162,11 @@ export function PlanScreen() {
         </ListGroup>
       )}
       {visibleAssignments.length > 0 ? (
-        <ListGroupFooter label="Tap an assignment to change the prescription or unassign it." />
+        <ListGroupFooter label={t('coach.plan.footer')} />
       ) : null}
 
       <Button
-        label="Assign Exercise"
+        label={t('coach.plan.assignButton')}
         icon="add"
         size="md"
         onPress={() => openAssign(memberFilter === 'all' ? null : memberFilter)}
@@ -190,6 +192,7 @@ function AssignmentRow({
   onPress: () => void;
 }) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const exercise = useAppSelector((state) =>
     selectExerciseById(state, assignment.exerciseId),
   );
@@ -199,8 +202,8 @@ function AssignmentRow({
 
   return (
     <ListRow
-      title={exercise?.name ?? 'Exercise'}
-      subtitle={`${member?.name ?? 'Member'} · ${summary}${assignment.notes ? `\n${assignment.notes}` : ''}`}
+      title={exercise?.name ?? t('coach.plan.exerciseFallback')}
+      subtitle={`${member?.name ?? t('coach.plan.memberFallback')} · ${summary}${assignment.notes ? `\n${assignment.notes}` : ''}`}
       icon={
         isCardio
           ? {
@@ -210,7 +213,7 @@ function AssignmentRow({
             }
           : { name: 'barbell-outline' }
       }
-      leading={<Avatar name={member?.name ?? 'Member'} size={34} photoUrl={member?.photoData} />}
+      leading={<Avatar name={member?.name ?? t('coach.plan.memberFallback')} size={34} photoUrl={member?.photoData} />}
       chevron
       onPress={onPress}
     />

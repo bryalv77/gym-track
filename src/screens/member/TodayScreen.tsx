@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Image, Pressable, StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { radius, useTheme } from '../../theme';
 import {
   AppText,
@@ -36,6 +37,7 @@ import type { Assignment, Completion } from '../../types';
 /** Member home: their personalized exercises for the day, one checkbox each. */
 export function TodayScreen() {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const profile = useAppSelector((state) => state.auth.profile);
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [detailAssignmentId, setDetailAssignmentId] = useState<string | null>(null);
@@ -104,8 +106,8 @@ export function TodayScreen() {
   const handleDeleteSelfie = () => {
     if (!selfie) return;
     confirmAction(
-      'Delete Selfie',
-      'This selfie will be permanently removed.',
+      t('member.selfie.deleteTitle'),
+      t('member.selfie.deleteMessage'),
       async () => {
         try {
           await deleteSelfie(profile.uid, selfie.id);
@@ -120,8 +122,8 @@ export function TodayScreen() {
     <Screen>
       <NavBar
         large
-        title="Today"
-        subtitle={`Welcome back, ${profile.name.split(' ')[0]}`}
+        title={t('member.today.title')}
+        subtitle={t('member.today.welcome', { name: profile.name.split(' ')[0] })}
       />
       <DatePager date={selectedDate} onChange={setSelectedDate} markedDays={markedDays} />
 
@@ -129,11 +131,11 @@ export function TodayScreen() {
         <Card>
           <EmptyState
             icon="barbell-outline"
-            title={isToday(selectedDate) ? 'No exercises yet' : 'Nothing planned'}
+            title={isToday(selectedDate) ? t('member.today.noExercises') : t('member.today.nothingPlanned')}
             message={
               isToday(selectedDate)
-                ? "Your coach hasn't posted your workout yet. Check back later."
-                : 'No workout was planned for you on this day.'
+                ? t('member.today.noExercisesMsg')
+                : t('member.today.nothingPlannedMsg')
             }
           />
         </Card>
@@ -142,12 +144,16 @@ export function TodayScreen() {
           <View style={styles.progressHeader}>
             <View style={{ flex: 1 }}>
               <AppText variant="headline">
-                {allDone ? 'All done — great work!' : `${doneCount} of ${assignments.length} done`}
+                {allDone
+                  ? t('member.today.allDone')
+                  : t('member.today.progress', { done: doneCount, total: assignments.length })}
               </AppText>
               <AppText variant="footnote" color={colors.secondaryLabel}>
                 {allDone
-                  ? 'Every exercise checked off for this day.'
-                  : `${Math.round((doneCount / assignments.length) * 100)}% complete`}
+                  ? t('member.today.allDoneMsg')
+                  : t('member.today.percent', {
+                      percent: Math.round((doneCount / assignments.length) * 100),
+                    })}
               </AppText>
             </View>
             <View
@@ -171,9 +177,9 @@ export function TodayScreen() {
             <Ionicons name="flame" size={16} color={colors.systemOrange} />
             <AppText variant="footnote" color={colors.secondaryLabel}>
               ≈ <AppText variant="footnote" style={{ color: colors.systemOrange, fontWeight: '700' }}>
-                {burnedKcal} kcal
+                {t('member.today.kcal', { kcal: burnedKcal })}
               </AppText>{' '}
-              burned from {doneCount} completed {doneCount === 1 ? 'exercise' : 'exercises'} (estimated)
+              {t('member.today.burned', { count: doneCount })}
             </AppText>
           </View>
         </Card>
@@ -184,20 +190,20 @@ export function TodayScreen() {
           <>
             <View style={styles.selfieHeader}>
               <AppText variant="footnote" color={colors.secondaryLabel}>
-                DAILY SELFIE
+                {t('member.selfie.header')}
               </AppText>
               <View style={styles.selfieActions}>
                 <Pressable
                   onPress={() => setSelfieModalVisible(true)}
                   hitSlop={10}
-                  accessibilityLabel="Edit selfie"
+                  accessibilityLabel={t('member.selfie.editA11y')}
                 >
                   <Ionicons name="pencil" size={18} color={colors.systemBlue} />
                 </Pressable>
                 <Pressable
                   onPress={handleDeleteSelfie}
                   hitSlop={10}
-                  accessibilityLabel="Delete selfie"
+                  accessibilityLabel={t('member.selfie.deleteA11y')}
                 >
                   <Ionicons name="trash-outline" size={18} color={colors.systemRed} />
                 </Pressable>
@@ -214,14 +220,14 @@ export function TodayScreen() {
           <>
             <View style={styles.selfieHeader}>
               <AppText variant="footnote" color={colors.secondaryLabel}>
-                DAILY SELFIE
+                {t('member.selfie.header')}
               </AppText>
               <AppText variant="footnote" color={colors.tertiaryLabel}>
-                Optional
+                {t('common.optional')}
               </AppText>
             </View>
             <Button
-              label={isToday(selectedDate) ? "Take today's selfie" : 'Add a selfie'}
+              label={isToday(selectedDate) ? t('member.selfie.takeToday') : t('member.selfie.add')}
               icon="camera"
               variant="tinted"
               size="md"
@@ -246,7 +252,7 @@ export function TodayScreen() {
             ))}
           </ListGroup>
           <AppText variant="caption1" color={colors.tertiaryLabel} style={styles.hint}>
-            Tap an exercise to see the demo video and your coach’s notes.
+            {t('member.today.hint')}
           </AppText>
         </View>
       ) : null}
@@ -286,20 +292,23 @@ function AssignmentRow({
   onOpenDetail: () => void;
 }) {
   const { colors } = useTheme();
+  const { t, i18n } = useTranslation();
   const exercise = useAppSelector((state) =>
     selectExerciseById(state, assignment.exerciseId),
   );
   const done = completion != null;
   const summary = exercise ? formatMetrics(exercise.metricFields, assignment.metrics) : '';
   const doneAt = done
-    ? ` · done at ${new Date(completion.completedAt).toLocaleTimeString(undefined, {
-        hour: '2-digit',
-        minute: '2-digit',
+    ? ` · ${t('member.today.doneAt', {
+        time: new Date(completion.completedAt).toLocaleTimeString(i18n.language, {
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
       })}`
     : '';
   const subtitle = done
-    ? `${summary}${doneAt} · ~${kcal} kcal`
-    : `${summary} · ~${kcal} kcal${assignment.notes ? `\n${assignment.notes}` : ''}`;
+    ? `${summary}${doneAt} · ~${kcal} ${t('member.units.kcal')}`
+    : `${summary} · ~${kcal} ${t('member.units.kcal')}${assignment.notes ? `\n${assignment.notes}` : ''}`;
   const icon =
     exercise?.type === 'cardio'
       ? {
@@ -315,7 +324,7 @@ function AssignmentRow({
 
   return (
     <ListRow
-      title={exercise?.name ?? 'Exercise'}
+      title={exercise?.name ?? t('member.today.exercise')}
       subtitle={subtitle}
       icon={icon}
       dimmed={done}

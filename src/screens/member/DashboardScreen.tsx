@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { radius, useTheme } from '../../theme';
 import {
   AppText,
@@ -31,6 +32,7 @@ import type { ThemeColors } from '../../theme';
 /** Member dashboard: streak, calories, weekly charts and history. */
 export function DashboardScreen() {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const profile = useAppSelector((state) => state.auth.profile);
   const completionDays = useAppSelector((state) =>
     profile ? selectCompletionDays(state, profile.uid) : {},
@@ -111,38 +113,38 @@ export function DashboardScreen() {
 
   return (
     <Screen>
-      <NavBar large title="Dashboard" subtitle="Your training activity" />
+      <NavBar large title={t('member.dashboard.title')} subtitle={t('member.dashboard.subtitle')} />
 
       <View style={styles.statsGrid}>
-        <StatCard colors={colors} icon="flame" tint={colors.systemOrange} value={`${totals.streak}`} label="Day streak" />
-        <StatCard colors={colors} icon="checkmark-done-outline" tint={colors.systemGreen} value={`${totals.totalDone}`} label="Exercises done" />
-        <StatCard colors={colors} icon="calendar-outline" tint={colors.systemBlue} value={`${totals.weekCount}`} label="This week" />
-        <StatCard colors={colors} icon="flash-outline" tint={colors.systemRed} value={`${totals.kcalThisWeek}`} label="kcal this week" />
+        <StatCard colors={colors} icon="flame" tint={colors.systemOrange} value={`${totals.streak}`} label={t('member.dashboard.dayStreak')} />
+        <StatCard colors={colors} icon="checkmark-done-outline" tint={colors.systemGreen} value={`${totals.totalDone}`} label={t('member.dashboard.exercisesDone')} />
+        <StatCard colors={colors} icon="calendar-outline" tint={colors.systemBlue} value={`${totals.weekCount}`} label={t('member.dashboard.thisWeek')} />
+        <StatCard colors={colors} icon="flash-outline" tint={colors.systemRed} value={`${totals.kcalThisWeek}`} label={t('member.dashboard.kcalThisWeek')} />
       </View>
 
       <Card style={styles.chartCard}>
-        <AppText variant="headline">Last 7 days</AppText>
+        <AppText variant="headline">{t('member.dashboard.last7')}</AppText>
         <AppText variant="footnote" color={colors.secondaryLabel}>
-          Exercises completed per day
+          {t('member.dashboard.perDay')}
         </AppText>
         <BarChart data={totals.last7} highlightColor={colors.systemGreen} />
       </Card>
 
       <Card style={styles.chartCard}>
-        <AppText variant="headline">Calories burned</AppText>
+        <AppText variant="headline">{t('member.dashboard.caloriesBurned')}</AppText>
         <AppText variant="footnote" color={colors.secondaryLabel}>
-          Estimated kcal per day — last 7 days
+          {t('member.dashboard.kcalPerDay')}
         </AppText>
         <BarChart data={totals.kcal7} barColor={colors.systemOrange} highlightColor={colors.systemRed} />
       </Card>
 
-      <ListGroupHeader label="History — last 30 days" />
+      <ListGroupHeader label={t('member.dashboard.history')} />
       {history.length === 0 ? (
         <Card>
           <EmptyState
             icon="stats-chart-outline"
-            title="No activity yet"
-            message="Check off exercises on the Today tab and your history will appear here."
+            title={t('member.dashboard.noActivity')}
+            message={t('member.dashboard.noActivityMsg')}
           />
         </Card>
       ) : (
@@ -158,6 +160,7 @@ export function DashboardScreen() {
 
 function HistoryRow({ date, dateKey, kcal }: { date: Date; dateKey: string; kcal: number }) {
   const { colors } = useTheme();
+  const { t, i18n } = useTranslation();
   const profile = useAppSelector((state) => state.auth.profile);
   const assignments = useAppSelector((state) =>
     profile ? selectMemberAssignments(state, dateKey, profile.uid) : [],
@@ -183,9 +186,15 @@ function HistoryRow({ date, dateKey, kcal }: { date: Date; dateKey: string; kcal
       title={formatShortDate(date)}
       subtitle={
         firstName
-          ? `${firstName}${done > 1 ? ` +${done - 1} more` : ''} · ≈${kcal} kcal · at ${new Date(
-              lastCompletedAt,
-            ).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}`
+          ? t('member.dashboard.historySubtitle', {
+              name: firstName,
+              more: done > 1 ? t('member.dashboard.more', { count: done - 1 }) : '',
+              kcal,
+              time: new Date(lastCompletedAt).toLocaleTimeString(i18n.language, {
+                hour: '2-digit',
+                minute: '2-digit',
+              }),
+            })
           : undefined
       }
       value={`${done}/${assignments.length || done}`}

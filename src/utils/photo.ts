@@ -1,5 +1,6 @@
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
+import i18n from '../i18n';
 
 async function toDataUrl(uri: string, width: number, compress: number): Promise<string> {
   const manipulated = await ImageManipulator.manipulateAsync(
@@ -8,7 +9,7 @@ async function toDataUrl(uri: string, width: number, compress: number): Promise<
     { format: ImageManipulator.SaveFormat.JPEG, compress, base64: true },
   );
   if (manipulated.base64) return `data:image/jpeg;base64,${manipulated.base64}`;
-  throw new Error('Could not process the selected image.');
+  throw new Error(i18n.t('library.photo.processFailed'));
 }
 
 function assetToDataUrl(asset: ImagePicker.ImagePickerAsset): string | null {
@@ -25,7 +26,7 @@ function assetToDataUrl(asset: ImagePicker.ImagePickerAsset): string | null {
 export async function pickAvatarDataUrl(): Promise<string | null> {
   const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
   if (!permission.granted) {
-    throw new Error('Photo library permission is required to change your picture.');
+    throw new Error(i18n.t('library.photo.libraryAvatar'));
   }
   const result = await ImagePicker.launchImageLibraryAsync({
     mediaTypes: ['images'],
@@ -43,7 +44,7 @@ export async function pickAvatarDataUrl(): Promise<string | null> {
   }
   const fallback = assetToDataUrl(asset);
   if (fallback) return fallback;
-  throw new Error('Could not process the selected image.');
+  throw new Error(i18n.t('library.photo.processFailed'));
 }
 
 /**
@@ -56,7 +57,7 @@ export async function pickSelfieDataUrl(source: 'camera' | 'library' = 'library'
   if (source === 'camera') {
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted) {
-      throw new Error('Camera permission is required to take a selfie.');
+      throw new Error(i18n.t('library.photo.camera'));
     }
     result = await ImagePicker.launchCameraAsync({
       mediaTypes: ['images'],
@@ -67,7 +68,7 @@ export async function pickSelfieDataUrl(source: 'camera' | 'library' = 'library'
   } else {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
-      throw new Error('Photo library permission is required to add a selfie.');
+      throw new Error(i18n.t('library.photo.librarySelfie'));
     }
     result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
@@ -86,5 +87,5 @@ export async function pickSelfieDataUrl(source: 'camera' | 'library' = 'library'
   }
   const fallback = assetToDataUrl(asset);
   if (fallback) return fallback;
-  throw new Error('Could not process the selected image.');
+  throw new Error(i18n.t('library.photo.processFailed'));
 }

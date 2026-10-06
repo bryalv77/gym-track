@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../theme';
 import { AppText, Button, SheetModal, TextField } from '../ui';
 import { createGym, renameGym } from '../services/gyms';
@@ -17,6 +18,7 @@ export function GymFormModal({
   gym: Gym | null;
 }) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const [name, setName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -29,7 +31,7 @@ export function GymFormModal({
 
   const handleSave = async () => {
     if (name.trim().length === 0) {
-      setError('Give the gym a name.');
+      setError(t('admin.gymForm.nameRequired'));
       return;
     }
     setSaving(true);
@@ -43,7 +45,7 @@ export function GymFormModal({
       onClose();
     } catch (saveError) {
       console.warn('[GymFormModal] save failed', saveError);
-      setError('Could not save. Check your connection and rules.');
+      setError(t('admin.gymForm.saveFailed'));
     } finally {
       setSaving(false);
     }
@@ -53,10 +55,10 @@ export function GymFormModal({
     <SheetModal
       visible={visible}
       onClose={onClose}
-      title={gym ? 'Rename Gym' : 'New Gym'}
+      title={gym ? t('admin.gymForm.renameTitle') : t('admin.gymForm.newTitle')}
       footer={
         <Button
-          label={gym ? 'Save Changes' : 'Create Gym'}
+          label={gym ? t('admin.gymForm.saveChanges') : t('admin.gymForm.create')}
           onPress={handleSave}
           loading={saving}
         />
@@ -64,8 +66,8 @@ export function GymFormModal({
     >
       <View style={styles.form}>
         <TextField
-          label="Gym name"
-          placeholder="e.g. Gimnasio Central"
+          label={t('admin.gymForm.nameLabel')}
+          placeholder={t('admin.gymForm.namePlaceholder')}
           value={name}
           onChangeText={setName}
           autoCapitalize="words"

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { radius, useTheme } from '../theme';
 import { Button, Ionicons } from '../ui';
 import type { Exercise } from '../types';
@@ -9,6 +10,7 @@ import { openExternalUrl } from '../utils/link';
  *  "watch demo" button that opens the video link externally. */
 export function ExerciseMediaView({ exercise }: { exercise: Exercise }) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const [failed, setFailed] = useState(false);
   const showImage = exercise.imageUrl != null && exercise.imageUrl.length > 0 && !failed;
 
@@ -28,7 +30,7 @@ export function ExerciseMediaView({ exercise }: { exercise: Exercise }) {
       )}
       {exercise.videoUrl ? (
         <Button
-          label="Watch demo video"
+          label={t('library.media.watchDemo')}
           icon="play-circle-outline"
           variant="tinted"
           size="md"

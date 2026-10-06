@@ -12,28 +12,13 @@ import {
 import { get, ref, set } from 'firebase/database';
 import { db, firebaseAuth } from '../config/firebase';
 import type { Role, UserProfile } from '../types';
+import i18n from '../i18n';
 
-const AUTH_ERRORS: Record<string, string> = {
-  'auth/invalid-email': 'That email address looks invalid.',
-  'auth/user-not-found': 'No account found with this email.',
-  'auth/wrong-password': 'Incorrect password.',
-  'auth/invalid-credential': 'Invalid email or password.',
-  'auth/invalid-login-credentials': 'Invalid email or password.',
-  'auth/email-already-in-use': 'An account with this email already exists.',
-  'auth/weak-password': 'Password must be at least 6 characters.',
-  'auth/too-many-requests': 'Too many attempts. Please wait a moment and try again.',
-  'auth/network-request-failed': 'Network error. Check your connection and try again.',
-  'auth/invalid-api-key': 'Firebase is not configured yet. See README.md for setup steps.',
-  'auth/configuration-not-found':
-    'Email/Password sign-in is not enabled yet. Open the Firebase console → Authentication → Sign-in method → Email/Password → Enable.',
-  'auth/admin-restricted-operation':
-    'Sign-ups are restricted. Enable Email/Password in the Firebase console (Authentication → Sign-in method).',
-};
-
-/** Maps a Firebase AuthError code to a human-readable message. */
+/** Maps a Firebase AuthError code to a localized, human-readable message. */
 export function authErrorMessage(error: unknown): string {
   const code = (error as { code?: string } | null | undefined)?.code ?? '';
-  return AUTH_ERRORS[code] ?? 'Something went wrong. Please try again.';
+  const key = `common.authErrors.${code}`;
+  return i18n.exists(key) ? i18n.t(key) : i18n.t('common.authErrors.default');
 }
 
 export async function signIn(email: string, password: string): Promise<void> {
@@ -146,7 +131,7 @@ export async function changeUserPassword(
   } catch (error) {
     const code = (error as { code?: string }).code ?? '';
     if (code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
-      throw new Error('Your current password is incorrect.');
+      throw new Error(i18n.t('common.authErrors.currentPasswordIncorrect'));
     }
     throw error;
   }

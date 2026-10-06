@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { radius, useTheme } from '../theme';
 import { AppText, CalendarMonth, Ionicons, SheetModal } from '../ui';
 import { addDays, formatFullDate, isToday } from '../utils/date';
@@ -20,6 +21,7 @@ export function DatePager({
   markedDays?: Set<string>;
 }) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const [calendarVisible, setCalendarVisible] = useState(false);
   const today = new Date();
   const canGoForward =
@@ -34,7 +36,7 @@ export function DatePager({
           pressed && { opacity: 0.5 },
         ]}
         onPress={() => onChange(addDays(date, -1))}
-        accessibilityLabel="Previous day"
+        accessibilityLabel={t('member.datePager.previous')}
       >
         <Ionicons name="chevron-back" size={16} color={colors.systemBlue} />
       </Pressable>
@@ -46,7 +48,7 @@ export function DatePager({
           pressed && { opacity: 0.6 },
         ]}
         onPress={() => setCalendarVisible(true)}
-        accessibilityLabel="Open calendar"
+        accessibilityLabel={t('member.datePager.openCalendar')}
         accessibilityRole="button"
       >
         <AppText variant="subheadline" style={{ fontWeight: '600' }}>
@@ -54,7 +56,7 @@ export function DatePager({
         </AppText>
         {isToday(date) ? (
           <AppText variant="caption2" color={colors.systemGreen}>
-            Today
+            {t('member.datePager.today')}
           </AppText>
         ) : null}
       </Pressable>
@@ -67,7 +69,7 @@ export function DatePager({
         ]}
         onPress={() => onChange(addDays(date, 1))}
         disabled={!canGoForward}
-        accessibilityLabel="Next day"
+        accessibilityLabel={t('member.datePager.next')}
       >
         <Ionicons
           name="chevron-forward"
@@ -79,7 +81,7 @@ export function DatePager({
       <SheetModal
         visible={calendarVisible}
         onClose={() => setCalendarVisible(false)}
-        title="Pick a day"
+        title={t('member.datePager.pick')}
       >
         <CalendarMonth
           selectedDate={date}

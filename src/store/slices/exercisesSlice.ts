@@ -1,4 +1,5 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import { metricLabel } from '../../utils/exercisePresets';
 import { asNumber, asOptionalString, asString, isRecord } from '../../utils/guards';
 import type { Exercise, ExercisesById, ExerciseType, MetricField } from '../../types';
 
@@ -89,7 +90,7 @@ export function formatMetrics(
     .map((field) => {
       const value = metrics[field.key];
       if (field.unit.length > 0) return `${value ?? '—'} ${field.unit}`;
-      return `${value ?? '—'} ${field.label}`.trim();
+      return `${value ?? '—'} ${metricLabel(field)}`.trim();
     })
     .join(' · ');
 }

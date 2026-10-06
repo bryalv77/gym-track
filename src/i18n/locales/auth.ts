@@ -1,0 +1,117 @@
+export const auth = {
+  en: {
+    "signIn": "Sign In",
+    "tagline": "Train. Track. Progress.",
+    "firebaseWarning": "Firebase is not configured yet — add your keys in src/config/firebase.ts (see README.md).",
+    "email": "Email",
+    "emailPlaceholder": "you@example.com",
+    "password": "Password",
+    "createAccountLink": "Create an account",
+    "createAccount": "Create Account",
+    "name": "Name",
+    "namePlaceholder": "Brian Alvarez",
+    "passwordMin": "Password (min. 6 characters)",
+    "yourGym": "YOUR GYM",
+    "coachCode": "Coach code (optional)",
+    "coachCodePlaceholder": "Coaches only",
+    "coachCodeHint": "Leave the coach code empty to create a member account. Ask your gym for the code if you are the coach.",
+    "coachSeesNote": "Your coach sees your daily checkmarks, streak and body measurements.",
+    "errors": {
+      "fillFields": "Fill in your name, email and a password of at least 6 characters.",
+      "invalidCoachCode": "That coach code is not valid. Leave it empty to join as a member.",
+      "chooseGym": "Choose your gym to continue."
+    }
+  },
+  es: {
+    "signIn": "Iniciar sesión",
+    "tagline": "Entrena. Registra. Progresa.",
+    "firebaseWarning": "Firebase aún no está configurado — añade tus claves en src/config/firebase.ts (ver README.md).",
+    "email": "Correo electrónico",
+    "emailPlaceholder": "tu@ejemplo.com",
+    "password": "Contraseña",
+    "createAccountLink": "Crear una cuenta",
+    "createAccount": "Crear cuenta",
+    "name": "Nombre",
+    "namePlaceholder": "Brian Alvarez",
+    "passwordMin": "Contraseña (mín. 6 caracteres)",
+    "yourGym": "TU GIMNASIO",
+    "coachCode": "Código de entrenador (opcional)",
+    "coachCodePlaceholder": "Solo entrenadores",
+    "coachCodeHint": "Deja el código de entrenador vacío para crear una cuenta de miembro. Pide el código a tu gimnasio si eres entrenador.",
+    "coachSeesNote": "Tu entrenador ve tus marcas diarias, tu racha y tus medidas corporales.",
+    "errors": {
+      "fillFields": "Introduce tu nombre, correo y una contraseña de al menos 6 caracteres.",
+      "invalidCoachCode": "Ese código de entrenador no es válido. Déjalo vacío para unirte como miembro.",
+      "chooseGym": "Elige tu gimnasio para continuar."
+    }
+  },
+  pt: {
+    "signIn": "Entrar",
+    "tagline": "Treine. Registre. Evolua.",
+    "firebaseWarning": "O Firebase ainda não está configurado — adicione suas chaves em src/config/firebase.ts (veja o README.md).",
+    "email": "E-mail",
+    "emailPlaceholder": "voce@exemplo.com",
+    "password": "Senha",
+    "createAccountLink": "Criar uma conta",
+    "createAccount": "Criar conta",
+    "name": "Nome",
+    "namePlaceholder": "Brian Alvarez",
+    "passwordMin": "Senha (mín. 6 caracteres)",
+    "yourGym": "SUA ACADEMIA",
+    "coachCode": "Código de treinador (opcional)",
+    "coachCodePlaceholder": "Somente treinadores",
+    "coachCodeHint": "Deixe o código de treinador vazio para criar uma conta de membro. Peça o código à sua academia se você for treinador.",
+    "coachSeesNote": "Seu treinador vê suas marcações diárias, sequência e medidas corporais.",
+    "errors": {
+      "fillFields": "Preencha seu nome, e-mail e uma senha de pelo menos 6 caracteres.",
+      "invalidCoachCode": "Esse código de treinador não é válido. Deixe vazio para entrar como membro.",
+      "chooseGym": "Escolha sua academia para continuar."
+    }
+  },
+  de: {
+    "signIn": "Anmelden",
+    "tagline": "Trainieren. Tracken. Fortschritt.",
+    "firebaseWarning": "Firebase ist noch nicht konfiguriert — trage deine Schlüssel in src/config/firebase.ts ein (siehe README.md).",
+    "email": "E-Mail",
+    "emailPlaceholder": "du@beispiel.de",
+    "password": "Passwort",
+    "createAccountLink": "Konto erstellen",
+    "createAccount": "Konto erstellen",
+    "name": "Name",
+    "namePlaceholder": "Brian Alvarez",
+    "passwordMin": "Passwort (mind. 6 Zeichen)",
+    "yourGym": "DEIN STUDIO",
+    "coachCode": "Trainer-Code (optional)",
+    "coachCodePlaceholder": "Nur für Trainer",
+    "coachCodeHint": "Lass den Trainer-Code leer, um ein Mitgliedskonto zu erstellen. Frag dein Studio nach dem Code, falls du Trainer bist.",
+    "coachSeesNote": "Dein Trainer sieht deine täglichen Häkchen, deine Serie und deine Körpermaße.",
+    "errors": {
+      "fillFields": "Gib deinen Namen, deine E-Mail und ein Passwort mit mindestens 6 Zeichen ein.",
+      "invalidCoachCode": "Dieser Trainer-Code ist ungültig. Lass ihn leer, um als Mitglied beizutreten.",
+      "chooseGym": "Wähle dein Studio, um fortzufahren."
+    }
+  },
+  fr: {
+    "signIn": "Se connecter",
+    "tagline": "T'entraîner. Suivre. Progresser.",
+    "firebaseWarning": "Firebase n'est pas encore configuré — ajoute tes clés dans src/config/firebase.ts (voir README.md).",
+    "email": "E-mail",
+    "emailPlaceholder": "toi@exemple.com",
+    "password": "Mot de passe",
+    "createAccountLink": "Créer un compte",
+    "createAccount": "Créer le compte",
+    "name": "Nom",
+    "namePlaceholder": "Brian Alvarez",
+    "passwordMin": "Mot de passe (6 caractères min.)",
+    "yourGym": "TA SALLE",
+    "coachCode": "Code coach (facultatif)",
+    "coachCodePlaceholder": "Réservé aux coachs",
+    "coachCodeHint": "Laisse le code coach vide pour créer un compte membre. Demande le code à ta salle si tu es coach.",
+    "coachSeesNote": "Ton coach voit tes validations quotidiennes, ta série et tes mesures corporelles.",
+    "errors": {
+      "fillFields": "Renseigne ton nom, ton e-mail et un mot de passe d'au moins 6 caractères.",
+      "invalidCoachCode": "Ce code coach n'est pas valide. Laisse-le vide pour rejoindre en tant que membre.",
+      "chooseGym": "Choisis ta salle pour continuer."
+    }
+  },
+} as Record<'en' | 'es' | 'pt' | 'de' | 'fr', Record<string, any>>;

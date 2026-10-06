@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../theme';
 import {
   AppText,
@@ -24,6 +25,7 @@ type SortMode = 'name' | 'activity';
 
 /** Coach directory: members of their gym, searchable and sortable. */
 export function MembersScreen() {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const profile = useAppSelector((state) => state.auth.profile);
   const members = useAppSelector((state) => selectGymMembers(state, profile?.gymId));
@@ -60,16 +62,16 @@ export function MembersScreen() {
     <Screen>
       <NavBar
         large
-        title="My Members"
-        subtitle={`${members.length} member${members.length === 1 ? '' : 's'}`}
+        title={t('coach.members.title')}
+        subtitle={t('coach.members.count', { count: members.length })}
       />
 
       <View style={styles.filters}>
-        <SearchField value={query} onChangeText={setQuery} placeholder="Search name or email" />
+        <SearchField value={query} onChangeText={setQuery} placeholder={t('coach.members.searchPlaceholder')} />
         <View style={styles.filterRow}>
-          <Chip label="A–Z" selected={sortMode === 'name'} onPress={() => setSortMode('name')} />
+          <Chip label={t('coach.members.sortName')} selected={sortMode === 'name'} onPress={() => setSortMode('name')} />
           <Chip
-            label="Most active"
+            label={t('coach.members.sortActivity')}
             selected={sortMode === 'activity'}
             onPress={() => setSortMode('activity')}
           />
@@ -80,17 +82,17 @@ export function MembersScreen() {
         <Card>
           <EmptyState
             icon="people-outline"
-            title={query.length > 0 ? 'No results' : 'No members yet'}
+            title={query.length > 0 ? t('coach.members.noResults') : t('coach.members.noMembers')}
             message={
               query.length > 0
-                ? 'Try another name or email.'
-                : 'Members appear here when they sign up and choose your gym.'
+                ? t('coach.members.tryAnother')
+                : t('coach.members.emptyMessage')
             }
           />
         </Card>
       ) : (
         <View>
-          <ListGroupHeader label="Exercises completed this week" />
+          <ListGroupHeader label={t('coach.members.header')} />
           <ListGroup>
             {sortedMembers.map((member) => (
               <MemberRow
@@ -102,7 +104,7 @@ export function MembersScreen() {
           </ListGroup>
           <View style={styles.legendRow}>
             <AppText variant="caption1" color={colors.secondaryLabel}>
-              Counts cover the last 7 days, updated live as members check off exercises.
+              {t('coach.members.legend')}
             </AppText>
           </View>
         </View>
@@ -112,6 +114,7 @@ export function MembersScreen() {
 }
 
 function MemberRow({ uid, dateKeys }: { uid: string; dateKeys: string[] }) {
+  const { t } = useTranslation();
   const member = useAppSelector((state) => state.members.byUid[uid] ?? null);
   const weekCount = useAppSelector((state) =>
     selectCompletionCountForDates(state, uid, dateKeys),
@@ -124,7 +127,7 @@ function MemberRow({ uid, dateKeys }: { uid: string; dateKeys: string[] }) {
       leading={<Avatar name={member.name} size={40} photoUrl={member.photoData} />}
       control={
         <Badge
-          label={weekCount > 0 ? `${weekCount} this week` : 'No activity'}
+          label={weekCount > 0 ? t('coach.members.thisWeek', { count: weekCount }) : t('coach.members.noActivity')}
           variant={weekCount > 0 ? 'green' : 'neutral'}
         />
       }

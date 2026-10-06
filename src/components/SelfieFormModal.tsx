@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { radius, useTheme } from '../theme';
 import { AppText, Button, SheetModal, TextField } from '../ui';
 import { useAppSelector } from '../store/hooks';
@@ -21,6 +22,7 @@ export function SelfieFormModal({
   editing?: DailySelfie | null;
 }) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const profile = useAppSelector((state) => state.auth.profile);
 
   const [photoData, setPhotoData] = useState<string | null>(null);
@@ -46,7 +48,7 @@ export function SelfieFormModal({
       if (dataUrl) setPhotoData(dataUrl);
     } catch (pickError) {
       console.warn('[SelfieFormModal] pick failed', pickError);
-      setError(pickError instanceof Error ? pickError.message : 'Could not load the photo.');
+      setError(pickError instanceof Error ? pickError.message : t('member.selfie.loadError'));
     } finally {
       setPicking(false);
     }
@@ -54,7 +56,7 @@ export function SelfieFormModal({
 
   const handleSave = async () => {
     if (!photoData) {
-      setError('Take or choose a selfie first.');
+      setError(t('member.selfie.needPhoto'));
       return;
     }
     setSaving(true);
@@ -78,7 +80,7 @@ export function SelfieFormModal({
       onClose();
     } catch (saveError) {
       console.warn('[SelfieFormModal] save failed', saveError);
-      setError('Could not save. Check your connection and rules.');
+      setError(t('member.selfie.saveError'));
     } finally {
       setSaving(false);
     }
@@ -88,10 +90,10 @@ export function SelfieFormModal({
     <SheetModal
       visible={visible}
       onClose={onClose}
-      title={editing ? 'Edit Selfie' : 'Daily Selfie'}
+      title={editing ? t('member.selfie.editTitle') : t('member.selfie.daily')}
       footer={
         <Button
-          label={editing ? 'Save Changes' : 'Save Selfie'}
+          label={editing ? t('member.selfie.saveChanges') : t('member.selfie.save')}
           onPress={handleSave}
           loading={saving}
           disabled={!photoData}
@@ -104,14 +106,14 @@ export function SelfieFormModal({
         ) : (
           <View style={[styles.preview, styles.placeholder, { backgroundColor: colors.fill }]}>
             <AppText variant="footnote" color={colors.tertiaryLabel} align="center">
-              No selfie yet
+              {t('member.selfie.none')}
             </AppText>
           </View>
         )}
         <View style={styles.row}>
           <View style={styles.half}>
             <Button
-              label="Camera"
+              label={t('member.selfie.camera')}
               icon="camera"
               size="md"
               variant="tinted"
@@ -121,7 +123,7 @@ export function SelfieFormModal({
           </View>
           <View style={styles.half}>
             <Button
-              label="Library"
+              label={t('member.selfie.library')}
               icon="images"
               size="md"
               variant="tinted"
@@ -131,8 +133,8 @@ export function SelfieFormModal({
           </View>
         </View>
         <TextField
-          label="Notes (optional)"
-          placeholder="How you felt today…"
+          label={t('member.selfie.notes')}
+          placeholder={t('member.selfie.notesPlaceholder')}
           value={notes}
           onChangeText={setNotes}
           multiline

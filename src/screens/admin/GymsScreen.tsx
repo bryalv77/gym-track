@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../theme';
 import {
   Button,
@@ -20,6 +21,7 @@ import type { Gym } from '../../types';
 
 /** Admin: manage the gyms, with search. */
 export function GymsScreen() {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const gyms = useAppSelector(selectGymsSorted);
   const users = useAppSelector(selectUsersSorted);
@@ -41,23 +43,23 @@ export function GymsScreen() {
     <Screen>
       <NavBar
         large
-        title="Gyms"
-        subtitle={`${gyms.length} gym${gyms.length === 1 ? '' : 's'} in the platform`}
+        title={t('admin.gyms.title')}
+        subtitle={t('admin.gyms.count', { count: gyms.length })}
       />
 
       <View style={styles.filters}>
-        <SearchField value={query} onChangeText={setQuery} placeholder="Search gyms" />
+        <SearchField value={query} onChangeText={setQuery} placeholder={t('admin.gyms.searchPlaceholder')} />
       </View>
 
       {visibleGyms.length === 0 ? (
         <Card>
           <EmptyState
             icon="business-outline"
-            title={query.length > 0 ? 'No results' : 'No gyms yet'}
+            title={query.length > 0 ? t('admin.gyms.noResults') : t('admin.gyms.noGyms')}
             message={
               query.length > 0
-                ? 'Try another name.'
-                : 'Create the first gym. Coaches and members choose their gym when they sign up.'
+                ? t('admin.gyms.tryAnother')
+                : t('admin.gyms.emptyMessage')
             }
           />
         </Card>
@@ -70,7 +72,7 @@ export function GymsScreen() {
                 <ListRow
                   key={gym.id}
                   title={gym.name}
-                  subtitle={`${counts.coaches} coach${counts.coaches === 1 ? '' : 'es'} · ${counts.members} member${counts.members === 1 ? '' : 's'}`}
+                  subtitle={`${t('admin.gyms.coaches', { count: counts.coaches })} · ${t('admin.gyms.members', { count: counts.members })}`}
                   icon={{ name: 'business-outline', color: colors.systemTeal }}
                   chevron
                   onPress={() => {
@@ -81,12 +83,12 @@ export function GymsScreen() {
               );
             })}
           </ListGroup>
-          <ListGroupFooter label="Tap a gym to rename it. Use the Users tab to move people between gyms." />
+          <ListGroupFooter label={t('admin.gyms.footer')} />
         </View>
       )}
 
       <Button
-        label="New Gym"
+        label={t('admin.gyms.newGym')}
         icon="add"
         size="md"
         onPress={() => {

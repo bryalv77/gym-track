@@ -43,7 +43,7 @@
     "build:web": "expo export --platform web",
     "lint": "expo lint",
     "deploy:web": "expo export --platform web && pnpm dlx firebase-tools deploy --only hosting",
-    "deploy:mobile": "pnpm dlx eas-cli@latest update --auto --non-interactive",
+    "deploy:mobile": "pnpm dlx eas-cli@latest update --branch production --message \"$(git log -1 --pretty=%s)\" --environment production --non-interactive",
     "prepare": "husky"
   },
   "private": true,

@@ -1,6 +1,8 @@
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
+import { Platform } from 'react-native';
 import i18n from '../i18n';
+import { captureWebPhoto, isWebCameraAvailable } from './webCamera';
 
 async function toDataUrl(uri: string, width: number, compress: number): Promise<string> {
   const manipulated = await ImageManipulator.manipulateAsync(
@@ -54,6 +56,22 @@ export async function pickAvatarDataUrl(): Promise<string | null> {
  */
 export async function pickSelfieDataUrl(source: 'camera' | 'library' = 'library'): Promise<string | null> {
   let result: ImagePicker.ImagePickerResult;
+  if (source === 'camera' && Platform.OS === 'web' && isWebCameraAvailable()) {
+    let dataUrl: string | null;
+    try {
+      dataUrl = await captureWebPhoto();
+    } catch (error) {
+      console.warn('[photo] web camera unavailable', error);
+      throw new Error(i18n.t('library.photo.camera'));
+    }
+    if (!dataUrl) return null;
+    try {
+      return await toDataUrl(dataUrl, 640, 0.6);
+    } catch (error) {
+      console.warn('[photo] selfie resize failed, using raw capture', error);
+      return dataUrl;
+    }
+  }
   if (source === 'camera') {
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted) {

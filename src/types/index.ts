@@ -9,6 +9,8 @@ export interface UserProfile {
   role: Role;
   /** Gym this user belongs to (coaches and members). Admins see all gyms. */
   gymId?: string;
+  /** Coach (user uid) assigned to this member by an admin. */
+  coachId?: string;
   /** Profile photo as a small base64 data URL (avatar-sized). */
   photoData?: string;
   createdAt: number;
@@ -45,6 +47,8 @@ export interface Exercise {
   videoUrl?: string;
   /** Intensity used for calorie estimation (MET). Defaults by type. */
   met?: number;
+  /** Set on starter exercises: lower numbers are suggested first. */
+  suggestedOrder?: number;
   metricFields: MetricField[];
   createdBy: string;
   createdAt: number;
@@ -63,8 +67,31 @@ export interface Assignment {
   /** Values keyed by the exercise's metric field keys */
   metrics: Record<string, number>;
   notes?: string;
+  /** Set when the exercise came from a routine; the routine's name is copied
+   *  here so it survives later edits or deletion of the routine. */
+  routineId?: string;
+  routineName?: string;
   createdAt: number;
 }
+
+/** One exercise of a routine with its prescription. */
+export interface RoutineItem {
+  exerciseId: string;
+  metrics: Record<string, number>;
+  notes?: string;
+}
+
+/** A coach's reusable workout: a named, ordered list of exercises that can be
+ *  assigned to members, who receive them as individual assignments. */
+export interface Routine {
+  id: string;
+  name: string;
+  coachId: string;
+  items: RoutineItem[];
+  createdAt: number;
+}
+
+export type RoutinesById = Record<string, Routine>;
 
 /** Written when a member marks an assignment as done. */
 export interface Completion {

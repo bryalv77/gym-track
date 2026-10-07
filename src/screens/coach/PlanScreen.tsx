@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { exerciseName } from '../../utils/defaultExerciseData';
 import { StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../theme';
@@ -21,6 +22,7 @@ import { selectExerciseById, formatMetrics } from '../../store/slices/exercisesS
 import { selectGymMembers, selectUserById } from '../../store/slices/membersSlice';
 import { DatePager } from '../../components/DatePager';
 import { AssignExerciseModal } from '../../components/AssignExerciseModal';
+import { AssignRoutineModal } from '../../components/AssignRoutineModal';
 import { isToday, toDateKey } from '../../utils/date';
 import type { Assignment } from '../../types';
 
@@ -37,6 +39,7 @@ export function PlanScreen() {
   const [memberFilter, setMemberFilter] = useState<string | 'all'>('all');
   const [query, setQuery] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
+  const [routineModalVisible, setRoutineModalVisible] = useState(false);
   const [editing, setEditing] = useState<Assignment | null>(null);
   const [presetMemberId, setPresetMemberId] = useState<string | null>(null);
 
@@ -172,12 +175,29 @@ export function PlanScreen() {
         onPress={() => openAssign(memberFilter === 'all' ? null : memberFilter)}
         style={styles.addButton}
       />
+      <Button
+        label={t('routines.assign.button')}
+        icon="albums-outline"
+        variant="tinted"
+        size="md"
+        onPress={() => {
+          setPresetMemberId(memberFilter === 'all' ? null : memberFilter);
+          setRoutineModalVisible(true);
+        }}
+        style={styles.routineButton}
+      />
 
       <AssignExerciseModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
         dateKey={dateKey}
         assignment={editing}
+        initialMemberId={presetMemberId}
+      />
+      <AssignRoutineModal
+        visible={routineModalVisible}
+        onClose={() => setRoutineModalVisible(false)}
+        dateKey={dateKey}
         initialMemberId={presetMemberId}
       />
     </Screen>
@@ -202,8 +222,8 @@ function AssignmentRow({
 
   return (
     <ListRow
-      title={exercise?.name ?? t('coach.plan.exerciseFallback')}
-      subtitle={`${member?.name ?? t('coach.plan.memberFallback')} · ${summary}${assignment.notes ? `\n${assignment.notes}` : ''}`}
+      title={(exercise ? exerciseName(exercise) : null) ?? t('coach.plan.exerciseFallback')}
+      subtitle={`${member?.name ?? t('coach.plan.memberFallback')}${assignment.routineName ? ` · ${assignment.routineName}` : ''} · ${summary}${assignment.notes ? `\n${assignment.notes}` : ''}`}
       icon={
         isCardio
           ? {
@@ -225,4 +245,5 @@ const styles = StyleSheet.create({
   filterRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   summary: { marginBottom: 12 },
   addButton: { marginTop: 16 },
+  routineButton: { marginTop: 10 },
 });

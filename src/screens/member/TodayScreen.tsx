@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { exerciseName } from '../../utils/defaultExerciseData';
 import { Image, Pressable, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { radius, useTheme } from '../../theme';
@@ -10,6 +11,7 @@ import {
   EmptyState,
   Ionicons,
   ListGroup,
+  ListGroupHeader,
   ListRow,
   NavBar,
   ProgressBar,
@@ -90,6 +92,25 @@ export function TodayScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [assignments, completions, exercisesById, latestWeight],
   );
+  // Exercises that came from a routine are shown under the routine's name
+  // (read-only for the member); individually assigned ones go in their own group.
+  const groups = useMemo(() => {
+    const routineGroups = new Map<string, { title: string; items: Assignment[] }>();
+    const individual: Assignment[] = [];
+    for (const assignment of assignments) {
+      if (assignment.routineId) {
+        const group = routineGroups.get(assignment.routineId) ?? {
+          title: assignment.routineName ?? '',
+          items: [],
+        };
+        group.items.push(assignment);
+        routineGroups.set(assignment.routineId, group);
+      } else {
+        individual.push(assignment);
+      }
+    }
+    return { routines: [...routineGroups.values()], individual };
+  }, [assignments]);
   const allDone = assignments.length > 0 && doneCount === assignments.length;
 
   if (!profile) return null;
@@ -239,18 +260,28 @@ export function TodayScreen() {
 
       {assignments.length > 0 ? (
         <View style={styles.list}>
-          <ListGroup>
-            {assignments.map((assignment) => (
-              <AssignmentRow
-                key={assignment.id}
-                assignment={assignment}
-                completion={completions[assignment.id]}
-                kcal={caloriesFor(assignment)}
-                onToggle={() => toggle(assignment)}
-                onOpenDetail={() => setDetailAssignmentId(assignment.id)}
-              />
-            ))}
-          </ListGroup>
+          {[
+            ...groups.routines,
+            ...(groups.individual.length > 0
+              ? [{ title: groups.routines.length > 0 ? t('member.today.otherExercises') : '', items: groups.individual }]
+              : []),
+          ].map((group, index) => (
+            <View key={`${group.title}-${index}`}>
+              {group.title ? <ListGroupHeader label={group.title} /> : null}
+              <ListGroup>
+                {group.items.map((assignment) => (
+                  <AssignmentRow
+                    key={assignment.id}
+                    assignment={assignment}
+                    completion={completions[assignment.id]}
+                    kcal={caloriesFor(assignment)}
+                    onToggle={() => toggle(assignment)}
+                    onOpenDetail={() => setDetailAssignmentId(assignment.id)}
+                  />
+                ))}
+              </ListGroup>
+            </View>
+          ))}
           <AppText variant="caption1" color={colors.tertiaryLabel} style={styles.hint}>
             {t('member.today.hint')}
           </AppText>
@@ -324,7 +355,7 @@ function AssignmentRow({
 
   return (
     <ListRow
-      title={exercise?.name ?? t('member.today.exercise')}
+      title={(exercise ? exerciseName(exercise) : null) ?? t('member.today.exercise')}
       subtitle={subtitle}
       icon={icon}
       dimmed={done}

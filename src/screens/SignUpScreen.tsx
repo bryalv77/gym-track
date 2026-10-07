@@ -6,10 +6,10 @@ import { radius, useTheme } from '../theme';
 import { AppText, Button, Chip, NavBar, Screen, TextField } from '../ui';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { clearAuthError, signUpThunk } from '../store/slices/authSlice';
-import { COACH_SIGNUP_CODE } from '../config/firebase';
 import { subscribeToGyms } from '../services/gyms';
 import { normalizeGyms } from '../store/slices/gymsSlice';
 import type { AuthStackParamList } from '../navigation/RootNavigator';
+import { normalizeCoachCode } from '../utils/coachCode';
 import type { Gym } from '../types';
 
 type SignUpScreenProps = NativeStackScreenProps<AuthStackParamList, 'SignUp'>;
@@ -38,12 +38,9 @@ export function SignUpScreen({ navigation }: SignUpScreenProps) {
       setLocalError(t('auth.errors.fillFields'));
       return;
     }
-    const trimmedCode = coachCode.trim();
-    if (trimmedCode.length > 0 && trimmedCode.toUpperCase() !== COACH_SIGNUP_CODE) {
-      setLocalError(t('auth.errors.invalidCoachCode'));
-      return;
-    }
-    const isCoach = trimmedCode.toUpperCase() === COACH_SIGNUP_CODE;
+    // Each gym has its own code; the database rules check it against the chosen gym.
+    const code = normalizeCoachCode(coachCode);
+    const isCoach = code.length > 0;
     if ((isCoach || sortedGyms.length > 0) && !gymId) {
       setLocalError(t('auth.errors.chooseGym'));
       return;
@@ -55,6 +52,7 @@ export function SignUpScreen({ navigation }: SignUpScreenProps) {
         password,
         role: isCoach ? 'coach' : 'member',
         ...(gymId ? { gymId } : {}),
+        ...(isCoach ? { coachCode: code } : {}),
       }),
     );
   };

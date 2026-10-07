@@ -1,4 +1,5 @@
 import React from 'react';
+import { exerciseDescription, exerciseName } from '../utils/defaultExerciseData';
 import { StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../theme';
@@ -46,7 +47,7 @@ export function ExerciseDetailSheet({
     <SheetModal
       visible={visible}
       onClose={onClose}
-      title={exercise.name}
+      title={exerciseName(exercise)}
       footer={
         <Button
           label={done ? t('member.detail.markNotDone') : t('member.detail.markDone')}
@@ -67,9 +68,9 @@ export function ExerciseDetailSheet({
           />
           {done && doneAt ? <Badge label={t('member.detail.doneAt', { time: doneAt })} variant="green" /> : null}
         </View>
-        {exercise.description ? (
+        {exerciseDescription(exercise) ? (
           <AppText variant="subheadline" color={colors.secondaryLabel}>
-            {exercise.description}
+            {exerciseDescription(exercise)}
           </AppText>
         ) : null}
         <ListGroup>

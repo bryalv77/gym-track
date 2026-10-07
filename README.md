@@ -42,7 +42,7 @@ src/
 ├── store/         # Redux Toolkit store + slices (auth, assignments, exercises,
 │                  #   gyms, completions, measurements, members)
 ├── services/      # Firebase read/write helpers
-├── config/        # Firebase init + coach signup code
+├── config/        # Firebase init
 └── utils/         # Date keys, metric presets, confirm dialog, link opener
 ```
 
@@ -50,10 +50,12 @@ src/
 
 ```
 gyms/{gymId}                          → { name, createdAt }
-users/{uid}                           → { uid, name, email, role: 'admin'|'coach'|'member', gymId?, createdAt }
+gymCodes/{gymId}                      → coach signup code (string, admin-only)
+users/{uid}                           → { uid, name, email, role: 'admin'|'coach'|'member', gymId?, coachId?, createdAt }
 exercises/{exerciseId}                → { name, type: 'strength'|'cardio'|'other', description?,
                                           imageUrl?, videoUrl?, metricFields[], createdBy, createdAt }
-assignments/{YYYY-MM-DD}/{id}         → { exerciseId, memberId, coachId, metrics: {sets…}, notes?, createdAt }
+routines/{coachId}/{routineId}        → { name, coachId, items: [{ exerciseId, metrics, notes? }], createdAt } (private to the coach)
+assignments/{YYYY-MM-DD}/{id}         → { exerciseId, memberId, coachId, metrics: {sets…}, notes?, routineId?, routineName?, createdAt }
 completions/{uid}/{YYYY-MM-DD}/{id}   → { completedAt }
 measurements/{uid}/{entryId}          → { dateKey, weightKg?, chestCm?, waistCm?, armCm?, thighCm?, createdAt }
 ```
@@ -68,7 +70,7 @@ measurements/{uid}/{entryId}          → { dateKey, weightKg?, chestCm?, waistC
 
 ### Roles bootstrap
 
-- Members and coaches sign up themselves: everyone picks their **gym** at sign-up; coaches also enter the coach code (`GYM-COACH` by default, change it in `src/config/firebase.ts`).
+- Members and coaches sign up themselves: everyone picks their **gym** at sign-up; coaches also enter their **gym's own coach code**. Each gym gets a unique code when it is created; admins see it (and can regenerate it) by tapping the gym in the Gyms tab. Codes live in `gymCodes/{gymId}` (admin-read only) and are verified by the database rules.
 - The **first admin** is created by setting `role: "admin"` on the user's node in `users/` from the Firebase console (or seed it like we did). Admins can then change any user's role/gym from the Users tab.
 
 ## Running the app

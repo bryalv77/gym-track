@@ -26,6 +26,7 @@ import { DashboardScreen } from '../screens/member/DashboardScreen';
 import { ProgressScreen } from '../screens/member/ProgressScreen';
 import { PlanScreen } from '../screens/coach/PlanScreen';
 import { MembersScreen } from '../screens/coach/MembersScreen';
+import { RoutinesScreen } from '../screens/coach/RoutinesScreen';
 import { GymsScreen } from '../screens/admin/GymsScreen';
 import { UsersScreen } from '../screens/admin/UsersScreen';
 import { ExercisesLibraryScreen } from '../screens/shared/ExercisesLibraryScreen';
@@ -102,6 +103,15 @@ function CoachTabs() {
         options={{
           tabBarIcon: ({ color }) => (
             <Ionicons name="calendar-outline" size={24} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Routines"
+        component={RoutinesScreen}
+        options={{
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="albums-outline" size={24} color={color} />
           ),
         }}
       />

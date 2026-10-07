@@ -21,6 +21,7 @@ import {
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { authStateChanged, signOutThunk } from '../../store/slices/authSlice';
 import { selectGymName } from '../../store/slices/gymsSlice';
+import { selectUserById } from '../../store/slices/membersSlice';
 import {
   changeUserPassword,
   removeUserPhoto,
@@ -49,6 +50,14 @@ export function ProfileScreen() {
   const dispatch = useAppDispatch();
   const profile = useAppSelector((state) => state.auth.profile);
   const gymName = useAppSelector((state) => selectGymName(state, profile?.gymId));
+
+  // The live members entry wins over the auth profile, which is only read at sign-in.
+  const coach = useAppSelector((state) => {
+    if (profile?.role !== 'member') return undefined;
+    const coachId = selectUserById(state, profile.uid)?.coachId ?? profile.coachId;
+    return coachId ? selectUserById(state, coachId) : undefined;
+  });
+  const coachGymName = useAppSelector((state) => selectGymName(state, coach?.gymId));
 
   const [name, setName] = useState(profile?.name ?? '');
   const [nameError, setNameError] = useState<string | null>(null);
@@ -181,6 +190,36 @@ export function ProfileScreen() {
         ) : null}
       </Card>
 
+      {profile.role === 'member' ? (
+        <>
+          <ListGroupHeader label={t('profile.myCoach')} />
+          <Card style={styles.coachCard}>
+            {coach ? (
+              <>
+                <Avatar name={coach.name} size={56} photoUrl={coach.photoData} />
+                <View style={{ flex: 1 }}>
+                  <AppText variant="headline">{coach.name}</AppText>
+                  <AppText variant="footnote" color={colors.secondaryLabel}>
+                    {coach.email}
+                  </AppText>
+                  <View style={styles.badgeRow}>
+                    <Badge label={t('profile.roles.coach')} variant="blue" />
+                    {coach.gymId ? <Badge label={coachGymName} variant="neutral" /> : null}
+                  </View>
+                </View>
+              </>
+            ) : (
+              <View style={{ flex: 1 }}>
+                <AppText variant="headline">{t('profile.noCoach')}</AppText>
+                <AppText variant="footnote" color={colors.secondaryLabel}>
+                  {t('profile.noCoachHint')}
+                </AppText>
+              </View>
+            )}
+          </Card>
+        </>
+      ) : null}
+
       <ListGroupHeader label={t('profile.name')} />
       <Card style={styles.sectionCard}>
         <TextField
@@ -294,5 +333,6 @@ const styles = StyleSheet.create({
   },
   badgeRow: { flexDirection: 'row', gap: 8, marginTop: 6 },
   sectionCard: { gap: 12 },
+  coachCard: { flexDirection: 'row', alignItems: 'center', gap: 16 },
   languageChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
 });

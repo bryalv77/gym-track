@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { exerciseName } from '../../utils/defaultExerciseData';
 import { StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../theme';
@@ -38,17 +39,20 @@ export function ExercisesLibraryScreen() {
     const needle = query.trim().toLowerCase();
     return exercises
       .filter((exercise) => typeFilter === 'all' || exercise.type === typeFilter)
-      .filter((exercise) => needle.length === 0 || exercise.name.toLowerCase().includes(needle));
+      .filter((exercise) => needle.length === 0 || exerciseName(exercise).toLowerCase().includes(needle));
   }, [exercises, query, typeFilter]);
 
-  const byType = useMemo(
-    () => ({
-      strength: visible.filter((exercise) => exercise.type === 'strength'),
-      cardio: visible.filter((exercise) => exercise.type === 'cardio'),
-      other: visible.filter((exercise) => exercise.type === 'other'),
-    }),
-    [visible],
-  );
+  // Suggested starter exercises get their own section on top (already in
+  // their curated order); the rest is grouped by type.
+  const suggested = useMemo(() => visible.filter((exercise) => exercise.suggestedOrder != null), [visible]);
+  const byType = useMemo(() => {
+    const rest = visible.filter((exercise) => exercise.suggestedOrder == null);
+    return {
+      strength: rest.filter((exercise) => exercise.type === 'strength'),
+      cardio: rest.filter((exercise) => exercise.type === 'cardio'),
+      other: rest.filter((exercise) => exercise.type === 'other'),
+    };
+  }, [visible]);
 
   return (
     <Screen>
@@ -86,6 +90,14 @@ export function ExercisesLibraryScreen() {
         </Card>
       ) : (
         <View style={styles.list}>
+          {suggested.length > 0 ? (
+            <TypeSection
+              type="strength"
+              title={t('library.suggested')}
+              exercises={suggested}
+              onEdit={openEdit}
+            />
+          ) : null}
           {byType.strength.length > 0 ? (
             <TypeSection type="strength" exercises={byType.strength} onEdit={openEdit} />
           ) : null}
@@ -126,13 +138,17 @@ export function ExercisesLibraryScreen() {
 
 function TypeSection({
   type,
+  title,
   exercises,
   onEdit,
 }: {
   type: 'strength' | 'cardio' | 'other';
+  /** Overrides the header (defaults to the type's label). */
+  title?: string;
   exercises: Array<{
     id: string;
     name: string;
+    suggestedOrder?: number;
     imageUrl?: string;
     videoUrl?: string;
     metricFields: Array<{ label: string; unit: string }>;
@@ -144,13 +160,13 @@ function TypeSection({
   return (
     <View>
       <AppText variant="footnote" color={colors.secondaryLabel} style={styles.typeHeader}>
-        {t(`library.types.${type}`).toUpperCase()}
+        {(title ?? t(`library.types.${type}`)).toUpperCase()}
       </AppText>
       <ListGroup>
         {exercises.map((exercise) => (
           <ListRow
             key={exercise.id}
-            title={exercise.name}
+            title={exerciseName(exercise)}
             subtitle={exercise.metricFields
               .map((field) => (field.unit ? `${metricLabel(field)} (${field.unit})` : metricLabel(field)))
               .join(' · ')}

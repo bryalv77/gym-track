@@ -43,6 +43,7 @@ export const signUpThunk = createAsyncThunk(
     password: string;
     role: Role;
     gymId?: string;
+    coachCode?: string;
   }) => {
     await registerAccount(params);
   },

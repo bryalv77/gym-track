@@ -15,7 +15,14 @@ export async function createAssignment(
   input: Omit<Assignment, 'id' | 'createdAt'>,
 ): Promise<void> {
   const ref_ = push(ref(db, `assignments/${input.dateKey}`));
-  const assignment: Assignment = { ...input, id: ref_.key as string, createdAt: Date.now() };
+  const { notes, ...rest } = input;
+  // RTDB rejects `undefined` values, so empty notes are simply left out.
+  const assignment: Assignment = {
+    ...rest,
+    ...(notes ? { notes } : {}),
+    id: ref_.key as string,
+    createdAt: Date.now(),
+  };
   await set(ref_, assignment);
 }
 
@@ -24,7 +31,12 @@ export async function updateAssignment(
   assignmentId: string,
   patch: Partial<Omit<Assignment, 'id' | 'dateKey'>>,
 ): Promise<void> {
-  await update(ref(db, `assignments/${dateKey}/${assignmentId}`), patch);
+  const { notes, ...rest } = patch;
+  // `update` with null removes the field; undefined would be rejected.
+  await update(ref(db, `assignments/${dateKey}/${assignmentId}`), {
+    ...rest,
+    ...('notes' in patch ? { notes: notes || null } : {}),
+  });
 }
 
 /** Unassign: removes the exercise from the member's day. */

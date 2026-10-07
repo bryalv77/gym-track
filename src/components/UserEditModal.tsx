@@ -5,6 +5,7 @@ import { useTheme } from '../theme';
 import { AppText, Avatar, Button, Chip, SegmentedControl, SheetModal } from '../ui';
 import { useAppSelector } from '../store/hooks';
 import { selectGymsSorted } from '../store/slices/gymsSlice';
+import { selectGymCoaches } from '../store/slices/membersSlice';
 import { updateUserProfile } from '../services/auth';
 import type { Role, UserProfile } from '../types';
 
@@ -24,6 +25,8 @@ export function UserEditModal({
   const gyms = useAppSelector(selectGymsSorted);
   const [role, setRole] = useState<Role>('member');
   const [gymId, setGymId] = useState<string | undefined>(undefined);
+  const [coachId, setCoachId] = useState<string | undefined>(undefined);
+  const coaches = useAppSelector((state) => selectGymCoaches(state, gymId));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,6 +38,7 @@ export function UserEditModal({
     if (visible && user) {
       setRole(user.role);
       setGymId(user.gymId);
+      setCoachId(user.coachId);
       setError(null);
     }
   }
@@ -48,6 +52,8 @@ export function UserEditModal({
       await updateUserProfile(user.uid, {
         role,
         ...(role === 'admin' ? {} : { gymId: gymId ?? null }),
+        // Only members have a coach; clear it on any other role.
+        coachId: role === 'member' ? (coachId ?? null) : null,
       });
       onClose();
     } catch (saveError) {
@@ -118,6 +124,34 @@ export function UserEditModal({
             {t('admin.userEdit.adminNote')}
           </AppText>
         )}
+
+        {role === 'member' ? (
+          <View style={styles.section}>
+            <AppText variant="footnote" color={colors.secondaryLabel}>
+              {t('admin.userEdit.coach')}
+            </AppText>
+            <View style={styles.chips}>
+              {coaches.map((coach) => (
+                <Chip
+                  key={coach.uid}
+                  label={coach.name}
+                  selected={coachId === coach.uid}
+                  onPress={() => setCoachId(coach.uid)}
+                />
+              ))}
+              <Chip
+                label={t('admin.userEdit.noCoach')}
+                selected={coachId == null}
+                onPress={() => setCoachId(undefined)}
+              />
+              {coaches.length === 0 ? (
+                <AppText variant="footnote" color={colors.secondaryLabel}>
+                  {t('admin.userEdit.noCoachesYet')}
+                </AppText>
+              ) : null}
+            </View>
+          </View>
+        ) : null}
 
         {error ? (
           <AppText variant="footnote" color={colors.systemRed}>

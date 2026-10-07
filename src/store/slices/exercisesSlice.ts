@@ -45,6 +45,9 @@ export function normalizeExercises(value: unknown): ExercisesById {
       imageUrl: asOptionalString(entry.imageUrl),
       videoUrl: asOptionalString(entry.videoUrl),
       ...(typeof entry.met === 'number' && Number.isFinite(entry.met) ? { met: entry.met } : {}),
+      ...(typeof entry.suggestedOrder === 'number' && Number.isFinite(entry.suggestedOrder)
+        ? { suggestedOrder: entry.suggestedOrder }
+        : {}),
       metricFields: normalizeFields(entry.metricFields),
       createdBy: asString(entry.createdBy, ''),
       createdAt: asNumber(entry.createdAt, 0),
@@ -69,9 +72,13 @@ export const exercisesReducer = exercisesSlice.reducer;
 export function selectExercisesSorted(
   state: { exercises: ExercisesState },
 ): Exercise[] {
-  return Object.values(state.exercises.byId).sort((a, b) =>
-    a.name.localeCompare(b.name),
-  );
+  // Suggested starter exercises first (in their curated order), then A–Z.
+  return Object.values(state.exercises.byId).sort((a, b) => {
+    const aOrder = a.suggestedOrder ?? Number.POSITIVE_INFINITY;
+    const bOrder = b.suggestedOrder ?? Number.POSITIVE_INFINITY;
+    if (aOrder !== bOrder) return aOrder < bOrder ? -1 : 1;
+    return a.name.localeCompare(b.name);
+  });
 }
 
 export function selectExerciseById(

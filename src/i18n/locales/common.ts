@@ -8,9 +8,10 @@ export const common = {
     optional: 'Optional',
     tabs: {
       Today: 'Today', Dashboard: 'Dashboard', Progress: 'Progress', Profile: 'Profile',
-      Plan: 'Plan', Exercises: 'Exercises', Members: 'Members', Gyms: 'Gyms', Users: 'Users',
+      Plan: 'Plan', Routines: "Routines", Exercises: 'Exercises', Members: 'Members', Gyms: 'Gyms', Users: 'Users',
     },
     authErrors: {
+      "auth/invalid-coach-code": "That coach code is not valid for this gym. Leave it empty to join as a member.",
       'auth/invalid-email': 'That email address looks invalid.',
       'auth/user-not-found': 'No account found with this email.',
       'auth/wrong-password': 'Incorrect password.',
@@ -36,9 +37,10 @@ export const common = {
     optional: 'Opcional',
     tabs: {
       Today: 'Hoy', Dashboard: 'Panel', Progress: 'Progreso', Profile: 'Perfil',
-      Plan: 'Plan', Exercises: 'Ejercicios', Members: 'Miembros', Gyms: 'Gimnasios', Users: 'Usuarios',
+      Plan: 'Plan', Routines: "Rutinas", Exercises: 'Ejercicios', Members: 'Miembros', Gyms: 'Gimnasios', Users: 'Usuarios',
     },
     authErrors: {
+      "auth/invalid-coach-code": "Ese código de entrenador no es válido para este gimnasio. Déjalo vacío para unirte como miembro.",
       'auth/invalid-email': 'Ese correo electrónico no parece válido.',
       'auth/user-not-found': 'No se encontró ninguna cuenta con este correo.',
       'auth/wrong-password': 'Contraseña incorrecta.',
@@ -64,9 +66,10 @@ export const common = {
     optional: 'Opcional',
     tabs: {
       Today: 'Hoje', Dashboard: 'Painel', Progress: 'Progresso', Profile: 'Perfil',
-      Plan: 'Plano', Exercises: 'Exercícios', Members: 'Membros', Gyms: 'Academias', Users: 'Usuários',
+      Plan: 'Plano', Routines: "Rotinas", Exercises: 'Exercícios', Members: 'Membros', Gyms: 'Academias', Users: 'Usuários',
     },
     authErrors: {
+      "auth/invalid-coach-code": "Esse código de treinador não é válido para esta academia. Deixe vazio para entrar como membro.",
       'auth/invalid-email': 'Esse e-mail parece inválido.',
       'auth/user-not-found': 'Nenhuma conta encontrada com este e-mail.',
       'auth/wrong-password': 'Senha incorreta.',
@@ -92,9 +95,10 @@ export const common = {
     optional: 'Optional',
     tabs: {
       Today: 'Heute', Dashboard: 'Übersicht', Progress: 'Fortschritt', Profile: 'Profil',
-      Plan: 'Plan', Exercises: 'Übungen', Members: 'Mitglieder', Gyms: 'Studios', Users: 'Nutzer',
+      Plan: 'Plan', Routines: "Routinen", Exercises: 'Übungen', Members: 'Mitglieder', Gyms: 'Studios', Users: 'Nutzer',
     },
     authErrors: {
+      "auth/invalid-coach-code": "Dieser Trainer-Code ist für dieses Studio ungültig. Lass ihn leer, um als Mitglied beizutreten.",
       'auth/invalid-email': 'Diese E-Mail-Adresse scheint ungültig zu sein.',
       'auth/user-not-found': 'Mit dieser E-Mail wurde kein Konto gefunden.',
       'auth/wrong-password': 'Falsches Passwort.',
@@ -124,12 +128,14 @@ export const common = {
       "Progress": "Progression",
       "Profile": "Profil",
       "Plan": "Plan",
+      "Routines": "Routines",
       "Exercises": "Exercices",
       "Members": "Membres",
       "Gyms": "Salles",
       "Users": "Utilisateurs"
     },
     "authErrors": {
+      "auth/invalid-coach-code": "Ce code coach n'est pas valide pour cette salle. Laisse-le vide pour rejoindre en tant que membre.",
       "auth/invalid-email": "Cette adresse e-mail semble invalide.",
       "auth/user-not-found": "Aucun compte trouvé avec cet e-mail.",
       "auth/wrong-password": "Mot de passe incorrect.",

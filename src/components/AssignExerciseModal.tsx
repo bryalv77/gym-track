@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { exerciseName } from '../utils/defaultExerciseData';
 import { StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { radius, useTheme } from '../theme';
@@ -20,6 +21,7 @@ import {
   deleteAssignment,
   updateAssignment,
 } from '../services/assignments';
+import { unassignRoutine } from '../services/routines';
 import { confirmAction } from '../utils/confirm';
 import type { Assignment, Exercise, MetricField } from '../types';
 
@@ -66,7 +68,7 @@ export function AssignExerciseModal({
   const visibleExercises = useMemo(() => {
     const needle = exerciseQuery.trim().toLowerCase();
     if (needle.length === 0) return exercises;
-    return exercises.filter((exercise) => exercise.name.toLowerCase().includes(needle));
+    return exercises.filter((exercise) => exerciseName(exercise).toLowerCase().includes(needle));
   }, [exercises, exerciseQuery]);
 
   // Re-initialize the form whenever it opens or its inputs change.
@@ -158,6 +160,24 @@ export function AssignExerciseModal({
     );
   };
 
+  const handleUnassignRoutine = () => {
+    if (!assignment?.routineId) return;
+    const routineId = assignment.routineId;
+    confirmAction(
+      t('routines.unassign.title'),
+      t('routines.unassign.message', { name: assignment.routineName ?? '' }),
+      async () => {
+        try {
+          await unassignRoutine(dateKey, routineId, assignment.memberId);
+          onClose();
+        } catch (deleteError) {
+          console.warn('[AssignExerciseModal] unassign routine failed', deleteError);
+        }
+      },
+      t('routines.unassign.confirm'),
+    );
+  };
+
   const memberChips = assignment ? (
     <View style={[styles.memberPill, { backgroundColor: colors.background }]}>
       <Avatar
@@ -194,6 +214,14 @@ export function AssignExerciseModal({
       title={assignment ? t('coach.assign.editTitle') : t('coach.assign.newTitle')}
       footer={
         <View style={styles.footer}>
+          {assignment?.routineId ? (
+            <Button
+              label={t('routines.unassign.button', { name: assignment.routineName ?? '' })}
+              variant="tinted"
+              onPress={handleUnassignRoutine}
+              disabled={saving}
+            />
+          ) : null}
           {assignment ? (
             <Button
               label={t('coach.assign.unassign')}
@@ -231,7 +259,7 @@ export function AssignExerciseModal({
             {visibleExercises.map((exercise) => (
               <Chip
                 key={exercise.id}
-                label={exercise.name}
+                label={exerciseName(exercise)}
                 selected={exerciseId === exercise.id}
                 onPress={() => setExerciseId(exercise.id)}
               />
@@ -247,7 +275,7 @@ export function AssignExerciseModal({
         {selectedExercise ? (
           <View style={styles.section}>
             <AppText variant="footnote" color={colors.secondaryLabel}>
-              {t('coach.assign.prescription', { name: selectedExercise.name.toUpperCase() })}
+              {t('coach.assign.prescription', { name: exerciseName(selectedExercise).toUpperCase() })}
             </AppText>
             <View style={[styles.metricsBox, { backgroundColor: colors.background }]}>
               {selectedExercise.metricFields.map((field: MetricField) => (

@@ -31,6 +31,8 @@ export async function registerAccount(params: {
   password: string;
   role: Role;
   gymId?: string;
+  /** Gym's coach code; required (and checked by the database rules) for coaches. */
+  coachCode?: string;
 }): Promise<void> {
   const email = params.email.trim().toLowerCase();
   const name = params.name.trim();
@@ -44,7 +46,19 @@ export async function registerAccount(params: {
     ...(params.gymId ? { gymId: params.gymId } : {}),
     createdAt: Date.now(),
   };
-  await set(ref(db, `users/${user.uid}`), profile);
+  if (params.role !== 'coach') {
+    await set(ref(db, `users/${user.uid}`), profile);
+    return;
+  }
+  try {
+    await set(ref(db, `users/${user.uid}`), { ...profile, coachCode: params.coachCode });
+  } catch {
+    // Rules rejected the code: don't leave an auth account that would silently become a member.
+    await user.delete().catch(() => undefined);
+    throw Object.assign(new Error('Invalid coach code'), { code: 'auth/invalid-coach-code' });
+  }
+  // The code was only needed for the rules check; don't keep it on the profile.
+  await set(ref(db, `users/${user.uid}/coachCode`), null);
 }
 
 export async function signOutAccount(): Promise<void> {
@@ -69,6 +83,9 @@ export async function fetchOrCreateProfile(user: User): Promise<UserProfile> {
       email: value.email ?? user.email ?? '',
       role: existingRole,
       ...(typeof value.gymId === 'string' && value.gymId.length > 0 ? { gymId: value.gymId } : {}),
+      ...(typeof value.coachId === 'string' && value.coachId.length > 0
+        ? { coachId: value.coachId }
+        : {}),
       ...(typeof value.photoData === 'string' && value.photoData.length > 0
         ? { photoData: value.photoData }
         : {}),
@@ -89,7 +106,7 @@ export async function fetchOrCreateProfile(user: User): Promise<UserProfile> {
 /** Admin updates another user's role and/or gym (null gymId removes it). */
 export async function updateUserProfile(
   uid: string,
-  patch: { role?: Role; gymId?: string | null },
+  patch: { role?: Role; gymId?: string | null; coachId?: string | null },
 ): Promise<void> {
   if (patch.role) {
     await set(ref(db, `users/${uid}/role`), patch.role);
@@ -97,6 +114,9 @@ export async function updateUserProfile(
   if (patch.gymId !== undefined) {
     // set(null) removes the node in Realtime Database
     await set(ref(db, `users/${uid}/gymId`), patch.gymId);
+  }
+  if (patch.coachId !== undefined) {
+    await set(ref(db, `users/${uid}/coachId`), patch.coachId);
   }
 }
 

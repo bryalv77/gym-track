@@ -7,7 +7,9 @@ import { subscribeToGyms } from '../services/gyms';
 import { subscribeToAllCompletions, subscribeToCompletions } from '../services/completions';
 import { subscribeToMeasurements } from '../services/measurements';
 import { subscribeToSelfies } from '../services/selfies';
-import { subscribeToUsers } from '../services/users';
+import { ensureDefaultExercises } from '../utils/defaultExercises';
+import { subscribeToRoutines } from '../services/routines';
+import { subscribeToUser, subscribeToUsers } from '../services/users';
 import { assignmentsUpdated } from '../store/slices/assignmentsSlice';
 import { exercisesUpdated } from '../store/slices/exercisesSlice';
 import { gymsUpdated } from '../store/slices/gymsSlice';
@@ -17,7 +19,8 @@ import {
 } from '../store/slices/completionsSlice';
 import { measurementsUpdated } from '../store/slices/measurementsSlice';
 import { selfiesUpdated } from '../store/slices/selfiesSlice';
-import { membersUpdated } from '../store/slices/membersSlice';
+import { routinesUpdated } from '../store/slices/routinesSlice';
+import { membersUpdated, userUpdated } from '../store/slices/membersSlice';
 
 /**
  * Invisible component that keeps the Redux store in sync with the Realtime
@@ -28,6 +31,11 @@ import { membersUpdated } from '../store/slices/membersSlice';
 export function DataSync() {
   const dispatch = useAppDispatch();
   const profile = useAppSelector((state) => state.auth.profile);
+  // Live value (the auth profile is only fetched at sign-in), so an admin
+  // assigning a coach shows up immediately for the member.
+  const ownCoachId = useAppSelector((state) =>
+    profile?.role === 'member' ? state.members.byUid[profile.uid]?.coachId : undefined,
+  );
 
   useEffect(() => {
     if (!isFirebaseConfigured || !profile) return;
@@ -42,11 +50,15 @@ export function DataSync() {
       );
       if (profile.role === 'coach') {
         unsubscribers.push(
+          subscribeToRoutines(profile.uid, (value) => dispatch(routinesUpdated(value))),
           subscribeToAllCompletions((value) => dispatch(completionsUpdated(value))),
         );
       }
     } else {
       unsubscribers.push(
+        subscribeToUser(profile.uid, (value) =>
+          dispatch(userUpdated({ uid: profile.uid, value })),
+        ),
         subscribeToCompletions(profile.uid, (value) =>
           dispatch(completionsUserUpdated({ uid: profile.uid, value })),
         ),
@@ -62,6 +74,24 @@ export function DataSync() {
       unsubscribers.forEach((unsubscribe) => unsubscribe());
     };
   }, [profile?.uid, profile?.role, dispatch]);
+
+  // Coaches and admins seed the suggested starter exercises (once, if missing).
+  const canSeedExercises = profile?.role === 'coach' || profile?.role === 'admin';
+  const profileUid = profile?.uid;
+  useEffect(() => {
+    if (!isFirebaseConfigured || !canSeedExercises || !profileUid) return;
+    ensureDefaultExercises(profileUid).catch((error) =>
+      console.warn('[exercises] default seeding failed:', error),
+    );
+  }, [canSeedExercises, profileUid]);
+
+  // Members only read their own coach's node, not the whole directory.
+  useEffect(() => {
+    if (!isFirebaseConfigured || !ownCoachId) return;
+    return subscribeToUser(ownCoachId, (value) =>
+      dispatch(userUpdated({ uid: ownCoachId, value })),
+    );
+  }, [ownCoachId, dispatch]);
 
   return null;
 }

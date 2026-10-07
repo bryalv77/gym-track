@@ -14,7 +14,7 @@ export const auth = {
     "yourGym": "YOUR GYM",
     "coachCode": "Coach code (optional)",
     "coachCodePlaceholder": "Coaches only",
-    "coachCodeHint": "Leave the coach code empty to create a member account. Ask your gym for the code if you are the coach.",
+    "coachCodeHint": "Only for coaches: enter your gym's code (pick your gym above). Leave empty to create a member account.",
     "coachSeesNote": "Your coach sees your daily checkmarks, streak and body measurements.",
     "errors": {
       "fillFields": "Fill in your name, email and a password of at least 6 characters.",
@@ -37,7 +37,7 @@ export const auth = {
     "yourGym": "TU GIMNASIO",
     "coachCode": "Código de entrenador (opcional)",
     "coachCodePlaceholder": "Solo entrenadores",
-    "coachCodeHint": "Deja el código de entrenador vacío para crear una cuenta de miembro. Pide el código a tu gimnasio si eres entrenador.",
+    "coachCodeHint": "Solo para entrenadores: introduce el código de tu gimnasio (elige tu gimnasio arriba). Déjalo vacío para crear una cuenta de miembro.",
     "coachSeesNote": "Tu entrenador ve tus marcas diarias, tu racha y tus medidas corporales.",
     "errors": {
       "fillFields": "Introduce tu nombre, correo y una contraseña de al menos 6 caracteres.",
@@ -60,7 +60,7 @@ export const auth = {
     "yourGym": "SUA ACADEMIA",
     "coachCode": "Código de treinador (opcional)",
     "coachCodePlaceholder": "Somente treinadores",
-    "coachCodeHint": "Deixe o código de treinador vazio para criar uma conta de membro. Peça o código à sua academia se você for treinador.",
+    "coachCodeHint": "Somente para treinadores: digite o código da sua academia (escolha a academia acima). Deixe vazio para criar uma conta de membro.",
     "coachSeesNote": "Seu treinador vê suas marcações diárias, sequência e medidas corporais.",
     "errors": {
       "fillFields": "Preencha seu nome, e-mail e uma senha de pelo menos 6 caracteres.",
@@ -83,7 +83,7 @@ export const auth = {
     "yourGym": "DEIN STUDIO",
     "coachCode": "Trainer-Code (optional)",
     "coachCodePlaceholder": "Nur für Trainer",
-    "coachCodeHint": "Lass den Trainer-Code leer, um ein Mitgliedskonto zu erstellen. Frag dein Studio nach dem Code, falls du Trainer bist.",
+    "coachCodeHint": "Nur für Trainer: Gib den Code deines Studios ein (wähle oben dein Studio). Lass das Feld leer, um ein Mitgliedskonto zu erstellen.",
     "coachSeesNote": "Dein Trainer sieht deine täglichen Häkchen, deine Serie und deine Körpermaße.",
     "errors": {
       "fillFields": "Gib deinen Namen, deine E-Mail und ein Passwort mit mindestens 6 Zeichen ein.",
@@ -106,7 +106,7 @@ export const auth = {
     "yourGym": "TA SALLE",
     "coachCode": "Code coach (facultatif)",
     "coachCodePlaceholder": "Réservé aux coachs",
-    "coachCodeHint": "Laisse le code coach vide pour créer un compte membre. Demande le code à ta salle si tu es coach.",
+    "coachCodeHint": "Réservé aux coachs : saisis le code de ta salle (choisis ta salle ci-dessus). Laisse vide pour créer un compte membre.",
     "coachSeesNote": "Ton coach voit tes validations quotidiennes, ta série et tes mesures corporelles.",
     "errors": {
       "fillFields": "Renseigne ton nom, ton e-mail et un mot de passe d'au moins 6 caractères.",

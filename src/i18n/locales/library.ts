@@ -22,6 +22,7 @@ export const library = {
     "tapToEdit": "Tap an exercise to edit its metrics or demo media.",
     "newExercise": "New Exercise",
     "badgeImg": "IMG",
+    "suggested": "Suggested",
     "badgeVideo": "VIDEO",
     "metricLabels": {
       "sets": "sets",
@@ -92,6 +93,7 @@ export const library = {
     "tapToEdit": "Toca un ejercicio para editar sus métricas o su material de demostración.",
     "newExercise": "Nuevo ejercicio",
     "badgeImg": "IMG",
+    "suggested": "Sugeridos",
     "badgeVideo": "VÍDEO",
     "metricLabels": {
       "sets": "series",
@@ -162,6 +164,7 @@ export const library = {
     "tapToEdit": "Toque em um exercício para editar suas métricas ou mídia de demonstração.",
     "newExercise": "Novo exercício",
     "badgeImg": "IMG",
+    "suggested": "Sugeridos",
     "badgeVideo": "VÍDEO",
     "metricLabels": {
       "sets": "séries",
@@ -232,6 +235,7 @@ export const library = {
     "tapToEdit": "Tippe auf eine Übung, um ihre Werte oder Demo-Medien zu bearbeiten.",
     "newExercise": "Neue Übung",
     "badgeImg": "BILD",
+    "suggested": "Empfohlen",
     "badgeVideo": "VIDEO",
     "metricLabels": {
       "sets": "Sätze",
@@ -302,6 +306,7 @@ export const library = {
     "tapToEdit": "Touche un exercice pour modifier ses métriques ou son média de démonstration.",
     "newExercise": "Nouvel exercice",
     "badgeImg": "IMG",
+    "suggested": "Suggérés",
     "badgeVideo": "VIDÉO",
     "metricLabels": {
       "sets": "séries",

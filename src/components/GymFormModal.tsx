@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../theme';
 import { AppText, Button, SheetModal, TextField } from '../ui';
-import { createGym, renameGym } from '../services/gyms';
+import { createGym, regenerateGymCode, renameGym, subscribeToGymCode } from '../services/gyms';
+import { confirmAction } from '../utils/confirm';
 import type { Gym } from '../types';
 
 /** Admin sheet to create or rename a gym. */
@@ -33,6 +34,26 @@ export function GymFormModal({
       setError(null);
     }
   }
+
+  // Admin-only code that lets coaches join this gym at sign-up.
+  const [codeState, setCodeState] = useState<{ gymId: string; code: string | null } | null>(null);
+  const gymId = gym?.id;
+  useEffect(() => {
+    if (!visible || !gymId) return;
+    return subscribeToGymCode(gymId, (value) => setCodeState({ gymId, code: value }));
+  }, [visible, gymId]);
+  const code = codeState && codeState.gymId === gymId ? codeState.code : null;
+
+  const handleNewCode = () => {
+    if (!gym) return;
+    const run = () =>
+      regenerateGymCode(gym.id).catch((codeError) => {
+        console.warn('[GymFormModal] code regenerate failed', codeError);
+        setError(t('admin.gymForm.saveFailed'));
+      });
+    if (code) confirmAction(t('admin.gymForm.newCode'), t('admin.gymForm.newCodeConfirm'), run, t('admin.gymForm.newCode'));
+    else run();
+  };
 
   const handleSave = async () => {
     if (name.trim().length === 0) {
@@ -79,6 +100,20 @@ export function GymFormModal({
           returnKeyType="done"
           onSubmitEditing={handleSave}
         />
+        {gym ? (
+          <View style={styles.codeBox}>
+            <AppText variant="footnote" color={colors.secondaryLabel}>
+              {t('admin.gymForm.codeLabel')}
+            </AppText>
+            <AppText variant="title2" selectable>
+              {code ?? '—'}
+            </AppText>
+            <AppText variant="footnote" color={colors.secondaryLabel}>
+              {t('admin.gymForm.codeHint')}
+            </AppText>
+            <Button label={t('admin.gymForm.newCode')} variant="tinted" size="sm" onPress={handleNewCode} />
+          </View>
+        ) : null}
         {error ? (
           <AppText variant="footnote" color={colors.systemRed}>
             {error}
@@ -91,4 +126,5 @@ export function GymFormModal({
 
 const styles = StyleSheet.create({
   form: { gap: 12, paddingBottom: 8 },
+  codeBox: { gap: 6 },
 });

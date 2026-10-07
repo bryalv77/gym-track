@@ -37,6 +37,8 @@ export function normalizeAssignments(value: unknown): AssignmentsByDate {
         coachId: asString(entry.coachId, ''),
         metrics: normalizeMetrics(entry.metrics),
         notes: asOptionalString(entry.notes),
+        routineId: asOptionalString(entry.routineId),
+        routineName: asOptionalString(entry.routineName),
         createdAt: asNumber(entry.createdAt, 0),
       };
     }

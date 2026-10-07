@@ -3,7 +3,25 @@
     "users": {
       ".read": "auth != null",
       "$uid": {
-        ".write": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || (auth.uid === $uid && !data.exists() && (newData.child('role').val() === 'member' && !newData.hasChild('coachId') || newData.child('role').val() === 'coach' && newData.child('gymId').isString() && newData.child('coachCode').val() === root.child('gymCodes').child(newData.child('gymId').val()).val())))",
+        "name": {
+          ".write": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+        },
+        "photoData": {
+          ".write": "auth != null && (auth.uid === $uid || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+        },
+        "coachCode": {
+          ".write": "auth != null && auth.uid === $uid && !newData.exists()"
+        },
+        "role": {
+          ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'"
+        },
+        "gymId": {
+          ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'"
+        },
+        "coachId": {
+          ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'"
+        }
       }
     },
     "gyms": {
@@ -34,6 +52,20 @@
       ".read": "auth != null",
       "$uid": {
         ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+    "gymCodes": {
+      ".read": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'",
+      ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'admin'"
+    },
+    "meta": {
+      ".read": "auth != null",
+      ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'coach' || root.child('users').child(auth.uid).child('role').val() === 'admin')"
+    },
+    "routines": {
+      "$coachId": {
+        ".read": "auth != null && (auth.uid === $coachId || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+        ".write": "auth != null && ((auth.uid === $coachId && root.child('users').child(auth.uid).child('role').val() === 'coach') || root.child('users').child(auth.uid).child('role').val() === 'admin')"
       }
     }
   }

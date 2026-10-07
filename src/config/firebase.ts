@@ -15,9 +15,6 @@ const firebaseConfig = {
   measurementId: process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-/** Secret code entered at sign-up that grants coach (admin) privileges. */
-export const COACH_SIGNUP_CODE = process.env.EXPO_PUBLIC_COACH_SIGNUP_CODE ?? 'GYM-COACH';
-
 /** True once the placeholder config above has been replaced with real values. */
 export const isFirebaseConfigured = !Object.values(firebaseConfig).some((value) =>
   value.startsWith('YOUR_'),

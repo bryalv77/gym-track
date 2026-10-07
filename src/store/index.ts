@@ -7,6 +7,7 @@ import { completionsReducer } from './slices/completionsSlice';
 import { measurementsReducer } from './slices/measurementsSlice';
 import { selfiesReducer } from './slices/selfiesSlice';
 import { membersReducer } from './slices/membersSlice';
+import { routinesReducer } from './slices/routinesSlice';
 
 export const store = configureStore({
   reducer: {
@@ -18,6 +19,7 @@ export const store = configureStore({
     measurements: measurementsReducer,
     selfies: selfiesReducer,
     members: membersReducer,
+    routines: routinesReducer,
   },
 });
 

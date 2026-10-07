@@ -29,6 +29,9 @@ export const profile = {
     "passwordRequired": "Enter your current password and a new one (min. 6 characters).",
     "passwordUpdated": "Password updated.",
     "passwordFailed": "Could not change the password.",
+    "myCoach": "My coach",
+    "noCoach": "No coach assigned yet",
+    "noCoachHint": "An admin will assign your coach soon.",
     "session": "Session",
     "signOut": "Sign out"
   },
@@ -62,6 +65,9 @@ export const profile = {
     "passwordRequired": "Introduce tu contraseña actual y una nueva (mín. 6 caracteres).",
     "passwordUpdated": "Contraseña actualizada.",
     "passwordFailed": "No se pudo cambiar la contraseña.",
+    "myCoach": "Mi entrenador",
+    "noCoach": "Aún no tienes entrenador asignado",
+    "noCoachHint": "Un administrador te asignará tu entrenador pronto.",
     "session": "Sesión",
     "signOut": "Cerrar sesión"
   },
@@ -95,6 +101,9 @@ export const profile = {
     "passwordRequired": "Digite sua senha atual e uma nova (mín. 6 caracteres).",
     "passwordUpdated": "Senha atualizada.",
     "passwordFailed": "Não foi possível alterar a senha.",
+    "myCoach": "Meu treinador",
+    "noCoach": "Nenhum treinador atribuído ainda",
+    "noCoachHint": "Um administrador atribuirá seu treinador em breve.",
     "session": "Sessão",
     "signOut": "Sair"
   },
@@ -128,6 +137,9 @@ export const profile = {
     "passwordRequired": "Gib dein aktuelles und ein neues Passwort ein (mind. 6 Zeichen).",
     "passwordUpdated": "Passwort aktualisiert.",
     "passwordFailed": "Das Passwort konnte nicht geändert werden.",
+    "myCoach": "Mein Coach",
+    "noCoach": "Noch kein Coach zugewiesen",
+    "noCoachHint": "Ein Admin weist dir bald einen Coach zu.",
     "session": "Sitzung",
     "signOut": "Abmelden"
   },
@@ -161,6 +173,9 @@ export const profile = {
     "passwordRequired": "Saisis ton mot de passe actuel et un nouveau (6 caractères min.).",
     "passwordUpdated": "Mot de passe mis à jour.",
     "passwordFailed": "Impossible de changer le mot de passe.",
+    "myCoach": "Mon coach",
+    "noCoach": "Aucun coach attribué pour l’instant",
+    "noCoachHint": "Un admin va bientôt t’attribuer un coach.",
     "session": "Session",
     "signOut": "Se déconnecter"
   },

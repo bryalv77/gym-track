@@ -20,6 +20,7 @@ export const member = {
       hint: 'Tap an exercise to see the demo video and your coach’s notes.',
       doneAt: 'done at {{time}}',
       exercise: 'Exercise',
+      otherExercises: "Other exercises",
     },
     selfie: {
       header: 'DAILY SELFIE',
@@ -132,6 +133,7 @@ export const member = {
       hint: 'Toca un ejercicio para ver el video de demostración y las notas de tu entrenador.',
       doneAt: 'hecho a las {{time}}',
       exercise: 'Ejercicio',
+      otherExercises: "Otros ejercicios",
     },
     selfie: {
       header: 'SELFIE DIARIO',
@@ -244,6 +246,7 @@ export const member = {
       hint: 'Toque em um exercício para ver o vídeo de demonstração e as notas do seu treinador.',
       doneAt: 'feito às {{time}}',
       exercise: 'Exercício',
+      otherExercises: "Outros exercícios",
     },
     selfie: {
       header: 'SELFIE DIÁRIA',
@@ -356,6 +359,7 @@ export const member = {
       hint: 'Tippe auf eine Übung, um das Demovideo und die Notizen deines Coachs zu sehen.',
       doneAt: 'erledigt um {{time}}',
       exercise: 'Übung',
+      otherExercises: "Weitere Übungen",
     },
     selfie: {
       header: 'TÄGLICHES SELFIE',
@@ -468,6 +472,7 @@ export const member = {
       hint: 'Touche un exercice pour voir la vidéo de démonstration et les notes de ton coach.',
       doneAt: 'fait à {{time}}',
       exercise: 'Exercice',
+      otherExercises: "Autres exercices",
     },
     selfie: {
       header: 'SELFIE DU JOUR',

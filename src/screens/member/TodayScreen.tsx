@@ -16,7 +16,7 @@ import {
 import { useAppSelector } from '../../store/hooks';
 import { selectMemberAssignments } from '../../store/slices/assignmentsSlice';
 import { selectExerciseById } from '../../store/slices/exercisesSlice';
-import { selectCompletionsForDate } from '../../store/slices/completionsSlice';
+import { NO_COMPLETIONS, selectCompletionsForDate } from '../../store/slices/completionsSlice';
 import { selectMeasurementsSorted } from '../../store/slices/measurementsSlice';
 import { selectSelfieForDate } from '../../store/slices/selfiesSlice';
 import { setCompletion } from '../../services/completions';
@@ -33,6 +33,7 @@ import {
 } from '../../utils/calories';
 import type { Assignment, Completion } from '../../types';
 import { useResetOnChange } from '../../utils/useResetOnChange';
+import { shallowEqual } from 'react-redux';
 
 /** Best-effort haptics on success. expo-haptics isn't installed; Vibration is
  *  the built-in, dependency-free fallback (a no-op where unsupported). */
@@ -56,14 +57,16 @@ export function TodayScreen() {
   const [toggleError, setToggleError] = useState<string | null>(null);
 
   const dateKey = toDateKey(selectedDate);
-  const assignments = useAppSelector((state) =>
-    profile ? selectMemberAssignments(state, dateKey, profile.uid) : [],
+  const assignments = useAppSelector(
+    (state) => (profile ? selectMemberAssignments(state, dateKey, profile.uid) : []),
+    shallowEqual,
   );
   const completions = useAppSelector((state) =>
-    profile ? selectCompletionsForDate(state, profile.uid, dateKey) : {},
+    profile ? selectCompletionsForDate(state, profile.uid, dateKey) : NO_COMPLETIONS,
   );
-  const completionDays = useAppSelector((state) =>
-    profile ? Object.keys(state.completions.byUser[profile.uid] ?? {}) : [],
+  const completionDays = useAppSelector(
+    (state) => (profile ? Object.keys(state.completions.byUser[profile.uid] ?? {}) : []),
+    shallowEqual,
   );
   const exercisesById = useAppSelector((state) => state.exercises.byId);
   const latestWeight = useAppSelector(

@@ -56,12 +56,15 @@ export const completionsReducer = completionsSlice.reducer;
 
 /* ─── Selectors ───────────────────────────────────────────────────────────── */
 
+// Stable reference so selectors don't return a fresh object each call.
+export const NO_COMPLETIONS: Record<string, Completion> = {};
+
 export function selectCompletionsForDate(
   state: { completions: CompletionsState },
   uid: string,
   dateKey: string,
 ): Record<string, Completion> {
-  return state.completions.byUser[uid]?.[dateKey] ?? {};
+  return state.completions.byUser[uid]?.[dateKey] ?? NO_COMPLETIONS;
 }
 
 export function selectCompletionDays(

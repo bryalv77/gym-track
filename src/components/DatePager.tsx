@@ -36,9 +36,11 @@ export function DatePager({
           pressed && { opacity: 0.5 },
         ]}
         onPress={() => onChange(addDays(date, -1))}
-        accessibilityLabel={t('member.datePager.previous')}
+        hitSlop={8}
+        accessibilityRole="button"
+        accessibilityLabel={t('member.datePager.previous', { defaultValue: 'Previous day' })}
       >
-        <Ionicons name="chevron-back" size={16} color={colors.systemBlue} />
+        <Ionicons name="chevron-back" size={18} color={colors.systemBlue} />
       </Pressable>
 
       <Pressable
@@ -48,7 +50,7 @@ export function DatePager({
           pressed && { opacity: 0.6 },
         ]}
         onPress={() => setCalendarVisible(true)}
-        accessibilityLabel={t('member.datePager.openCalendar')}
+        accessibilityLabel={t('member.datePager.openCalendar', { defaultValue: 'Toggle calendar' })}
         accessibilityRole="button"
       >
         <AppText variant="subheadline" style={{ fontWeight: '600' }}>
@@ -69,11 +71,14 @@ export function DatePager({
         ]}
         onPress={() => onChange(addDays(date, 1))}
         disabled={!canGoForward}
-        accessibilityLabel={t('member.datePager.next')}
+        hitSlop={8}
+        accessibilityRole="button"
+        accessibilityState={{ disabled: !canGoForward }}
+        accessibilityLabel={t('member.datePager.next', { defaultValue: 'Next day' })}
       >
         <Ionicons
           name="chevron-forward"
-          size={16}
+          size={18}
           color={canGoForward ? colors.systemBlue : colors.tertiaryLabel}
         />
       </Pressable>
@@ -106,8 +111,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   arrow: {
-    width: 32,
-    height: 32,
+    width: 40,
+    height: 40,
     borderRadius: radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
@@ -118,7 +123,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    height: 38,
+    minHeight: 40,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
     borderRadius: radius.md,
   },
 });

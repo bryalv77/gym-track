@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { exerciseName } from '../../utils/defaultExerciseData';
-import { StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../theme';
 import {
@@ -110,9 +110,35 @@ export function PlanScreen() {
         markedDays={markedDays}
       />
 
+      {/* Primary actions stay at the top, above the list. */}
+      <View style={styles.actions}>
+        <Button
+          label={t('coach.plan.assignButton')}
+          icon="add"
+          size="md"
+          onPress={() => openAssign(memberFilter === 'all' ? null : memberFilter)}
+          style={styles.actionButton}
+        />
+        <Button
+          label={t('routines.assign.button')}
+          icon="albums-outline"
+          variant="tinted"
+          size="md"
+          onPress={() => {
+            setPresetMemberId(memberFilter === 'all' ? null : memberFilter);
+            setRoutineModalVisible(true);
+          }}
+          style={styles.actionButton}
+        />
+      </View>
+
       <View style={styles.filters}>
         {gymMembers.length > 0 ? (
-          <View style={styles.filterRow}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.filterScroll}
+          >
             <Chip
               label={t('coach.plan.allMembers')}
               selected={memberFilter === 'all'}
@@ -126,7 +152,7 @@ export function PlanScreen() {
                 onPress={() => setMemberFilter(member.uid)}
               />
             ))}
-          </View>
+          </ScrollView>
         ) : null}
         <SearchField
           value={query}
@@ -168,25 +194,6 @@ export function PlanScreen() {
         <ListGroupFooter label={t('coach.plan.footer')} />
       ) : null}
 
-      <Button
-        label={t('coach.plan.assignButton')}
-        icon="add"
-        size="md"
-        onPress={() => openAssign(memberFilter === 'all' ? null : memberFilter)}
-        style={styles.addButton}
-      />
-      <Button
-        label={t('routines.assign.button')}
-        icon="albums-outline"
-        variant="tinted"
-        size="md"
-        onPress={() => {
-          setPresetMemberId(memberFilter === 'all' ? null : memberFilter);
-          setRoutineModalVisible(true);
-        }}
-        style={styles.routineButton}
-      />
-
       <AssignExerciseModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
@@ -211,28 +218,17 @@ function AssignmentRow({
   assignment: Assignment;
   onPress: () => void;
 }) {
-  const { colors } = useTheme();
   const { t } = useTranslation();
   const exercise = useAppSelector((state) =>
     selectExerciseById(state, assignment.exerciseId),
   );
   const member = useAppSelector((state) => selectUserById(state, assignment.memberId));
   const summary = exercise ? formatMetrics(exercise.metricFields, assignment.metrics) : '';
-  const isCardio = exercise?.type === 'cardio';
 
   return (
     <ListRow
       title={(exercise ? exerciseName(exercise) : null) ?? t('coach.plan.exerciseFallback')}
       subtitle={`${member?.name ?? t('coach.plan.memberFallback')}${assignment.routineName ? ` · ${assignment.routineName}` : ''} · ${summary}${assignment.notes ? `\n${assignment.notes}` : ''}`}
-      icon={
-        isCardio
-          ? {
-              name: 'speedometer-outline',
-              color: colors.systemOrange,
-              background: colors.orangeTint,
-            }
-          : { name: 'barbell-outline' }
-      }
       leading={<Avatar name={member?.name ?? t('coach.plan.memberFallback')} size={34} photoUrl={member?.photoData} />}
       chevron
       onPress={onPress}
@@ -241,9 +237,9 @@ function AssignmentRow({
 }
 
 const styles = StyleSheet.create({
+  actions: { flexDirection: 'row', gap: 8, marginBottom: 12 },
+  actionButton: { flex: 1 },
   filters: { gap: 10, marginBottom: 10 },
-  filterRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  filterScroll: { flexDirection: 'row', gap: 8, paddingVertical: 2 },
   summary: { marginBottom: 12 },
-  addButton: { marginTop: 16 },
-  routineButton: { marginTop: 10 },
 });

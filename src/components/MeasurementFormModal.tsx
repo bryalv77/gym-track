@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { radius, useTheme } from '../theme';
 import { AppText, Button, SheetModal, TextField } from '../ui';
 import { useAppSelector } from '../store/hooks';
 import { addMeasurement, updateMeasurement } from '../services/measurements';
-import { isValidDateKey, toDateKey } from '../utils/date';
+import { isValidDateKey, parseDateKey, toDateKey } from '../utils/date';
 import { parseOptionalNumber } from '../utils/numbers';
+import { DatePager } from './DatePager';
+import type { Measurement } from '../types';
 
 const NUMERIC = 'numeric' as const;
 
@@ -16,10 +18,12 @@ export function MeasurementFormModal({
   onClose,
   /** null = new entry */
   editing,
+  defaultDateKey,
 }: {
   visible: boolean;
   onClose: () => void;
-  editing?: import('../types').Measurement | null;
+  editing?: Measurement | null;
+  defaultDateKey?: string;
 }) {
   const { colors } = useTheme();
   const { t } = useTranslation();
@@ -36,23 +40,23 @@ export function MeasurementFormModal({
   const [saving, setSaving] = useState(false);
 
   // Re-initialize the form whenever it opens or its inputs change.
-  const [synced1, setSynced1] = useState<unknown[]>([]);
-  const deps1 = [visible, editing];
-  if (deps1.some((value, index) => value !== synced1[index])) {
-    setSynced1(deps1);
-    if (visible) {
-      setDateKey(editing?.dateKey ?? toDateKey(new Date()));
-      setWeight(editing?.weightKg != null ? String(editing.weightKg) : '');
-      setChest(editing?.chestCm != null ? String(editing.chestCm) : '');
-      setWaist(editing?.waistCm != null ? String(editing.waistCm) : '');
-      setArm(editing?.armCm != null ? String(editing.armCm) : '');
-      setThigh(editing?.thighCm != null ? String(editing.thighCm) : '');
-      setNotes(editing?.notes ?? '');
-      setError(null);
-    }
-  }
+  useEffect(() => {
+    if (!visible) return;
+    setDateKey(editing?.dateKey ?? defaultDateKey ?? toDateKey(new Date()));
+    setWeight(editing?.weightKg != null ? String(editing.weightKg) : '');
+    setChest(editing?.chestCm != null ? String(editing.chestCm) : '');
+    setWaist(editing?.waistCm != null ? String(editing.waistCm) : '');
+    setArm(editing?.armCm != null ? String(editing.armCm) : '');
+    setThigh(editing?.thighCm != null ? String(editing.thighCm) : '');
+    setNotes(editing?.notes ?? '');
+    setError(null);
+  }, [visible, editing, defaultDateKey]);
 
   if (!profile) return null;
+
+  const selectedDate = isValidDateKey(dateKey.trim())
+    ? parseDateKey(dateKey.trim())
+    : new Date();
 
   const handleSave = async () => {
     if (!isValidDateKey(dateKey.trim())) {
@@ -112,13 +116,21 @@ export function MeasurementFormModal({
       footer={<Button label={editing ? t('member.selfie.saveChanges') : t('member.measure.save')} onPress={handleSave} loading={saving} />}
     >
       <View style={styles.form}>
-        <TextField
-          label={t('member.measure.date')}
-          placeholder={toDateKey(new Date())}
-          value={dateKey}
-          onChangeText={setDateKey}
-          autoCapitalize="none"
-        />
+        <View style={styles.dateSection}>
+          <AppText variant="footnote" color={colors.secondaryLabel} style={styles.dateLabel}>
+            {t('member.datePager.pick')}
+          </AppText>
+          <View style={[styles.datePagerWrap, { backgroundColor: colors.fill }]}>
+            <DatePager
+              date={selectedDate}
+              onChange={(picked) => {
+                setDateKey(toDateKey(picked));
+                setError(null);
+              }}
+              allowFuture={false}
+            />
+          </View>
+        </View>
         <TextField
           label={t('member.measure.weight')}
           placeholder="75.5"
@@ -185,6 +197,13 @@ export function MeasurementFormModal({
 
 const styles = StyleSheet.create({
   form: { gap: 14, paddingBottom: 8 },
+  dateSection: { gap: 6 },
+  dateLabel: { marginLeft: 4 },
+  datePagerWrap: {
+    borderRadius: radius.md,
+    paddingHorizontal: 8,
+    paddingTop: 2,
+  },
   row: { flexDirection: 'row', gap: 12 },
   half: { flex: 1 },
 });

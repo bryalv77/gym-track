@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { radius, useTheme } from '../theme';
@@ -32,16 +32,12 @@ export function SelfieFormModal({
   const [picking, setPicking] = useState(false);
 
   // Re-initialize the form whenever it opens or its inputs change.
-  const [synced1, setSynced1] = useState<unknown[]>([]);
-  const deps1 = [visible, editing];
-  if (deps1.some((value, index) => value !== synced1[index])) {
-    setSynced1(deps1);
-    if (visible) {
-      setPhotoData(editing?.photoData ?? null);
-      setNotes(editing?.notes ?? '');
-      setError(null);
-    }
-  }
+  useEffect(() => {
+    if (!visible) return;
+    setPhotoData(editing?.photoData ?? null);
+    setNotes(editing?.notes ?? '');
+    setError(null);
+  }, [visible, editing, dateKey]);
 
   if (!profile) return null;
 
@@ -96,6 +92,7 @@ export function SelfieFormModal({
       visible={visible}
       onClose={onClose}
       title={editing ? t('member.selfie.editTitle') : t('member.selfie.daily')}
+      confirmDiscard
       footer={
         <Button
           label={editing ? t('member.selfie.saveChanges') : t('member.selfie.save')}

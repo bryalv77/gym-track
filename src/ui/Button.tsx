@@ -53,14 +53,20 @@ export function Button({
             ? colors.systemGray5
             : 'transparent';
 
+  const isDisabled = Boolean(disabled || loading);
+
   return (
     <Pressable
       onPress={onPress}
-      disabled={disabled || loading}
+      disabled={isDisabled}
+      accessibilityRole="button"
+      accessibilityState={{ disabled: isDisabled, busy: Boolean(loading) }}
+      accessibilityLabel={label}
       style={({ pressed }) => [
         styles.base,
         {
-          height: heights[size],
+          minHeight: heights[size],
+          paddingVertical: 8,
           backgroundColor,
           borderRadius: size === 'sm' ? radius.md : radius.lg,
           paddingHorizontal: size === 'sm' ? 14 : 20,

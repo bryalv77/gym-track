@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useTheme } from '../../theme';
+import { radius, useTheme } from '../../theme';
 import {
   AppText,
   Avatar,
@@ -15,9 +15,10 @@ import {
   NavBar,
   Screen,
   SearchField,
+  SheetModal,
 } from '../../ui';
 import { useAppSelector } from '../../store/hooks';
-import { selectGymMembers } from '../../store/slices/membersSlice';
+import { selectGymMembers, selectUserById } from '../../store/slices/membersSlice';
 import { selectCompletionCountForDates } from '../../store/slices/completionsSlice';
 import { addDays, toDateKey } from '../../utils/date';
 
@@ -31,6 +32,7 @@ export function MembersScreen() {
   const members = useAppSelector((state) => selectGymMembers(state, profile?.gymId));
   const [query, setQuery] = useState('');
   const [sortMode, setSortMode] = useState<SortMode>('name');
+  const [selectedUid, setSelectedUid] = useState<string | null>(null);
 
   const last7Keys = useMemo(() => {
     const today = new Date();
@@ -99,6 +101,7 @@ export function MembersScreen() {
                 key={member.uid}
                 uid={member.uid}
                 dateKeys={last7Keys}
+                onPress={() => setSelectedUid(member.uid)}
               />
             ))}
           </ListGroup>
@@ -109,11 +112,25 @@ export function MembersScreen() {
           </View>
         </View>
       )}
+
+      <MemberOverviewSheet
+        uid={selectedUid}
+        dateKeys={last7Keys}
+        onClose={() => setSelectedUid(null)}
+      />
     </Screen>
   );
 }
 
-function MemberRow({ uid, dateKeys }: { uid: string; dateKeys: string[] }) {
+function MemberRow({
+  uid,
+  dateKeys,
+  onPress,
+}: {
+  uid: string;
+  dateKeys: string[];
+  onPress: () => void;
+}) {
   const { t } = useTranslation();
   const member = useAppSelector((state) => state.members.byUid[uid] ?? null);
   const weekCount = useAppSelector((state) =>
@@ -131,7 +148,135 @@ function MemberRow({ uid, dateKeys }: { uid: string; dateKeys: string[] }) {
           variant={weekCount > 0 ? 'green' : 'neutral'}
         />
       }
+      chevron
+      onPress={onPress}
     />
+  );
+}
+
+/** Read-only overview of one member using data the coach already receives. */
+function MemberOverviewSheet({
+  uid,
+  dateKeys,
+  onClose,
+}: {
+  uid: string | null;
+  dateKeys: string[];
+  onClose: () => void;
+}) {
+  const { t } = useTranslation();
+  const { colors } = useTheme();
+  const member = useAppSelector((state) => (uid ? selectUserById(state, uid) : undefined));
+  const coachName = useAppSelector((state) =>
+    member?.coachId ? state.members.byUid[member.coachId]?.name : undefined,
+  );
+  const gymName = useAppSelector((state) =>
+    member?.gymId ? state.gyms.byId[member.gymId]?.name : undefined,
+  );
+  const weekCount = useAppSelector((state) =>
+    uid ? selectCompletionCountForDates(state, uid, dateKeys) : 0,
+  );
+  const assignmentsByDate = useAppSelector((state) => state.assignments.byDate);
+  const completionsByDate = useAppSelector((state) =>
+    uid ? state.completions.byUser[uid] : undefined,
+  );
+
+  const assignedToday = useMemo(() => {
+    if (!uid) return 0;
+    const day = assignmentsByDate[toDateKey(new Date())];
+    return day ? Object.values(day).filter((assignment) => assignment.memberId === uid).length : 0;
+  }, [uid, assignmentsByDate]);
+
+  const recentDays = useMemo(
+    () =>
+      dateKeys
+        .map((key) => ({ key, count: Object.keys(completionsByDate?.[key] ?? {}).length }))
+        .filter((day) => day.count > 0)
+        .reverse(),
+    [dateKeys, completionsByDate],
+  );
+
+  return (
+    <SheetModal
+      visible={uid != null}
+      onClose={onClose}
+      title={member?.name ?? t('coach.members.overviewTitle', { defaultValue: 'Member Overview' })}
+    >
+      <View style={styles.overview}>
+        {member ? (
+          <>
+            <View style={styles.overviewHeader}>
+              <Avatar name={member.name} size={52} photoUrl={member.photoData} />
+              <View style={styles.overviewIdentity}>
+                <AppText variant="headline">{member.name}</AppText>
+                <AppText variant="footnote" color={colors.secondaryLabel}>
+                  {member.email}
+                </AppText>
+              </View>
+            </View>
+
+            <AppText variant="footnote" color={colors.secondaryLabel} style={styles.sectionLabel}>
+              {t('coach.members.overviewTitle', { defaultValue: 'Member Overview' }).toUpperCase()}
+            </AppText>
+            <ListGroup>
+              <ListRow
+                title={t('coach.members.gym', { defaultValue: 'Gym' })}
+                value={gymName ?? t('coach.members.noGym', { defaultValue: 'No gym' })}
+              />
+              <ListRow
+                title={t('coach.members.coach', { defaultValue: 'Coach' })}
+                value={coachName ?? t('coach.members.noCoach', { defaultValue: 'No coach assigned' })}
+              />
+              <ListRow
+                title={t('coach.members.email', { defaultValue: 'Email' })}
+                value={member.email}
+              />
+            </ListGroup>
+
+            <AppText variant="footnote" color={colors.secondaryLabel} style={styles.sectionLabel}>
+              {t('coach.members.progress', { defaultValue: 'Progress' }).toUpperCase()}
+            </AppText>
+            <View style={styles.statRow}>
+              <StatTile value={assignedToday} label={t('coach.members.assignedToday')} />
+              <StatTile value={weekCount} label={t('coach.members.completedWeek')} />
+            </View>
+
+            <AppText variant="footnote" color={colors.secondaryLabel} style={styles.sectionLabel}>
+              {t('coach.members.recentCompletions')}
+            </AppText>
+            {recentDays.length === 0 ? (
+              <AppText variant="footnote" color={colors.secondaryLabel}>
+                {t('coach.members.noRecentCompletions')}
+              </AppText>
+            ) : (
+              <ListGroup>
+                {recentDays.map((day) => (
+                  <ListRow
+                    key={day.key}
+                    title={day.key}
+                    value={t('coach.members.exercisesDone', { count: day.count })}
+                  />
+                ))}
+              </ListGroup>
+            )}
+          </>
+        ) : null}
+      </View>
+    </SheetModal>
+  );
+}
+
+function StatTile({ value, label }: { value: number; label: string }) {
+  const { colors } = useTheme();
+  return (
+    <View style={[styles.statTile, { backgroundColor: colors.fill }]}>
+      <AppText variant="title2" tabular>
+        {value}
+      </AppText>
+      <AppText variant="caption1" color={colors.secondaryLabel}>
+        {label}
+      </AppText>
+    </View>
   );
 }
 
@@ -139,4 +284,10 @@ const styles = StyleSheet.create({
   filters: { gap: 10, marginBottom: 12 },
   filterRow: { flexDirection: 'row', gap: 8 },
   legendRow: { marginHorizontal: 32, marginTop: 8 },
+  overview: { gap: 10, paddingBottom: 8 },
+  overviewHeader: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  overviewIdentity: { flex: 1, gap: 2 },
+  sectionLabel: { marginTop: 4 },
+  statRow: { flexDirection: 'row', gap: 10 },
+  statTile: { flex: 1, borderRadius: radius.md, padding: 12, gap: 2 },
 });

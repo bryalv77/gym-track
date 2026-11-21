@@ -1,11 +1,11 @@
-import { onValue, push, ref, remove, set, update, type Unsubscribe } from 'firebase/database';
-import { db } from '../config/firebase';
-import type { Exercise } from '../types';
+import { apiRequest, createPoller, emitSyncInvalidate } from '../config/api';
+import type { Exercise, ExercisesById } from '../types';
 
-export function subscribeToExercises(callback: (value: unknown) => void): Unsubscribe {
-  return onValue(
-    ref(db, 'exercises'),
-    (snapshot) => callback(snapshot.val()),
+export function subscribeToExercises(callback: (value: unknown) => void): () => void {
+  return createPoller(
+    'exercises',
+    () => apiRequest<ExercisesById>('/api/exercises'),
+    callback,
     (error) => console.warn('[exercises] subscription error:', error.message),
   );
 }
@@ -13,18 +13,27 @@ export function subscribeToExercises(callback: (value: unknown) => void): Unsubs
 export async function createExercise(
   input: Omit<Exercise, 'id' | 'createdAt'>,
 ): Promise<void> {
-  const ref_ = push(ref(db, 'exercises'));
-  const exercise: Exercise = { ...input, id: ref_.key as string, createdAt: Date.now() };
-  await set(ref_, exercise);
+  await apiRequest('/api/exercises', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  emitSyncInvalidate('exercises');
 }
 
 export async function updateExercise(
   id: string,
   patch: Partial<Omit<Exercise, 'id' | 'createdAt'>>,
 ): Promise<void> {
-  await update(ref(db, `exercises/${id}`), patch);
+  await apiRequest(`/api/exercises/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(patch),
+  });
+  emitSyncInvalidate('exercises');
 }
 
 export async function deleteExercise(id: string): Promise<void> {
-  await remove(ref(db, `exercises/${id}`));
+  await apiRequest(`/api/exercises/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
+  emitSyncInvalidate('exercises');
 }

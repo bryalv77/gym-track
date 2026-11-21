@@ -118,6 +118,8 @@ export function ListRow({
     <Pressable
       onPress={onPress}
       disabled={disabled}
+      accessibilityRole="button"
+      accessibilityState={{ disabled: Boolean(disabled) }}
       style={({ pressed }) => (pressed ? { backgroundColor: colors.fill } : null)}
     >
       {content}

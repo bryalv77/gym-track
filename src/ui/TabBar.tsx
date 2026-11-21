@@ -43,7 +43,14 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
           }
         };
         return (
-          <Pressable key={route.key} onPress={onPress} style={styles.item}>
+          <Pressable
+            key={route.key}
+            onPress={onPress}
+            style={styles.item}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: focused }}
+            accessibilityLabel={label}
+          >
             {icon}
             <AppText
               style={{

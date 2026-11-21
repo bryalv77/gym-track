@@ -1,7 +1,8 @@
-import React, { useMemo, useState } from 'react';
-import { exerciseName } from '../utils/defaultExerciseData';
-import { StyleSheet, View } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { exerciseName } from '../utils/defaultExerciseData';
+import { metricLabel } from '../utils/exercisePresets';
 import { radius, useTheme } from '../theme';
 import {
   AppText,
@@ -23,7 +24,10 @@ import {
 } from '../services/assignments';
 import { unassignRoutine } from '../services/routines';
 import { confirmAction } from '../utils/confirm';
-import type { Assignment, Exercise, MetricField } from '../types';
+import type { Assignment, Exercise, ExerciseType, MetricField } from '../types';
+
+type TypeFilter = 'all' | ExerciseType;
+const TYPE_FILTERS: TypeFilter[] = ['all', 'strength', 'cardio', 'other'];
 
 /**
  * Coach sheet to assign a library exercise to a member for a given day and
@@ -51,7 +55,9 @@ export function AssignExerciseModal({
     selectGymMembers(state, state.auth.profile?.gymId),
   );
   const exercises = useAppSelector(selectExercisesSorted);
+  const [memberQuery, setMemberQuery] = useState('');
   const [exerciseQuery, setExerciseQuery] = useState('');
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
 
   const [memberId, setMemberId] = useState<string | null>(null);
   const [exerciseId, setExerciseId] = useState<string | null>(null);
@@ -65,43 +71,51 @@ export function AssignExerciseModal({
     [exercises, exerciseId],
   );
 
+  const visibleMembers = useMemo(() => {
+    const needle = memberQuery.trim().toLowerCase();
+    if (needle.length === 0) return gymMembers;
+    return gymMembers.filter(
+      (member) =>
+        member.name.toLowerCase().includes(needle) ||
+        member.email.toLowerCase().includes(needle),
+    );
+  }, [gymMembers, memberQuery]);
+
   const visibleExercises = useMemo(() => {
     const needle = exerciseQuery.trim().toLowerCase();
-    if (needle.length === 0) return exercises;
-    return exercises.filter((exercise) => exerciseName(exercise).toLowerCase().includes(needle));
-  }, [exercises, exerciseQuery]);
+    return exercises
+      .filter((exercise) => typeFilter === 'all' || exercise.type === typeFilter)
+      .filter(
+        (exercise) =>
+          needle.length === 0 || exerciseName(exercise).toLowerCase().includes(needle),
+      );
+  }, [exercises, exerciseQuery, typeFilter]);
 
   // Re-initialize the form whenever it opens or its inputs change.
-  const [synced1, setSynced1] = useState<unknown[]>([]);
-  const deps1 = [visible, assignment, initialMemberId];
-  if (deps1.some((value, index) => value !== synced1[index])) {
-    setSynced1(deps1);
-    if (visible) {
-      setMemberId(assignment?.memberId ?? initialMemberId ?? null);
-      setExerciseId(assignment?.exerciseId ?? null);
-      setNotes(assignment?.notes ?? '');
-      setExerciseQuery('');
-      setError(null);
-    }
-  }
+  useEffect(() => {
+    if (!visible) return;
+    setMemberId(assignment?.memberId ?? initialMemberId ?? null);
+    setExerciseId(assignment?.exerciseId ?? null);
+    setNotes(assignment?.notes ?? '');
+    setMemberQuery('');
+    setExerciseQuery('');
+    setTypeFilter('all');
+    setError(null);
+  }, [visible, assignment, initialMemberId]);
 
   // When an exercise is picked, initialize metrics with the assignment's
   // existing values or the exercise defaults.
-  const [synced2, setSynced2] = useState<unknown[]>([]);
-  const deps2 = [visible, selectedExercise, assignment];
-  if (deps2.some((value, index) => value !== synced2[index])) {
-    setSynced2(deps2);
-    if (visible && selectedExercise) {
-      const initial: Record<string, number> = {};
-      for (const field of selectedExercise.metricFields) {
-        initial[field.key] =
-          assignment && assignment.exerciseId === selectedExercise.id
-            ? assignment.metrics[field.key] ?? field.defaultValue
-            : field.defaultValue;
-      }
-      setMetrics(initial);
+  useEffect(() => {
+    if (!visible || !selectedExercise) return;
+    const initial: Record<string, number> = {};
+    for (const field of selectedExercise.metricFields) {
+      initial[field.key] =
+        assignment && assignment.exerciseId === selectedExercise.id
+          ? assignment.metrics[field.key] ?? field.defaultValue
+          : field.defaultValue;
     }
-  }
+    setMetrics(initial);
+  }, [visible, selectedExercise, assignment]);
 
   if (!coach) return null;
 
@@ -149,11 +163,13 @@ export function AssignExerciseModal({
       t('coach.assign.unassignTitle'),
       t('coach.assign.unassignMessage'),
       async () => {
+        setError(null);
         try {
           await deleteAssignment(dateKey, assignment.id);
           onClose();
         } catch (deleteError) {
           console.warn('[AssignExerciseModal] unassign failed', deleteError);
+          setError(t('coach.assign.saveFailed'));
         }
       },
       t('coach.assign.unassign'),
@@ -167,16 +183,27 @@ export function AssignExerciseModal({
       t('routines.unassign.title'),
       t('routines.unassign.message', { name: assignment.routineName ?? '' }),
       async () => {
+        setError(null);
         try {
           await unassignRoutine(dateKey, routineId, assignment.memberId);
           onClose();
         } catch (deleteError) {
           console.warn('[AssignExerciseModal] unassign routine failed', deleteError);
+          setError(t('coach.assign.saveFailed'));
         }
       },
       t('routines.unassign.confirm'),
     );
   };
+
+  const memberChipsList = visibleMembers.map((member) => (
+    <Chip
+      key={member.uid}
+      label={member.name}
+      selected={memberId === member.uid}
+      onPress={() => setMemberId(member.uid)}
+    />
+  ));
 
   const memberChips = assignment ? (
     <View style={[styles.memberPill, { backgroundColor: colors.background }]}>
@@ -190,30 +217,61 @@ export function AssignExerciseModal({
       </AppText>
     </View>
   ) : (
-    <View style={styles.chips}>
-      {gymMembers.map((member) => (
-        <Chip
-          key={member.uid}
-          label={member.name}
-          selected={memberId === member.uid}
-          onPress={() => setMemberId(member.uid)}
+    <View style={styles.pickerStack}>
+      {gymMembers.length > 6 ? (
+        <SearchField
+          value={memberQuery}
+          onChangeText={setMemberQuery}
+          placeholder={t('coach.assign.searchMembers')}
         />
-      ))}
-      {gymMembers.length === 0 ? (
-        <AppText variant="footnote" color={colors.secondaryLabel}>
-          {t('coach.assign.noMembers')}
-        </AppText>
       ) : null}
+      {visibleMembers.length > 6 ? (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.chipsScroll}
+        >
+          {memberChipsList}
+        </ScrollView>
+      ) : (
+        <View style={styles.chips}>
+          {memberChipsList}
+          {gymMembers.length === 0 ? (
+            <AppText variant="footnote" color={colors.secondaryLabel}>
+              {t('coach.assign.noMembers')}
+            </AppText>
+          ) : visibleMembers.length === 0 ? (
+            <AppText variant="footnote" color={colors.secondaryLabel}>
+              {t('coach.members.noResults')}
+            </AppText>
+          ) : null}
+        </View>
+      )}
     </View>
   );
+
+  const exerciseChipsList = visibleExercises.map((exercise) => (
+    <Chip
+      key={exercise.id}
+      label={exerciseName(exercise)}
+      selected={exerciseId === exercise.id}
+      onPress={() => setExerciseId(exercise.id)}
+    />
+  ));
 
   return (
     <SheetModal
       visible={visible}
       onClose={onClose}
       title={assignment ? t('coach.assign.editTitle') : t('coach.assign.newTitle')}
+      confirmDiscard
       footer={
         <View style={styles.footer}>
+          {error ? (
+            <AppText variant="footnote" color={colors.systemRed}>
+              {error}
+            </AppText>
+          ) : null}
           {assignment?.routineId ? (
             <Button
               label={t('routines.unassign.button', { name: assignment.routineName ?? '' })}
@@ -255,21 +313,40 @@ export function AssignExerciseModal({
             onChangeText={setExerciseQuery}
             placeholder={t('coach.assign.searchExercises')}
           />
-          <View style={styles.chips}>
-            {visibleExercises.map((exercise) => (
-              <Chip
-                key={exercise.id}
-                label={exerciseName(exercise)}
-                selected={exerciseId === exercise.id}
-                onPress={() => setExerciseId(exercise.id)}
-              />
-            ))}
-            {visibleExercises.length === 0 ? (
-              <AppText variant="footnote" color={colors.secondaryLabel}>
-                {t('coach.assign.noExerciseMatch', { query: exerciseQuery })}
-              </AppText>
-            ) : null}
-          </View>
+          {exercises.length > 6 ? (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.chipsScroll}
+            >
+              {TYPE_FILTERS.map((filter) => (
+                <Chip
+                  key={filter}
+                  label={t(`library.filters.${filter}`)}
+                  selected={typeFilter === filter}
+                  onPress={() => setTypeFilter(filter)}
+                />
+              ))}
+            </ScrollView>
+          ) : null}
+          {visibleExercises.length > 6 ? (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.chipsScroll}
+            >
+              {exerciseChipsList}
+            </ScrollView>
+          ) : (
+            <View style={styles.chips}>
+              {exerciseChipsList}
+              {visibleExercises.length === 0 ? (
+                <AppText variant="footnote" color={colors.secondaryLabel}>
+                  {t('coach.assign.noExerciseMatch', { query: exerciseQuery })}
+                </AppText>
+              ) : null}
+            </View>
+          )}
         </View>
 
         {selectedExercise ? (
@@ -281,7 +358,7 @@ export function AssignExerciseModal({
               {selectedExercise.metricFields.map((field: MetricField) => (
                 <Stepper
                   key={field.key}
-                  label={`${field.label}${field.unit ? ` (${field.unit})` : ''}`}
+                  label={`${metricLabel(field)}${field.unit ? ` (${field.unit})` : ''}`}
                   value={metrics[field.key] ?? field.defaultValue}
                   min={field.min}
                   max={field.max}
@@ -302,11 +379,6 @@ export function AssignExerciseModal({
           onChangeText={setNotes}
           multiline
         />
-        {error ? (
-          <AppText variant="footnote" color={colors.systemRed}>
-            {error}
-          </AppText>
-        ) : null}
       </View>
     </SheetModal>
   );
@@ -315,7 +387,9 @@ export function AssignExerciseModal({
 const styles = StyleSheet.create({
   form: { gap: 16, paddingBottom: 8 },
   section: { gap: 8 },
+  pickerStack: { gap: 8 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  chipsScroll: { flexDirection: 'row', gap: 8, paddingVertical: 2 },
   memberPill: {
     flexDirection: 'row',
     alignItems: 'center',

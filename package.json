@@ -5,6 +5,7 @@
   "dependencies": {
     "@expo/metro-runtime": "~57.0.16",
     "@expo/vector-icons": "^15.0.2",
+    "@neondatabase/serverless": "^1.2.1",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-navigation/bottom-tabs": "^7.19.2",
     "@react-navigation/native": "^7.4.1",
@@ -16,7 +17,7 @@
     "expo-localization": "~57.0.2",
     "expo-status-bar": "~57.0.1",
     "expo-updates": "~57.0.25",
-    "firebase": "^12.19.0",
+    "hono": "^4.13.19",
     "i18next": "^26.4.2",
     "react": "19.2.3",
     "react-dom": "19.2.3",
@@ -28,18 +29,23 @@
     "react-redux": "^9.3.0"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261116.1",
     "@types/react": "~19.2.2",
     "eslint": "^9.0.0",
     "eslint-config-expo": "~57.0.2",
     "husky": "^9.1.7",
-    "typescript": "~6.0.3"
+    "typescript": "~6.0.3",
+    "wrangler": "^4.163.0"
   },
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc -p api/tsconfig.json --noEmit",
+    "api:dev": "wrangler dev",
+    "api:deploy": "wrangler deploy",
+    "db:migrate": "node api/db/migrate.mjs",
     "build:web": "expo export --platform web",
     "lint": "expo lint",
     "deploy:web": "expo export --platform web --clear && pnpm dlx firebase-tools deploy --only hosting",

@@ -24,12 +24,11 @@ import { selectGymName } from '../../store/slices/gymsSlice';
 import { selectUserById } from '../../store/slices/membersSlice';
 import {
   changeUserPassword,
+  fetchOrCreateProfile,
   removeUserPhoto,
   updateUserDisplayName,
   updateUserPhoto,
 } from '../../services/auth';
-import { fetchOrCreateProfile } from '../../services/auth';
-import { firebaseAuth } from '../../config/firebase';
 import { pickAvatarDataUrl } from '../../utils/photo';
 import { LANGUAGES, getLanguageOverride, setLanguage, type LanguageCode } from '../../i18n';
 
@@ -80,11 +79,8 @@ export function ProfileScreen() {
     setNameError(null);
     try {
       await updateUserDisplayName(profile.uid, name);
-      const user = firebaseAuth.currentUser;
-      if (user) {
-        const refreshed = await fetchOrCreateProfile(user);
-        dispatch(authStateChanged({ profile: refreshed }));
-      }
+      const refreshed = await fetchOrCreateProfile();
+      dispatch(authStateChanged({ profile: refreshed }));
     } catch (error) {
       console.warn('[ProfileScreen] name save failed', error);
       setNameError(t('profile.nameError'));
@@ -99,11 +95,8 @@ export function ProfileScreen() {
       const dataUrl = await pickAvatarDataUrl();
       if (dataUrl) {
         await updateUserPhoto(profile.uid, dataUrl);
-        const user = firebaseAuth.currentUser;
-        if (user) {
-          const refreshed = await fetchOrCreateProfile(user);
-          dispatch(authStateChanged({ profile: refreshed }));
-        }
+        const refreshed = await fetchOrCreateProfile();
+        dispatch(authStateChanged({ profile: refreshed }));
       }
     } catch (error) {
       console.warn('[ProfileScreen] photo failed', error);
@@ -116,11 +109,8 @@ export function ProfileScreen() {
     setPhotoBusy(true);
     try {
       await removeUserPhoto(profile.uid);
-      const user = firebaseAuth.currentUser;
-      if (user) {
-        const refreshed = await fetchOrCreateProfile(user);
-        dispatch(authStateChanged({ profile: refreshed }));
-      }
+      const refreshed = await fetchOrCreateProfile();
+      dispatch(authStateChanged({ profile: refreshed }));
     } catch (error) {
       console.warn('[ProfileScreen] photo remove failed', error);
     } finally {

@@ -32,7 +32,13 @@ export function NavBar({
     <View>
       <View style={styles.bar}>
         {onBack ? (
-          <Pressable onPress={onBack} style={styles.sideButton} hitSlop={8}>
+          <Pressable
+            onPress={onBack}
+            style={styles.sideButton}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={backLabel ?? 'Back'}
+          >
             <Ionicons name="chevron-back" size={22} color={colors.systemBlue} />
             {backLabel ? <AppText color={colors.systemBlue} style={styles.actionText}>{backLabel}</AppText> : null}
           </Pressable>
@@ -47,7 +53,15 @@ export function NavBar({
           </AppText>
         )}
         {rightLabel && onRight ? (
-          <Pressable onPress={onRight} disabled={rightDisabled} style={styles.sideButton} hitSlop={8}>
+          <Pressable
+            onPress={onRight}
+            disabled={rightDisabled}
+            style={styles.sideButton}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityState={{ disabled: Boolean(rightDisabled) }}
+            accessibilityLabel={rightLabel}
+          >
             <AppText style={[styles.actionText, { color: colors.systemBlue }, rightDisabled && { opacity: 0.4 }]}>
               {rightLabel}
             </AppText>
@@ -73,8 +87,8 @@ export function NavBar({
 }
 
 const styles = StyleSheet.create({
-  bar: { height: 44, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8 },
-  sideButton: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, height: '100%' },
+  bar: { minHeight: 44, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 4 },
+  sideButton: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, minHeight: 44 },
   actionText: { fontSize: 17 },
   compactTitle: { flex: 1, textAlign: 'center' },
   largeWrap: { paddingHorizontal: 16, paddingTop: 2, paddingBottom: 8, gap: 2 },

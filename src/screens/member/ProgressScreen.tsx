@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Image, Pressable, StyleSheet, View } from 'react-native';
+import { Alert, Image, Pressable, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { radius, useTheme } from '../../theme';
 import {
@@ -37,18 +37,22 @@ export function ProgressScreen() {
   const [editing, setEditing] = useState<Measurement | null>(null);
   const [selfieModalVisible, setSelfieModalVisible] = useState(false);
   const [editingSelfie, setEditingSelfie] = useState<DailySelfie | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const openAdd = () => {
+    setErrorMessage(null);
     setEditing(null);
     setFormVisible(true);
   };
 
   const openEdit = (entry: Measurement) => {
+    setErrorMessage(null);
     setEditing(entry);
     setFormVisible(true);
   };
 
   const openEditSelfie = (entry: DailySelfie) => {
+    setErrorMessage(null);
     setEditingSelfie(entry);
     setSelfieModalVisible(true);
   };
@@ -59,10 +63,13 @@ export function ProgressScreen() {
       t('member.selfie.deleteTitle'),
       t('member.selfie.deleteMessage'),
       async () => {
+        setErrorMessage(null);
         try {
           await deleteSelfie(profile.uid, entry.id);
-        } catch (error) {
-          console.warn('[ProgressScreen] delete selfie failed', error);
+        } catch {
+          const message = t('common.genericError');
+          setErrorMessage(message);
+          Alert.alert(t('member.selfie.deleteTitle'), message);
         }
       },
     );
@@ -91,10 +98,13 @@ export function ProgressScreen() {
       t('member.progress.deleteTitle'),
       t('member.progress.deleteMessage'),
       async () => {
+        setErrorMessage(null);
         try {
           await deleteMeasurement(profile.uid, entry.id);
-        } catch (error) {
-          console.warn('[ProgressScreen] delete failed', error);
+        } catch {
+          const message = t('common.genericError');
+          setErrorMessage(message);
+          Alert.alert(t('member.progress.deleteTitle'), message);
         }
       },
     );
@@ -113,6 +123,22 @@ export function ProgressScreen() {
   return (
     <Screen>
       <NavBar large title={t('member.progress.title')} subtitle={t('member.progress.subtitle')} />
+      {errorMessage ? (
+        <View style={[styles.errorBanner, { backgroundColor: colors.redTint }]}>
+          <Ionicons name="alert-circle-outline" size={18} color={colors.systemRed} />
+          <AppText variant="footnote" color={colors.systemRed} style={{ flex: 1 }}>
+            {errorMessage}
+          </AppText>
+          <Pressable
+            onPress={() => setErrorMessage(null)}
+            hitSlop={10}
+            accessibilityRole="button"
+            accessibilityLabel={t('common.cancel')}
+          >
+            <Ionicons name="close" size={16} color={colors.systemRed} />
+          </Pressable>
+        </View>
+      ) : null}
       <Button
         label={t('member.progress.add')}
         icon="add"
@@ -246,7 +272,9 @@ function Metric({ value, unit, label }: { value: string; unit: string; label: st
   return (
     <View style={styles.metric}>
       <View style={styles.metricValueRow}>
-        <AppText variant="title2">{value}</AppText>
+        <AppText variant="title2" style={styles.tabularNums}>
+          {value}
+        </AppText>
         <AppText variant="caption1" color={colors.secondaryLabel} style={{ marginBottom: 4 }}>
           {unit}
         </AppText>
@@ -259,11 +287,21 @@ function Metric({ value, unit, label }: { value: string; unit: string; label: st
 }
 
 const styles = StyleSheet.create({
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: radius.md,
+    marginBottom: 12,
+  },
   addButton: { marginBottom: 16 },
   latestCard: { gap: 12, marginBottom: 16 },
   latestGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 18 },
   metric: { minWidth: 60, gap: 2 },
   metricValueRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 3 },
+  tabularNums: { fontVariant: ['tabular-nums'] },
   chartCard: { gap: 10, marginBottom: 8 },
   history: { marginTop: 8 },
   thumb: {

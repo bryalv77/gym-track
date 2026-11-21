@@ -33,7 +33,12 @@ export function SearchField({
         autoCorrect={false}
       />
       {value.length > 0 ? (
-        <Pressable onPress={() => onChangeText('')} hitSlop={8} accessibilityLabel={t('common.clearSearch')}>
+        <Pressable
+          onPress={() => onChangeText('')}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={t('common.clearSearch')}
+        >
           <Ionicons name="close-circle" size={16} color={colors.tertiaryLabel} />
         </Pressable>
       ) : null}
@@ -46,7 +51,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    height: 38,
+    minHeight: 38,
+    paddingVertical: 6,
     borderRadius: radius.md,
     paddingHorizontal: 10,
   },

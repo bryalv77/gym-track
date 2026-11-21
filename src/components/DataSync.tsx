@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { isFirebaseConfigured } from '../config/firebase';
+import { isApiConfigured } from '../config/api';
 import { subscribeToAssignments } from '../services/assignments';
 import { subscribeToExercises } from '../services/exercises';
 import { subscribeToGyms } from '../services/gyms';
@@ -23,8 +23,8 @@ import { routinesUpdated } from '../store/slices/routinesSlice';
 import { membersUpdated, userUpdated } from '../store/slices/membersSlice';
 
 /**
- * Invisible component that keeps the Redux store in sync with the Realtime
- * Database. Assignments, exercises and gyms sync for everyone; coaches and
+ * Invisible component that keeps the Redux store in sync with the Hono
+ * API. Assignments, exercises and gyms sync for everyone; coaches and
  * admins also get the user directory, coaches get every member's completions,
  * members get their own completions and measurements.
  */
@@ -38,7 +38,7 @@ export function DataSync() {
   );
 
   useEffect(() => {
-    if (!isFirebaseConfigured || !profile) return;
+    if (!isApiConfigured || !profile) return;
     const unsubscribers: Array<() => void> = [
       subscribeToAssignments((value) => dispatch(assignmentsUpdated(value))),
       subscribeToExercises((value) => dispatch(exercisesUpdated(value))),
@@ -79,15 +79,15 @@ export function DataSync() {
   const canSeedExercises = profile?.role === 'coach' || profile?.role === 'admin';
   const profileUid = profile?.uid;
   useEffect(() => {
-    if (!isFirebaseConfigured || !canSeedExercises || !profileUid) return;
+    if (!isApiConfigured || !canSeedExercises || !profileUid) return;
     ensureDefaultExercises(profileUid).catch((error) =>
       console.warn('[exercises] default seeding failed:', error),
     );
   }, [canSeedExercises, profileUid]);
 
-  // Members only read their own coach's node, not the whole directory.
+  // Members only read their own coach's record, not the whole directory.
   useEffect(() => {
-    if (!isFirebaseConfigured || !ownCoachId) return;
+    if (!isApiConfigured || !ownCoachId) return;
     return subscribeToUser(ownCoachId, (value) =>
       dispatch(userUpdated({ uid: ownCoachId, value })),
     );

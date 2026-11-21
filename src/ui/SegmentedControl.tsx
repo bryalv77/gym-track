@@ -43,25 +43,35 @@ export function SegmentedControl({
           ]}
         />
       ) : null}
-      {options.map((option, index) => (
-        <Pressable key={option} style={styles.segment} onPress={() => onChange(index)}>
-          <AppText
-            style={{
-              fontSize: 13,
-              fontWeight: index === selectedIndex ? '600' : '400',
-              color: index === selectedIndex ? colors.label : colors.secondaryLabel,
-            }}
+      {options.map((option, index) => {
+        const selected = index === selectedIndex;
+        return (
+          <Pressable
+            key={option}
+            style={styles.segment}
+            onPress={() => onChange(index)}
+            accessibilityRole="tab"
+            accessibilityState={{ selected }}
+            accessibilityLabel={option}
           >
-            {option}
-          </AppText>
-        </Pressable>
-      ))}
+            <AppText
+              style={{
+                fontSize: 13,
+                fontWeight: selected ? '600' : '400',
+                color: selected ? colors.label : colors.secondaryLabel,
+              }}
+            >
+              {option}
+            </AppText>
+          </Pressable>
+        );
+      })}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flexDirection: 'row', borderRadius: 9, padding: 2, height: 32 },
+  container: { flexDirection: 'row', borderRadius: 9, padding: 2, minHeight: 36 },
   indicator: {
     position: 'absolute',
     top: 2,
@@ -74,5 +84,5 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 1 },
     elevation: 1,
   },
-  segment: { flex: 1, alignItems: 'center', justifyContent: 'center', zIndex: 1 },
+  segment: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 6, zIndex: 1 },
 });

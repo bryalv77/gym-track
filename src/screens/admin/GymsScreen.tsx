@@ -47,6 +47,18 @@ export function GymsScreen() {
         subtitle={t('admin.gyms.count', { count: gyms.length })}
       />
 
+      {/* Primary action stays at the top, above the list. */}
+      <Button
+        label={t('admin.gyms.newGym')}
+        icon="add"
+        size="md"
+        onPress={() => {
+          setEditing(null);
+          setFormVisible(true);
+        }}
+        style={styles.newButton}
+      />
+
       <View style={styles.filters}>
         <SearchField value={query} onChangeText={setQuery} placeholder={t('admin.gyms.searchPlaceholder')} />
       </View>
@@ -87,17 +99,6 @@ export function GymsScreen() {
         </View>
       )}
 
-      <Button
-        label={t('admin.gyms.newGym')}
-        icon="add"
-        size="md"
-        onPress={() => {
-          setEditing(null);
-          setFormVisible(true);
-        }}
-        style={styles.addButton}
-      />
-
       <GymFormModal visible={formVisible} onClose={() => setFormVisible(false)} gym={editing} />
     </Screen>
   );
@@ -105,5 +106,5 @@ export function GymsScreen() {
 
 const styles = StyleSheet.create({
   filters: { marginBottom: 12 },
-  addButton: { marginTop: 16 },
+  newButton: { marginBottom: 12 },
 });

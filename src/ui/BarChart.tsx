@@ -38,9 +38,15 @@ export function BarChart({
         const ratio = item.value === 0 ? 0 : (item.value - min) / span;
         const barHeight = item.value === 0 ? 4 : Math.max(8, Math.round(ratio * (height - 26)));
         return (
-          <View key={`${item.label}-${index}`} style={styles.column}>
+          <View
+            key={`${item.label}-${index}`}
+            style={styles.column}
+            accessible={true}
+            accessibilityLabel={`${item.label}: ${item.value}`}
+          >
             <AppText
               variant="caption2"
+              tabular
               color={item.value > 0 ? colors.secondaryLabel : colors.tertiaryLabel}
             >
               {item.value > 0 ? String(item.value) : ''}

@@ -13,7 +13,7 @@ import {
 } from '../ui';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { clearAuthError, signInThunk } from '../store/slices/authSlice';
-import { isFirebaseConfigured } from '../config/firebase';
+import { isFirebaseConfigured } from '../config/api';
 import type { AuthStackParamList } from '../navigation/RootNavigator';
 
 type LoginScreenProps = NativeStackScreenProps<AuthStackParamList, 'Login'>;

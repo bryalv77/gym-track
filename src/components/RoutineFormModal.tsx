@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { radius, useTheme } from '../theme';
 import {
@@ -14,11 +14,15 @@ import {
   type IconName,
 } from '../ui';
 import { useAppSelector } from '../store/hooks';
-import { selectExercisesSorted } from '../store/slices/exercisesSlice';
+import { formatMetrics, selectExercisesSorted } from '../store/slices/exercisesSlice';
 import { deleteRoutine, saveRoutine } from '../services/routines';
 import { exerciseName } from '../utils/defaultExerciseData';
+import { metricLabel } from '../utils/exercisePresets';
 import { confirmAction } from '../utils/confirm';
-import type { Exercise, Routine } from '../types';
+import type { Exercise, ExerciseType, Routine } from '../types';
+
+type TypeFilter = 'all' | ExerciseType;
+const TYPE_FILTERS: TypeFilter[] = ['all', 'strength', 'cardio', 'other'];
 
 interface DraftItem {
   /** Local key so rows keep their identity while reordering. */
@@ -54,44 +58,52 @@ export function RoutineFormModal({
   const [name, setName] = useState('');
   const [items, setItems] = useState<DraftItem[]>([]);
   const [nextKey, setNextKey] = useState(1);
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [query, setQuery] = useState('');
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   // Re-initialize the form whenever it opens or its inputs change.
-  const [synced, setSynced] = useState<unknown[]>([]);
-  const deps = [visible, routine];
-  if (deps.some((value, index) => value !== synced[index])) {
-    setSynced(deps);
-    if (visible) {
-      setName(routine?.name ?? '');
-      setItems(
-        (routine?.items ?? []).map((item, index) => ({
-          key: index,
-          exerciseId: item.exerciseId,
-          metrics: item.metrics,
-          notes: item.notes ?? '',
-        })),
-      );
-      setNextKey(routine?.items.length ?? 0);
-      setQuery('');
-      setError(null);
-    }
-  }
+  useEffect(() => {
+    if (!visible) return;
+    setName(routine?.name ?? '');
+    setItems(
+      (routine?.items ?? []).map((item, index) => ({
+        key: index,
+        exerciseId: item.exerciseId,
+        metrics: item.metrics,
+        notes: item.notes ?? '',
+      })),
+    );
+    setNextKey(routine?.items.length ?? 0);
+    setExpandedIndex(null);
+    setQuery('');
+    setTypeFilter('all');
+    setError(null);
+  }, [visible, routine]);
 
   const visibleExercises = useMemo(() => {
     const needle = query.trim().toLowerCase();
-    if (needle.length === 0) return exercises;
-    return exercises.filter((exercise) => exerciseName(exercise).toLowerCase().includes(needle));
-  }, [exercises, query]);
+    return exercises
+      .filter((exercise) => typeFilter === 'all' || exercise.type === typeFilter)
+      .filter(
+        (exercise) =>
+          needle.length === 0 || exerciseName(exercise).toLowerCase().includes(needle),
+      );
+  }, [exercises, query, typeFilter]);
 
   if (!coach) return null;
 
   const addExercise = (exercise: Exercise) => {
-    setItems((current) => [
-      ...current,
-      { key: nextKey, exerciseId: exercise.id, metrics: defaultMetrics(exercise), notes: '' },
-    ]);
+    setItems((current) => {
+      const next = [
+        ...current,
+        { key: nextKey, exerciseId: exercise.id, metrics: defaultMetrics(exercise), notes: '' },
+      ];
+      setExpandedIndex(next.length - 1);
+      return next;
+    });
     setNextKey((key) => key + 1);
     setError(null);
   };
@@ -99,7 +111,7 @@ export function RoutineFormModal({
   const updateItem = (key: number, patch: Partial<DraftItem>) =>
     setItems((current) => current.map((item) => (item.key === key ? { ...item, ...patch } : item)));
 
-  const moveItem = (index: number, delta: -1 | 1) =>
+  const moveItem = (index: number, delta: -1 | 1) => {
     setItems((current) => {
       const target = index + delta;
       if (target < 0 || target >= current.length) return current;
@@ -107,6 +119,22 @@ export function RoutineFormModal({
       [next[index], next[target]] = [next[target], next[index]];
       return next;
     });
+    setExpandedIndex((currentExpanded) => {
+      if (currentExpanded === index) return index + delta;
+      if (currentExpanded === index + delta) return index;
+      return currentExpanded;
+    });
+  };
+
+  const removeItem = (index: number, key: number) => {
+    setItems((current) => current.filter((it) => it.key !== key));
+    setExpandedIndex((currentExpanded) => {
+      if (currentExpanded === null) return null;
+      if (currentExpanded === index) return null;
+      if (currentExpanded > index) return currentExpanded - 1;
+      return currentExpanded;
+    });
+  };
 
   const handleSave = async () => {
     if (name.trim().length === 0) {
@@ -151,13 +179,27 @@ export function RoutineFormModal({
     );
   };
 
+  const exerciseChipsList = visibleExercises.map((exercise) => (
+    <Chip
+      key={exercise.id}
+      label={exerciseName(exercise)}
+      onPress={() => addExercise(exercise)}
+    />
+  ));
+
   return (
     <SheetModal
       visible={visible}
       onClose={onClose}
       title={routine ? t('routines.form.editTitle') : t('routines.form.newTitle')}
+      confirmDiscard
       footer={
         <View style={styles.footer}>
+          {error ? (
+            <AppText variant="footnote" color={colors.systemRed}>
+              {error}
+            </AppText>
+          ) : null}
           {routine ? (
             <Button
               label={t('routines.form.delete')}
@@ -194,12 +236,31 @@ export function RoutineFormModal({
           ) : null}
           {items.map((item, index) => {
             const exercise = exercisesById[item.exerciseId];
+            const isExpanded = expandedIndex === index;
+            const titleText = exercise
+              ? exerciseName(exercise)
+              : t('routines.form.missingExercise');
+            const summaryText = exercise
+              ? formatMetrics(exercise.metricFields, item.metrics)
+              : '';
             return (
               <View key={item.key} style={[styles.itemBox, { backgroundColor: colors.background }]}>
                 <View style={styles.itemHeader}>
-                  <AppText variant="headline" style={{ flex: 1 }}>
-                    {`${index + 1}. ${exercise ? exerciseName(exercise) : t('routines.form.missingExercise')}`}
-                  </AppText>
+                  <Pressable
+                    onPress={() => setExpandedIndex(isExpanded ? null : index)}
+                    style={styles.itemTitlePressable}
+                  >
+                    <Ionicons
+                      name={isExpanded ? 'chevron-down' : 'chevron-forward'}
+                      size={16}
+                      color={colors.secondaryLabel}
+                    />
+                    <AppText variant="headline" numberOfLines={1} style={{ flex: 1 }}>
+                      {isExpanded
+                        ? `${index + 1}. ${titleText}`
+                        : `${index + 1}. ${titleText}${summaryText ? ` — ${summaryText}` : ''}`}
+                    </AppText>
+                  </Pressable>
                   <IconButton
                     name="chevron-up"
                     label={t('routines.form.moveUp')}
@@ -216,28 +277,32 @@ export function RoutineFormModal({
                     name="trash-outline"
                     label={t('routines.form.remove')}
                     color={colors.systemRed}
-                    onPress={() => setItems((current) => current.filter((it) => it.key !== item.key))}
+                    onPress={() => removeItem(index, item.key)}
                   />
                 </View>
-                {exercise?.metricFields.map((field) => (
-                  <Stepper
-                    key={field.key}
-                    label={`${field.label}${field.unit ? ` (${field.unit})` : ''}`}
-                    value={item.metrics[field.key] ?? field.defaultValue}
-                    min={field.min}
-                    max={field.max}
-                    step={field.step}
-                    onChange={(value) =>
-                      updateItem(item.key, { metrics: { ...item.metrics, [field.key]: value } })
-                    }
-                  />
-                ))}
-                <TextField
-                  placeholder={t('routines.form.itemNotes')}
-                  value={item.notes}
-                  onChangeText={(notes) => updateItem(item.key, { notes })}
-                  multiline
-                />
+                {isExpanded ? (
+                  <>
+                    {exercise?.metricFields.map((field) => (
+                      <Stepper
+                        key={field.key}
+                        label={`${metricLabel(field)}${field.unit ? ` (${field.unit})` : ''}`}
+                        value={item.metrics[field.key] ?? field.defaultValue}
+                        min={field.min}
+                        max={field.max}
+                        step={field.step}
+                        onChange={(value) =>
+                          updateItem(item.key, { metrics: { ...item.metrics, [field.key]: value } })
+                        }
+                      />
+                    ))}
+                    <TextField
+                      placeholder={t('routines.form.itemNotes')}
+                      value={item.notes}
+                      onChangeText={(notes) => updateItem(item.key, { notes })}
+                      multiline
+                    />
+                  </>
+                ) : null}
               </View>
             );
           })}
@@ -252,27 +317,41 @@ export function RoutineFormModal({
             onChangeText={setQuery}
             placeholder={t('coach.assign.searchExercises')}
           />
-          <View style={styles.chips}>
-            {visibleExercises.map((exercise) => (
-              <Chip
-                key={exercise.id}
-                label={exerciseName(exercise)}
-                onPress={() => addExercise(exercise)}
-              />
-            ))}
-            {visibleExercises.length === 0 ? (
-              <AppText variant="footnote" color={colors.secondaryLabel}>
-                {t('coach.assign.noExerciseMatch', { query })}
-              </AppText>
-            ) : null}
-          </View>
+          {exercises.length > 6 ? (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.chipsScroll}
+            >
+              {TYPE_FILTERS.map((filter) => (
+                <Chip
+                  key={filter}
+                  label={t(`library.filters.${filter}`)}
+                  selected={typeFilter === filter}
+                  onPress={() => setTypeFilter(filter)}
+                />
+              ))}
+            </ScrollView>
+          ) : null}
+          {visibleExercises.length > 6 ? (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.chipsScroll}
+            >
+              {exerciseChipsList}
+            </ScrollView>
+          ) : (
+            <View style={styles.chips}>
+              {exerciseChipsList}
+              {visibleExercises.length === 0 ? (
+                <AppText variant="footnote" color={colors.secondaryLabel}>
+                  {t('coach.assign.noExerciseMatch', { query })}
+                </AppText>
+              ) : null}
+            </View>
+          )}
         </View>
-
-        {error ? (
-          <AppText variant="footnote" color={colors.systemRed}>
-            {error}
-          </AppText>
-        ) : null}
       </View>
     </SheetModal>
   );
@@ -309,8 +388,10 @@ const styles = StyleSheet.create({
   form: { gap: 16, paddingBottom: 8 },
   section: { gap: 8 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  chipsScroll: { flexDirection: 'row', gap: 8, paddingVertical: 2 },
   itemBox: { gap: 10, borderRadius: radius.md, padding: 12 },
   itemHeader: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  itemTitlePressable: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 },
   iconButton: { padding: 4 },
   footer: { gap: 10 },
 });

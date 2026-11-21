@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { radius, useTheme } from '../theme';
@@ -16,6 +16,7 @@ import { selectExerciseById } from '../store/slices/exercisesSlice';
 import {
   EXERCISE_PRESETS,
   exerciseTypeLabel,
+  metricLabel,
   slugifyKey,
 } from '../utils/exercisePresets';
 import { confirmAction } from '../utils/confirm';
@@ -52,26 +53,48 @@ export function ExerciseFormModal({
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  // Re-initialize the form whenever it opens or its inputs change.
-  const [synced1, setSynced1] = useState<unknown[]>([]);
-  const deps1 = [visible, editing];
-  if (deps1.some((value, index) => value !== synced1[index])) {
-    setSynced1(deps1);
-    if (visible) {
-      setName(editing?.name ?? '');
-      setType(editing?.type ?? 'strength');
-      setFields(
-        editing && editing.metricFields.length > 0
-          ? editing.metricFields
-          : EXERCISE_PRESETS[editing?.type ?? 'strength'],
-      );
-      setImageUrl(editing?.imageUrl ?? '');
-      setVideoUrl(editing?.videoUrl ?? '');
-      setDescription(editing?.description ?? '');
-      setMet(editing?.met != null ? String(editing.met) : '');
-      setError(null);
-    }
-  }
+  // Snapshot of the last loaded/clean form, used to drive the discard prompt.
+  const initialSnapshot = useRef('');
+
+  // Re-initialize the form whenever it opens or its inputs change. Doing this
+  // in an effect (rather than during render) keeps React's state updates sane.
+  useEffect(() => {
+    if (!visible) return;
+    const nextType = editing?.type ?? 'strength';
+    const nextFields =
+      editing && editing.metricFields.length > 0
+        ? editing.metricFields
+        : EXERCISE_PRESETS[nextType];
+    const nextName = editing?.name ?? '';
+    const nextImageUrl = editing?.imageUrl ?? '';
+    const nextVideoUrl = editing?.videoUrl ?? '';
+    const nextDescription = editing?.description ?? '';
+    const nextMet = editing?.met != null ? String(editing.met) : '';
+    setName(nextName);
+    setType(nextType);
+    setFields(nextFields);
+    setImageUrl(nextImageUrl);
+    setVideoUrl(nextVideoUrl);
+    setDescription(nextDescription);
+    setMet(nextMet);
+    setError(null);
+    initialSnapshot.current = JSON.stringify({
+      name: nextName,
+      type: nextType,
+      fields: nextFields,
+      imageUrl: nextImageUrl,
+      videoUrl: nextVideoUrl,
+      description: nextDescription,
+      met: nextMet,
+    });
+  }, [visible, editing]);
+
+  const dirty = useMemo(
+    () =>
+      JSON.stringify({ name, type, fields, imageUrl, videoUrl, description, met }) !==
+      initialSnapshot.current,
+    [name, type, fields, imageUrl, videoUrl, description, met],
+  );
 
   if (!profile) return null;
 
@@ -94,6 +117,30 @@ export function ExerciseFormModal({
         defaultValue: 10,
       },
     ]);
+  };
+
+  /** Switching type replaces the metric set. Guard the user's custom fields. */
+  const changeType = (next: ExerciseType) => {
+    if (next === type) return;
+    const apply = () => {
+      setType(next);
+      setFields(EXERCISE_PRESETS[next]);
+    };
+    const hasCustomFields =
+      JSON.stringify(fields) !== JSON.stringify(EXERCISE_PRESETS[type]);
+    if (hasCustomFields) {
+      confirmAction(
+        t('common.switchTypeTitle', { defaultValue: 'Change exercise type?' }),
+        t('common.switchTypeMessage', {
+          defaultValue:
+            'Changing the type replaces your custom metrics with the defaults for the new type. Your edits will be lost.',
+        }),
+        apply,
+        t('common.switchTypeConfirm', { defaultValue: 'Change type' }),
+      );
+      return;
+    }
+    apply();
   };
 
   const handleSave = async () => {
@@ -130,7 +177,11 @@ export function ExerciseFormModal({
       onClose();
     } catch (saveError) {
       console.warn('[ExerciseFormModal] save failed', saveError);
-      setError(t('library.form.errors.saveFailed'));
+      setError(
+        saveError instanceof Error && saveError.message
+          ? saveError.message
+          : t('library.form.errors.saveFailed'),
+      );
     } finally {
       setSaving(false);
     }
@@ -147,6 +198,11 @@ export function ExerciseFormModal({
           onClose();
         } catch (deleteError) {
           console.warn('[ExerciseFormModal] delete failed', deleteError);
+          setError(
+            deleteError instanceof Error && deleteError.message
+              ? deleteError.message
+              : t('common.genericError'),
+          );
         }
       },
     );
@@ -157,6 +213,7 @@ export function ExerciseFormModal({
       visible={visible}
       onClose={onClose}
       title={editing ? t('library.form.editTitle') : t('library.form.newTitle')}
+      dirty={dirty}
       footer={
         <View style={styles.footer}>
           {editing ? (
@@ -186,11 +243,7 @@ export function ExerciseFormModal({
           <SegmentedControl
             options={TYPE_OPTIONS.map((option) => exerciseTypeLabel(option))}
             selectedIndex={TYPE_OPTIONS.indexOf(type)}
-            onChange={(index) => {
-              const next = TYPE_OPTIONS[index];
-              setType(next);
-              setFields(EXERCISE_PRESETS[next]);
-            }}
+            onChange={(index) => changeType(TYPE_OPTIONS[index])}
           />
         </View>
 
@@ -200,47 +253,59 @@ export function ExerciseFormModal({
           </AppText>
           {fields.map((field, index) => (
             <View key={field.key} style={[styles.fieldRow, { backgroundColor: colors.background }]}>
-              <View style={styles.fieldInputs}>
-                <TextField
-                  label={t('library.form.label')}
-                  value={field.label}
-                  onChangeText={(text) => patchField(index, { label: text })}
-                  style={{ height: 40, fontSize: 15 }}
-                />
-                <TextField
-                  label={t('library.form.unit')}
-                  value={field.unit}
-                  onChangeText={(text) => patchField(index, { unit: text })}
-                  style={{ height: 40, fontSize: 15 }}
-                  autoCapitalize="none"
-                />
-                <TextField
-                  label={t('library.form.default')}
-                  value={String(field.defaultValue)}
-                  onChangeText={(text) =>
-                    patchField(index, {
-                      defaultValue: Number(text.replace(',', '.')) || 0,
-                    })
+              <View style={styles.fieldRowHeader}>
+                <AppText variant="subheadline" style={{ flex: 1 }} accessibilityRole="header">
+                  {metricLabel(field)}
+                </AppText>
+                <Pressable
+                  onPress={() =>
+                    setFields((current) => current.filter((_, i) => i !== index))
                   }
-                  keyboardType="numeric"
-                  style={{ height: 40, fontSize: 15 }}
-                />
+                  hitSlop={8}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('library.form.remove', { label: metricLabel(field) })}
+                  disabled={fields.length <= 1}
+                  style={styles.removeButton}
+                >
+                  <Ionicons
+                    name="trash-outline"
+                    size={18}
+                    color={fields.length <= 1 ? colors.tertiaryLabel : colors.systemRed}
+                  />
+                </Pressable>
               </View>
-              <Pressable
-                onPress={() =>
-                  setFields((current) => current.filter((_, i) => i !== index))
-                }
-                hitSlop={8}
-                accessibilityLabel={t('library.form.remove', { label: field.label })}
-                disabled={fields.length <= 1}
-                style={styles.removeButton}
-              >
-                <Ionicons
-                  name="trash-outline"
-                  size={18}
-                  color={fields.length <= 1 ? colors.tertiaryLabel : colors.systemRed}
-                />
-              </Pressable>
+              <View style={styles.fieldInputs}>
+                <View style={styles.fieldInput}>
+                  <TextField
+                    label={t('library.form.label')}
+                    value={field.label}
+                    onChangeText={(text) => patchField(index, { label: text })}
+                    style={{ height: 40, fontSize: 15 }}
+                  />
+                </View>
+                <View style={styles.fieldInput}>
+                  <TextField
+                    label={t('library.form.unit')}
+                    value={field.unit}
+                    onChangeText={(text) => patchField(index, { unit: text })}
+                    style={{ height: 40, fontSize: 15 }}
+                    autoCapitalize="none"
+                  />
+                </View>
+                <View style={styles.fieldInput}>
+                  <TextField
+                    label={t('library.form.default')}
+                    value={String(field.defaultValue)}
+                    onChangeText={(text) =>
+                      patchField(index, {
+                        defaultValue: Number(text.replace(',', '.')) || 0,
+                      })
+                    }
+                    keyboardType="numeric"
+                    style={{ height: 40, fontSize: 15 }}
+                  />
+                </View>
+              </View>
             </View>
           ))}
           <Button label={t('library.form.addMetric')} variant="gray" size="sm" icon="add" onPress={addField} />
@@ -262,13 +327,20 @@ export function ExerciseFormModal({
           autoCapitalize="none"
           keyboardType="url"
         />
-        <TextField
-          label={t('library.form.met')}
-          placeholder={t('library.form.metPlaceholder')}
-          value={met}
-          onChangeText={setMet}
-          keyboardType="numeric"
-        />
+        <View style={styles.intensitySection}>
+          <TextField
+            label={t('common.intensityLabel', { defaultValue: 'Intensity (optional)' })}
+            placeholder={t('library.form.metPlaceholder')}
+            value={met}
+            onChangeText={setMet}
+            keyboardType="numeric"
+          />
+          <AppText variant="footnote" color={colors.secondaryLabel}>
+            {t('common.intensityHint', {
+              defaultValue: 'Rough effort level, used to estimate calories burned.',
+            })}
+          </AppText>
+        </View>
         <TextField
           label={t('library.form.description')}
           placeholder={t('library.form.descriptionPlaceholder')}
@@ -289,14 +361,11 @@ export function ExerciseFormModal({
 const styles = StyleSheet.create({
   form: { gap: 14, paddingBottom: 8 },
   section: { gap: 8 },
+  intensitySection: { gap: 6 },
   footer: { gap: 10 },
-  fieldRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    borderRadius: radius.md,
-    padding: 10,
-  },
-  fieldInputs: { flex: 1, flexDirection: 'row', gap: 8 },
+  fieldRow: { gap: 10, borderRadius: radius.md, padding: 12 },
+  fieldRowHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  fieldInputs: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  fieldInput: { flexBasis: '46%', flexGrow: 1, minWidth: 120 },
   removeButton: { padding: 6 },
 });

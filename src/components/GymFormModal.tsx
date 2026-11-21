@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../theme';
@@ -23,17 +23,17 @@ export function GymFormModal({
   const [name, setName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const initialSnapshot = useRef('');
 
   // Re-initialize the form whenever it opens or its inputs change.
-  const [synced1, setSynced1] = useState<unknown[]>([]);
-  const deps1 = [visible, gym];
-  if (deps1.some((value, index) => value !== synced1[index])) {
-    setSynced1(deps1);
-    if (visible) {
-      setName(gym?.name ?? '');
-      setError(null);
-    }
-  }
+  useEffect(() => {
+    if (!visible) return;
+    setName(gym?.name ?? '');
+    setError(null);
+    initialSnapshot.current = gym?.name ?? '';
+  }, [visible, gym]);
+
+  const dirty = useMemo(() => name !== initialSnapshot.current, [name]);
 
   // Admin-only code that lets coaches join this gym at sign-up.
   const [codeState, setCodeState] = useState<{ gymId: string; code: string | null } | null>(null);
@@ -49,7 +49,11 @@ export function GymFormModal({
     const run = () =>
       regenerateGymCode(gym.id).catch((codeError) => {
         console.warn('[GymFormModal] code regenerate failed', codeError);
-        setError(t('admin.gymForm.saveFailed'));
+        setError(
+          codeError instanceof Error && codeError.message
+            ? codeError.message
+            : t('admin.gymForm.saveFailed'),
+        );
       });
     if (code) confirmAction(t('admin.gymForm.newCode'), t('admin.gymForm.newCodeConfirm'), run, t('admin.gymForm.newCode'));
     else run();
@@ -71,7 +75,11 @@ export function GymFormModal({
       onClose();
     } catch (saveError) {
       console.warn('[GymFormModal] save failed', saveError);
-      setError(t('admin.gymForm.saveFailed'));
+      setError(
+        saveError instanceof Error && saveError.message
+          ? saveError.message
+          : t('admin.gymForm.saveFailed'),
+      );
     } finally {
       setSaving(false);
     }
@@ -82,6 +90,7 @@ export function GymFormModal({
       visible={visible}
       onClose={onClose}
       title={gym ? t('admin.gymForm.renameTitle') : t('admin.gymForm.newTitle')}
+      dirty={dirty}
       footer={
         <Button
           label={gym ? t('admin.gymForm.saveChanges') : t('admin.gymForm.create')}

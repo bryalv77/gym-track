@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { exerciseName } from '../../utils/defaultExerciseData';
-import { StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../theme';
 import {
@@ -62,9 +62,25 @@ export function ExercisesLibraryScreen() {
         subtitle={t('library.subtitle', { count: exercises.length })}
       />
 
+      {/* Primary action stays at the top, above the library. */}
+      <Button
+        label={t('library.newExercise')}
+        icon="add"
+        size="md"
+        onPress={() => {
+          setEditingId(null);
+          setFormVisible(true);
+        }}
+        style={styles.newButton}
+      />
+
       <View style={styles.filters}>
         <SearchField value={query} onChangeText={setQuery} placeholder={t('library.search')} />
-        <View style={styles.filterRow}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterScroll}
+        >
           {FILTERS.map((filter) => (
             <Chip
               key={filter}
@@ -73,7 +89,7 @@ export function ExercisesLibraryScreen() {
               onPress={() => setTypeFilter(filter)}
             />
           ))}
-        </View>
+        </ScrollView>
       </View>
 
       {visible.length === 0 ? (
@@ -110,17 +126,6 @@ export function ExercisesLibraryScreen() {
           <ListGroupFooter label={t('library.tapToEdit')} />
         </View>
       )}
-
-      <Button
-        label={t('library.newExercise')}
-        icon="add"
-        size="md"
-        onPress={() => {
-          setEditingId(null);
-          setFormVisible(true);
-        }}
-        style={styles.addButton}
-      />
 
       <ExerciseFormModal
         visible={formVisible}
@@ -188,9 +193,9 @@ function TypeSection({
 
 const styles = StyleSheet.create({
   filters: { gap: 10, marginBottom: 12 },
-  filterRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  filterScroll: { flexDirection: 'row', gap: 8, paddingVertical: 2 },
   list: { gap: 4 },
   typeHeader: { marginLeft: 32, marginBottom: 7, marginTop: 8 },
-  addButton: { marginTop: 16 },
+  newButton: { marginBottom: 12 },
   mediaRow: { flexDirection: 'row', gap: 6 },
 });

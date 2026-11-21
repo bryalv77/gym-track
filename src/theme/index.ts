@@ -28,6 +28,7 @@ export interface ThemeColors {
   label: string;
   secondaryLabel: string;
   tertiaryLabel: string;
+  quaternaryLabel: string;
 
   // Lines & fills
   separator: string;
@@ -66,7 +67,8 @@ export const lightColors: ThemeColors = {
 
   label: '#000000',
   secondaryLabel: 'rgba(60, 60, 67, 0.60)',
-  tertiaryLabel: 'rgba(60, 60, 67, 0.30)',
+  tertiaryLabel: 'rgba(60, 60, 67, 0.56)',
+  quaternaryLabel: 'rgba(60, 60, 67, 0.45)',
 
   separator: 'rgba(60, 60, 67, 0.29)',
   separatorSolid: '#C6C6C8',
@@ -102,7 +104,8 @@ export const darkColors: ThemeColors = {
 
   label: '#FFFFFF',
   secondaryLabel: 'rgba(235, 235, 245, 0.60)',
-  tertiaryLabel: 'rgba(235, 235, 245, 0.30)',
+  tertiaryLabel: 'rgba(235, 235, 245, 0.56)',
+  quaternaryLabel: 'rgba(235, 235, 245, 0.45)',
 
   separator: 'rgba(84, 84, 88, 0.60)',
   separatorSolid: '#38383A',
@@ -136,6 +139,11 @@ export const radius = {
   xxl: 20,
   pill: 999,
 } as const;
+
+/** Reusable tabular numeral style so live counters and charts don't jitter. */
+export const tabularNums = {
+  fontVariant: ['tabular-nums' as const],
+};
 
 /** iOS text styles (SF font ramp). */
 export const typography = {

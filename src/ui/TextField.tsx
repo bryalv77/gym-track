@@ -59,11 +59,11 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     borderWidth: 1.5,
     paddingHorizontal: 12,
-    height: 46,
+    paddingVertical: 10,
+    minHeight: 46,
     fontSize: 17,
   },
   multiline: {
-    height: 'auto',
     minHeight: 100,
     paddingVertical: 10,
     textAlignVertical: 'top',

@@ -16,7 +16,7 @@ import {
 } from '../ui';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { authStateChanged } from '../store/slices/authSlice';
-import { isFirebaseConfigured } from '../config/firebase';
+import { isFirebaseConfigured } from '../config/api';
 import { fetchOrCreateProfile, listenToAuth } from '../services/auth';
 import { DataSync } from '../components/DataSync';
 import { LoginScreen } from '../screens/LoginScreen';

@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { radius, useTheme } from '../theme';
-import { AppText, Button, Chip, SheetModal } from '../ui';
+import { AppText, Button, Chip, SearchField, SheetModal } from '../ui';
 import { useAppSelector } from '../store/hooks';
 import { selectGymMembers } from '../store/slices/membersSlice';
 import { selectRoutinesSorted } from '../store/slices/routinesSlice';
@@ -33,20 +33,28 @@ export function AssignRoutineModal({
 
   const [routineId, setRoutineId] = useState<string | null>(null);
   const [memberIds, setMemberIds] = useState<string[]>([]);
+  const [memberQuery, setMemberQuery] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   // Re-initialize the form whenever it opens or its inputs change.
-  const [synced, setSynced] = useState<unknown[]>([]);
-  const deps = [visible, initialMemberId];
-  if (deps.some((value, index) => value !== synced[index])) {
-    setSynced(deps);
-    if (visible) {
-      setRoutineId(null);
-      setMemberIds(initialMemberId ? [initialMemberId] : []);
-      setError(null);
-    }
-  }
+  useEffect(() => {
+    if (!visible) return;
+    setRoutineId(null);
+    setMemberIds(initialMemberId ? [initialMemberId] : []);
+    setMemberQuery('');
+    setError(null);
+  }, [visible, initialMemberId]);
+
+  const visibleMembers = useMemo(() => {
+    const needle = memberQuery.trim().toLowerCase();
+    if (needle.length === 0) return gymMembers;
+    return gymMembers.filter(
+      (member) =>
+        member.name.toLowerCase().includes(needle) ||
+        member.email.toLowerCase().includes(needle),
+    );
+  }, [gymMembers, memberQuery]);
 
   if (!coach) return null;
 
@@ -85,7 +93,17 @@ export function AssignRoutineModal({
       visible={visible}
       onClose={onClose}
       title={t('routines.assign.title')}
-      footer={<Button label={t('routines.assign.assign')} onPress={handleAssign} loading={saving} />}
+      confirmDiscard
+      footer={
+        <View style={styles.footer}>
+          {error ? (
+            <AppText variant="footnote" color={colors.systemRed}>
+              {error}
+            </AppText>
+          ) : null}
+          <Button label={t('routines.assign.assign')} onPress={handleAssign} loading={saving} />
+        </View>
+      }
     >
       <View style={styles.form}>
         <AppText variant="footnote" color={colors.secondaryLabel}>
@@ -129,38 +147,68 @@ export function AssignRoutineModal({
           <AppText variant="footnote" color={colors.secondaryLabel}>
             {t('routines.assign.membersHeader')}
           </AppText>
-          <View style={styles.chips}>
-            {gymMembers.length > 1 ? (
-              <Chip
-                label={t('routines.assign.everyone')}
-                selected={allSelected}
-                onPress={() => setMemberIds(allSelected ? [] : gymMembers.map((member) => member.uid))}
-              />
-            ) : null}
-            {gymMembers.map((member) => (
-              <Chip
-                key={member.uid}
-                label={member.name}
-                selected={memberIds.includes(member.uid)}
-                onPress={() => toggleMember(member.uid)}
-              />
-            ))}
-            {gymMembers.length === 0 ? (
-              <AppText variant="footnote" color={colors.secondaryLabel}>
-                {t('coach.assign.noMembers')}
-              </AppText>
-            ) : null}
-          </View>
+          {gymMembers.length > 6 ? (
+            <SearchField
+              value={memberQuery}
+              onChangeText={setMemberQuery}
+              placeholder={t('coach.assign.searchMembers')}
+            />
+          ) : null}
+          {visibleMembers.length > 6 ? (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.chipsScroll}
+            >
+              {gymMembers.length > 1 ? (
+                <Chip
+                  label={t('routines.assign.everyone')}
+                  selected={allSelected}
+                  onPress={() => setMemberIds(allSelected ? [] : gymMembers.map((member) => member.uid))}
+                />
+              ) : null}
+              {visibleMembers.map((member) => (
+                <Chip
+                  key={member.uid}
+                  label={member.name}
+                  selected={memberIds.includes(member.uid)}
+                  onPress={() => toggleMember(member.uid)}
+                />
+              ))}
+            </ScrollView>
+          ) : (
+            <View style={styles.chips}>
+              {gymMembers.length > 1 && memberQuery.trim().length === 0 ? (
+                <Chip
+                  label={t('routines.assign.everyone')}
+                  selected={allSelected}
+                  onPress={() => setMemberIds(allSelected ? [] : gymMembers.map((member) => member.uid))}
+                />
+              ) : null}
+              {visibleMembers.map((member) => (
+                <Chip
+                  key={member.uid}
+                  label={member.name}
+                  selected={memberIds.includes(member.uid)}
+                  onPress={() => toggleMember(member.uid)}
+                />
+              ))}
+              {gymMembers.length === 0 ? (
+                <AppText variant="footnote" color={colors.secondaryLabel}>
+                  {t('coach.assign.noMembers')}
+                </AppText>
+              ) : visibleMembers.length === 0 ? (
+                <AppText variant="footnote" color={colors.secondaryLabel}>
+                  {t('coach.members.noResults')}
+                </AppText>
+              ) : null}
+            </View>
+          )}
         </View>
 
         <AppText variant="footnote" color={colors.tertiaryLabel}>
           {t('routines.assign.note')}
         </AppText>
-        {error ? (
-          <AppText variant="footnote" color={colors.systemRed}>
-            {error}
-          </AppText>
-        ) : null}
       </View>
     </SheetModal>
   );
@@ -170,5 +218,7 @@ const styles = StyleSheet.create({
   form: { gap: 16, paddingBottom: 8 },
   section: { gap: 8 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  chipsScroll: { flexDirection: 'row', gap: 8, paddingVertical: 2 },
   preview: { gap: 2, borderRadius: radius.md, padding: 12 },
+  footer: { gap: 10 },
 });

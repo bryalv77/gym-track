@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   KeyboardAvoidingView,
   Modal,
@@ -9,7 +9,9 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../theme';
+import { confirmAction } from '../utils/confirm';
 import { AppText } from './Text';
 import { Ionicons } from './icons';
 
@@ -20,15 +22,37 @@ export function SheetModal({
   title,
   children,
   footer,
+  dirty = false,
+  confirmDiscard = false,
 }: {
   visible: boolean;
   onClose: () => void;
   title: string;
   children: React.ReactNode;
   footer?: React.ReactNode;
+  dirty?: boolean;
+  confirmDiscard?: boolean;
 }) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const isWeb = Platform.OS === 'web';
+  const hasUnsavedChanges = Boolean(dirty || confirmDiscard);
+
+  const handleRequestClose = useCallback(() => {
+    if (hasUnsavedChanges) {
+      confirmAction(
+        t('common.discardChangesTitle', { defaultValue: 'Discard changes?' }),
+        t('common.discardChangesMessage', {
+          defaultValue: 'You have unsaved changes that will be lost.',
+        }),
+        onClose,
+        t('common.discard', { defaultValue: 'Discard' }),
+      );
+      return;
+    }
+    onClose();
+  }, [hasUnsavedChanges, onClose, t]);
+
   // Percentage max-heights resolve against an auto-height parent (no limit at
   // all on web), so cap the sheet with a real number to keep it inside the
   // viewport and let the body scroll.
@@ -39,10 +63,15 @@ export function SheetModal({
       visible={visible}
       transparent
       animationType={isWeb ? 'fade' : 'slide'}
-      onRequestClose={onClose}
+      onRequestClose={handleRequestClose}
     >
       <View style={[styles.backdrop, isWeb ? styles.backdropCenter : styles.backdropBottom]}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+        <Pressable
+          style={StyleSheet.absoluteFill}
+          onPress={handleRequestClose}
+          accessibilityRole="button"
+          accessibilityLabel={t('common.cancel', { defaultValue: 'Cancel' })}
+        />
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.avoid}
@@ -59,7 +88,13 @@ export function SheetModal({
               <AppText variant="headline" style={{ flex: 1, textAlign: 'center' }}>
                 {title}
               </AppText>
-              <Pressable onPress={onClose} hitSlop={10} style={styles.close}>
+              <Pressable
+                onPress={handleRequestClose}
+                hitSlop={10}
+                style={styles.close}
+                accessibilityRole="button"
+                accessibilityLabel={t('common.cancel', { defaultValue: 'Cancel' })}
+              >
                 <Ionicons name="close" size={18} color={colors.systemGray} />
               </Pressable>
             </View>

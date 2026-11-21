@@ -1,14 +1,15 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { exerciseDescription, exerciseName } from '../utils/defaultExerciseData';
 import { StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useTheme } from '../theme';
+import { radius, useTheme } from '../theme';
 import { AppText, Badge, Button, ListGroup, ListRow, SheetModal } from '../ui';
 import { formatMetrics } from '../store/slices/exercisesSlice';
 import { selectMeasurementsSorted } from '../store/slices/measurementsSlice';
 import { useAppSelector } from '../store/hooks';
 import { ExerciseMediaView } from './ExerciseMediaView';
 import { DEFAULT_BODY_WEIGHT_KG, estimateCalories } from '../utils/calories';
+import { metricLabel } from '../utils/exercisePresets';
 import type { Assignment, Completion, Exercise } from '../types';
 
 /** Member view of one assigned exercise: demo media, technique notes, the
@@ -26,13 +27,21 @@ export function ExerciseDetailSheet({
   exercise: Exercise | undefined;
   assignment: Assignment | null;
   completion?: Completion;
-  onToggle: () => void;
+  onToggle: () => void | Promise<void>;
 }) {
   const { colors } = useTheme();
   const { t, i18n } = useTranslation();
   const bodyWeight = useAppSelector(
     (state) => selectMeasurementsSorted(state)[0]?.weightKg ?? DEFAULT_BODY_WEIGHT_KG,
   );
+  const [toggleError, setToggleError] = useState<string | null>(null);
+  const [toggling, setToggling] = useState(false);
+
+  useEffect(() => {
+    setToggleError(null);
+    setToggling(false);
+  }, [visible, assignment?.id]);
+
   if (!exercise || !assignment) return null;
   const done = completion != null;
   const kcal = estimateCalories(exercise, assignment.metrics, bodyWeight);
@@ -43,18 +52,42 @@ export function ExerciseDetailSheet({
       })
     : null;
 
+  const handleToggle = async () => {
+    setToggleError(null);
+    setToggling(true);
+    try {
+      await onToggle();
+    } catch (error) {
+      setToggleError(
+        error instanceof Error && error.message
+          ? error.message
+          : t('common.genericError'),
+      );
+    } finally {
+      setToggling(false);
+    }
+  };
+
   return (
     <SheetModal
       visible={visible}
       onClose={onClose}
       title={exerciseName(exercise)}
       footer={
-        <Button
-          label={done ? t('member.detail.markNotDone') : t('member.detail.markDone')}
-          icon={done ? 'close-circle-outline' : 'checkmark-circle-outline'}
-          variant={done ? 'gray' : 'filled'}
-          onPress={onToggle}
-        />
+        <View style={styles.footerWrap}>
+          {toggleError ? (
+            <AppText variant="footnote" color={colors.systemRed} align="center">
+              {toggleError}
+            </AppText>
+          ) : null}
+          <Button
+            label={done ? t('member.detail.markNotDone') : t('member.detail.markDone')}
+            icon={done ? 'close-circle-outline' : 'checkmark-circle-outline'}
+            variant={done ? 'gray' : 'filled'}
+            onPress={handleToggle}
+            loading={toggling}
+          />
+        </View>
       }
     >
       <View style={styles.content}>
@@ -72,6 +105,37 @@ export function ExerciseDetailSheet({
           <AppText variant="subheadline" color={colors.secondaryLabel}>
             {exerciseDescription(exercise)}
           </AppText>
+        ) : null}
+        {exercise.metricFields.length > 0 ? (
+          <View style={styles.metricTilesRow}>
+            {exercise.metricFields.map((f) => {
+              const value = assignment.metrics[f.key];
+              return (
+                <View
+                  key={f.key}
+                  style={[styles.metricTile, { backgroundColor: colors.fill }]}
+                >
+                  <View style={styles.metricValueRow}>
+                    <AppText variant="title2" style={styles.tabularNums}>
+                      {value ?? '—'}
+                    </AppText>
+                    {f.unit ? (
+                      <AppText
+                        variant="caption1"
+                        color={colors.secondaryLabel}
+                        style={styles.metricUnit}
+                      >
+                        {f.unit}
+                      </AppText>
+                    ) : null}
+                  </View>
+                  <AppText variant="caption1" color={colors.secondaryLabel}>
+                    {metricLabel(f)}
+                  </AppText>
+                </View>
+              );
+            })}
+          </View>
         ) : null}
         <ListGroup>
           <ListRow
@@ -99,5 +163,18 @@ export function ExerciseDetailSheet({
 
 const styles = StyleSheet.create({
   content: { gap: 14, paddingBottom: 8 },
-  badgeRow: { flexDirection: 'row', gap: 8 },
+  badgeRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
+  metricTilesRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  metricTile: {
+    flex: 1,
+    minWidth: 88,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: radius.md,
+    gap: 2,
+  },
+  metricValueRow: { flexDirection: 'row', alignItems: 'baseline', gap: 4 },
+  metricUnit: { fontWeight: '600' },
+  tabularNums: { fontVariant: ['tabular-nums'] },
+  footerWrap: { gap: 8 },
 });

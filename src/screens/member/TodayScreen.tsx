@@ -1,25 +1,21 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { exerciseName } from '../../utils/defaultExerciseData';
-import { Image, Pressable, StyleSheet, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Vibration, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { radius, useTheme } from '../../theme';
+import { tabularNums, radius, useTheme } from '../../theme';
 import {
   AppText,
-  Button,
   Card,
-  Checkbox,
   EmptyState,
   Ionicons,
-  ListGroup,
   ListGroupHeader,
-  ListRow,
   NavBar,
   ProgressBar,
   Screen,
 } from '../../ui';
 import { useAppSelector } from '../../store/hooks';
 import { selectMemberAssignments } from '../../store/slices/assignmentsSlice';
-import { selectExerciseById, formatMetrics } from '../../store/slices/exercisesSlice';
+import { selectExerciseById } from '../../store/slices/exercisesSlice';
 import { selectCompletionsForDate } from '../../store/slices/completionsSlice';
 import { selectMeasurementsSorted } from '../../store/slices/measurementsSlice';
 import { selectSelfieForDate } from '../../store/slices/selfiesSlice';
@@ -30,13 +26,24 @@ import { ExerciseDetailSheet } from '../../components/ExerciseDetailSheet';
 import { SelfieFormModal } from '../../components/SelfieFormModal';
 import { confirmAction } from '../../utils/confirm';
 import { isToday, toDateKey } from '../../utils/date';
+import { metricLabel } from '../../utils/exercisePresets';
 import {
   DEFAULT_BODY_WEIGHT_KG,
   estimateCalories,
 } from '../../utils/calories';
 import type { Assignment, Completion } from '../../types';
 
-/** Member home: their personalized exercises for the day, one checkbox each. */
+/** Best-effort haptics on success. expo-haptics isn't installed; Vibration is
+ *  the built-in, dependency-free fallback (a no-op where unsupported). */
+function successHaptic() {
+  try {
+    Vibration.vibrate(12);
+  } catch {
+    // Feedback is best-effort — never let it break completion.
+  }
+}
+
+/** Member home: their personalized exercises for the day, one completion target each. */
 export function TodayScreen() {
   const { colors } = useTheme();
   const { t } = useTranslation();
@@ -44,6 +51,8 @@ export function TodayScreen() {
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [detailAssignmentId, setDetailAssignmentId] = useState<string | null>(null);
   const [selfieModalVisible, setSelfieModalVisible] = useState(false);
+  const [optimistic, setOptimistic] = useState<Record<string, boolean>>({});
+  const [toggleError, setToggleError] = useState<string | null>(null);
 
   const dateKey = toDateKey(selectedDate);
   const assignments = useAppSelector((state) =>
@@ -71,6 +80,41 @@ export function TodayScreen() {
     detailAssignment ? selectExerciseById(state, detailAssignment.exerciseId) : undefined,
   );
 
+  // Clear pending/inline state when the day or member changes.
+  useEffect(() => {
+    setOptimistic({});
+    setToggleError(null);
+  }, [dateKey, profile?.uid]);
+
+  // Drop an optimistic override once the store reflects the intended state,
+  // so the subscription's eventual update doesn't cause a visible flicker.
+  useEffect(() => {
+    setOptimistic((prev) => {
+      let changed = false;
+      const next: Record<string, boolean> = {};
+      for (const [id, desiredDone] of Object.entries(prev)) {
+        if ((completions[id] != null) === desiredDone) {
+          changed = true;
+        } else {
+          next[id] = desiredDone;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [completions]);
+
+  const isDone = (id: string): boolean =>
+    Object.prototype.hasOwnProperty.call(optimistic, id)
+      ? optimistic[id]
+      : completions[id] != null;
+
+  const completionFor = (id: string): Completion | undefined => {
+    if (Object.prototype.hasOwnProperty.call(optimistic, id)) {
+      return optimistic[id] ? { completedAt: Date.now() } : undefined;
+    }
+    return completions[id];
+  };
+
   const caloriesFor = (assignment: Assignment): number =>
     estimateCalories(
       exercisesById[assignment.exerciseId],
@@ -80,17 +124,23 @@ export function TodayScreen() {
 
   const markedDays = new Set(completionDays);
 
-  const doneCount = useMemo(
-    () => assignments.filter((assignment) => completions[assignment.id] != null).length,
-    [assignments, completions],
-  );
+  const doneIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const assignment of assignments) {
+      const overridden = Object.prototype.hasOwnProperty.call(optimistic, assignment.id);
+      const done = overridden ? optimistic[assignment.id] : completions[assignment.id] != null;
+      if (done) ids.add(assignment.id);
+    }
+    return ids;
+  }, [assignments, completions, optimistic]);
+  const doneCount = doneIds.size;
   const burnedKcal = useMemo(
     () =>
       assignments
-        .filter((assignment) => completions[assignment.id] != null)
+        .filter((assignment) => doneIds.has(assignment.id))
         .reduce((total, assignment) => total + caloriesFor(assignment), 0),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [assignments, completions, exercisesById, latestWeight],
+    [assignments, doneIds, exercisesById, latestWeight],
   );
   // Exercises that came from a routine are shown under the routine's name
   // (read-only for the member); individually assigned ones go in their own group.
@@ -116,11 +166,25 @@ export function TodayScreen() {
   if (!profile) return null;
 
   const toggle = async (assignment: Assignment) => {
-    const done = completions[assignment.id] != null;
+    const desired = !isDone(assignment.id);
+    setToggleError(null);
+    // Optimistic: reflect the new state immediately.
+    setOptimistic((prev) => ({ ...prev, [assignment.id]: desired }));
     try {
-      await setCompletion(profile.uid, dateKey, assignment.id, !done);
+      await setCompletion(profile.uid, dateKey, assignment.id, desired);
+      if (desired) successHaptic();
     } catch (error) {
-      console.warn('[TodayScreen] toggle failed', error);
+      // Roll back and surface a visible, readable error.
+      setOptimistic((prev) => {
+        const next = { ...prev };
+        delete next[assignment.id];
+        return next;
+      });
+      setToggleError(
+        error instanceof Error && error.message
+          ? error.message
+          : t('common.genericError'),
+      );
     }
   };
 
@@ -206,57 +270,14 @@ export function TodayScreen() {
         </Card>
       )}
 
-      <Card style={styles.selfieCard}>
-        {selfie ? (
-          <>
-            <View style={styles.selfieHeader}>
-              <AppText variant="footnote" color={colors.secondaryLabel}>
-                {t('member.selfie.header')}
-              </AppText>
-              <View style={styles.selfieActions}>
-                <Pressable
-                  onPress={() => setSelfieModalVisible(true)}
-                  hitSlop={10}
-                  accessibilityLabel={t('member.selfie.editA11y')}
-                >
-                  <Ionicons name="pencil" size={18} color={colors.systemBlue} />
-                </Pressable>
-                <Pressable
-                  onPress={handleDeleteSelfie}
-                  hitSlop={10}
-                  accessibilityLabel={t('member.selfie.deleteA11y')}
-                >
-                  <Ionicons name="trash-outline" size={18} color={colors.systemRed} />
-                </Pressable>
-              </View>
-            </View>
-            <Image source={{ uri: selfie.photoData }} style={styles.selfieImage} resizeMode="cover" />
-            {selfie.notes ? (
-              <AppText variant="footnote" color={colors.secondaryLabel}>
-                {selfie.notes}
-              </AppText>
-            ) : null}
-          </>
-        ) : (
-          <>
-            <View style={styles.selfieHeader}>
-              <AppText variant="footnote" color={colors.secondaryLabel}>
-                {t('member.selfie.header')}
-              </AppText>
-              <AppText variant="footnote" color={colors.tertiaryLabel}>
-                {t('common.optional')}
-              </AppText>
-            </View>
-            <Button
-              label={isToday(selectedDate) ? t('member.selfie.takeToday') : t('member.selfie.add')}
-              icon="camera"
-              variant="tinted"
-              size="md"
-              onPress={() => setSelfieModalVisible(true)}
-            />
-          </>
-        )}
-      </Card>
+      {toggleError ? (
+        <View style={[styles.errorBanner, { backgroundColor: colors.redTint }]} accessibilityRole="alert">
+          <Ionicons name="alert-circle-outline" size={20} color={colors.systemRed} />
+          <AppText variant="subheadline" color={colors.systemRed} style={{ flex: 1 }}>
+            {toggleError}
+          </AppText>
+        </View>
+      ) : null}
 
       {assignments.length > 0 ? (
         <View style={styles.list}>
@@ -268,18 +289,18 @@ export function TodayScreen() {
           ].map((group, index) => (
             <View key={`${group.title}-${index}`}>
               {group.title ? <ListGroupHeader label={group.title} /> : null}
-              <ListGroup>
+              <View style={styles.cardGroup}>
                 {group.items.map((assignment) => (
-                  <AssignmentRow
+                  <WorkoutExerciseCard
                     key={assignment.id}
                     assignment={assignment}
-                    completion={completions[assignment.id]}
+                    completion={completionFor(assignment.id)}
                     kcal={caloriesFor(assignment)}
                     onToggle={() => toggle(assignment)}
                     onOpenDetail={() => setDetailAssignmentId(assignment.id)}
                   />
                 ))}
-              </ListGroup>
+              </View>
             </View>
           ))}
           <AppText variant="caption1" color={colors.tertiaryLabel} style={styles.hint}>
@@ -288,12 +309,75 @@ export function TodayScreen() {
         </View>
       ) : null}
 
+      {/* Daily selfie is deliberately demoted below the workout list so a
+          member mid-lift reaches their first exercise without scrolling. */}
+      <Card style={styles.selfieCard}>
+        <View style={styles.selfieRow}>
+          {selfie ? (
+            <Image source={{ uri: selfie.photoData }} style={styles.selfieThumb} />
+          ) : (
+            <View
+              style={[styles.selfieThumb, styles.selfieThumbPlaceholder, { backgroundColor: colors.fill }]}
+            >
+              <Ionicons name="camera-outline" size={24} color={colors.secondaryLabel} />
+            </View>
+          )}
+          <View style={styles.selfieInfo}>
+            <AppText variant="headline" numberOfLines={1}>
+              {t('member.selfie.daily')}
+            </AppText>
+            <AppText variant="footnote" color={colors.secondaryLabel} numberOfLines={2}>
+              {selfie?.notes
+                ? selfie.notes
+                : isToday(selectedDate)
+                  ? t('member.selfie.takeToday')
+                  : t('member.selfie.add')}
+            </AppText>
+          </View>
+          {selfie ? (
+            <View style={styles.selfieActions}>
+              <Pressable
+                onPress={() => setSelfieModalVisible(true)}
+                accessibilityRole="button"
+                accessibilityLabel={t('member.selfie.editA11y')}
+                style={({ pressed }) => [styles.selfieActionButton, pressed && styles.pressed]}
+              >
+                <Ionicons name="pencil" size={20} color={colors.systemBlue} />
+              </Pressable>
+              <Pressable
+                onPress={handleDeleteSelfie}
+                accessibilityRole="button"
+                accessibilityLabel={t('member.selfie.deleteA11y')}
+                style={({ pressed }) => [styles.selfieActionButton, pressed && styles.pressed]}
+              >
+                <Ionicons name="trash-outline" size={20} color={colors.systemRed} />
+              </Pressable>
+            </View>
+          ) : (
+            <Pressable
+              onPress={() => setSelfieModalVisible(true)}
+              accessibilityRole="button"
+              accessibilityLabel={
+                isToday(selectedDate) ? t('member.selfie.takeToday') : t('member.selfie.add')
+              }
+              style={({ pressed }) => [
+                styles.selfieActionButton,
+                { backgroundColor: colors.blueTint },
+                pressed && styles.pressed,
+              ]}
+            >
+              <Ionicons name="camera" size={20} color={colors.systemBlue} />
+            </Pressable>
+          )}
+        </View>
+      </Card>
+
       <ExerciseDetailSheet
         visible={detailAssignment != null}
         onClose={() => setDetailAssignmentId(null)}
         exercise={detailExercise}
         assignment={detailAssignment}
-        completion={detailAssignment ? completions[detailAssignment.id] : undefined}
+        completion={detailAssignment ? completionFor(detailAssignment.id) : undefined}
         onToggle={() => {
           if (detailAssignment) toggle(detailAssignment);
         }}
@@ -309,7 +393,9 @@ export function TodayScreen() {
   );
 }
 
-function AssignmentRow({
+/** Arm's-length-legible workout row: prominent name, big tabular metric pills,
+ *  a distinct coach-note callout and a large 48x48 completion target. */
+function WorkoutExerciseCard({
   assignment,
   completion,
   kcal,
@@ -328,18 +414,14 @@ function AssignmentRow({
     selectExerciseById(state, assignment.exerciseId),
   );
   const done = completion != null;
-  const summary = exercise ? formatMetrics(exercise.metricFields, assignment.metrics) : '';
   const doneAt = done
-    ? ` · ${t('member.today.doneAt', {
+    ? t('member.today.doneAt', {
         time: new Date(completion.completedAt).toLocaleTimeString(i18n.language, {
           hour: '2-digit',
           minute: '2-digit',
         }),
-      })}`
-    : '';
-  const subtitle = done
-    ? `${summary}${doneAt} · ~${kcal} ${t('member.units.kcal')}`
-    : `${summary} · ~${kcal} ${t('member.units.kcal')}${assignment.notes ? `\n${assignment.notes}` : ''}`;
+      })
+    : null;
   const icon =
     exercise?.type === 'cardio'
       ? {
@@ -352,17 +434,96 @@ function AssignmentRow({
           color: colors.systemBlue,
           background: colors.blueTint,
         };
+  const name = (exercise ? exerciseName(exercise) : null) ?? t('member.today.exercise');
 
   return (
-    <ListRow
-      title={(exercise ? exerciseName(exercise) : null) ?? t('member.today.exercise')}
-      subtitle={subtitle}
-      icon={icon}
-      dimmed={done}
-      titleStrike={done}
-      control={<Checkbox checked={done} onPress={onToggle} />}
-      onPress={onOpenDetail}
-    />
+    <Card style={styles.exerciseCard}>
+      <Pressable
+        onPress={onOpenDetail}
+        accessibilityRole="button"
+        accessibilityLabel={name}
+        style={({ pressed }) => [styles.cardPressable, pressed && styles.pressed]}
+      >
+        <View style={styles.cardTopRow}>
+          <View style={[styles.exerciseIcon, { backgroundColor: icon.background }]}>
+            <Ionicons name={icon.name} size={22} color={icon.color} />
+          </View>
+          <View style={styles.exerciseTitleWrap}>
+            <AppText variant="title3" numberOfLines={2}>
+              {name}
+            </AppText>
+          </View>
+          <Pressable
+            onPress={(event) => {
+              event.stopPropagation();
+              onToggle();
+            }}
+            accessibilityRole="checkbox"
+            accessibilityState={{ checked: done }}
+            accessibilityLabel={done ? t('member.detail.markNotDone') : t('member.detail.markDone')}
+            style={({ pressed }) => [
+              styles.completeButton,
+              {
+                backgroundColor: done ? colors.systemGreen : colors.fill,
+                borderColor: done ? colors.systemGreen : colors.systemGray2,
+              },
+              pressed && styles.pressed,
+            ]}
+          >
+            <Ionicons name="checkmark" size={26} color={done ? '#FFFFFF' : colors.secondaryLabel} />
+          </Pressable>
+        </View>
+
+        {exercise && exercise.metricFields.length > 0 ? (
+          <View style={styles.metricPillsRow}>
+            {exercise.metricFields.map((field) => {
+              const value = assignment.metrics[field.key];
+              const label = field.unit ? field.unit : metricLabel(field);
+              return (
+                <View key={field.key} style={[styles.metricPill, { backgroundColor: colors.fill }]}>
+                  <AppText variant="title2" style={[tabularNums, styles.metricValue]}>
+                    {value ?? '—'}
+                  </AppText>
+                  <AppText variant="caption2" color={colors.secondaryLabel} style={styles.metricPillLabel}>
+                    {label.toUpperCase()}
+                  </AppText>
+                </View>
+              );
+            })}
+          </View>
+        ) : null}
+
+        {assignment.notes ? (
+          <View
+            style={[
+              styles.coachNote,
+              { backgroundColor: colors.blueTint, borderLeftColor: colors.systemBlue },
+            ]}
+          >
+            <AppText variant="caption2" color={colors.systemBlue} style={styles.coachNoteLabel}>
+              {t('member.today.coachNote')}
+            </AppText>
+            <AppText variant="subheadline">{assignment.notes}</AppText>
+          </View>
+        ) : null}
+
+        <View style={styles.cardMetaRow}>
+          <Ionicons name="flame" size={15} color={colors.systemOrange} />
+          <AppText variant="footnote" color={colors.secondaryLabel}>
+            ≈ {kcal} {t('member.units.kcal')}
+          </AppText>
+          {doneAt ? (
+            <>
+              <View style={[styles.metaDot, { backgroundColor: colors.systemGray2 }]} />
+              <Ionicons name="checkmark-circle" size={15} color={colors.systemGreen} />
+              <AppText variant="footnote" color={colors.systemGreen} style={tabularNums}>
+                {doneAt}
+              </AppText>
+            </>
+          ) : null}
+        </View>
+      </Pressable>
+    </Card>
   );
 }
 
@@ -377,16 +538,70 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   kcalRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  selfieCard: { marginBottom: 16, gap: 10 },
-  selfieHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  selfieActions: { flexDirection: 'row', gap: 14 },
-  selfieImage: {
-    width: '100%',
-    aspectRatio: 3 / 4,
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    padding: 14,
     borderRadius: radius.md,
-    maxHeight: 320,
-    overflow: 'hidden',
+    marginBottom: 16,
   },
-  list: { borderRadius: radius.md, overflow: 'hidden', gap: 8 },
-  hint: { marginLeft: 4 },
+  list: { gap: 8 },
+  cardGroup: { gap: 10 },
+  hint: { marginLeft: 4, marginTop: 2 },
+  exerciseCard: { overflow: 'hidden' },
+  cardPressable: { gap: 12 },
+  pressed: { opacity: 0.7 },
+  cardTopRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  exerciseIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: radius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  exerciseTitleWrap: { flex: 1 },
+  completeButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  metricPillsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  metricPill: {
+    flex: 1,
+    minWidth: 84,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: radius.md,
+    alignItems: 'center',
+    gap: 2,
+  },
+  metricValue: { letterSpacing: -0.5 },
+  metricPillLabel: { fontWeight: '700', letterSpacing: 0.5 },
+  coachNote: {
+    borderLeftWidth: 3,
+    borderRadius: radius.sm,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    gap: 4,
+  },
+  coachNoteLabel: { fontWeight: '700', letterSpacing: 0.5 },
+  cardMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
+  metaDot: { width: 3, height: 3, borderRadius: 1.5, marginHorizontal: 2 },
+  selfieCard: { marginTop: 16 },
+  selfieRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  selfieThumb: { width: 64, height: 64, borderRadius: radius.sm },
+  selfieThumbPlaceholder: { alignItems: 'center', justifyContent: 'center' },
+  selfieInfo: { flex: 1, gap: 2 },
+  selfieActions: { flexDirection: 'row', alignItems: 'center', gap: 24 },
+  selfieActionButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });

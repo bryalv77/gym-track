@@ -7,20 +7,28 @@ import { AppText } from './Text';
 export function Chip({
   label,
   selected = false,
+  disabled = false,
   onPress,
 }: {
   label: string;
   selected?: boolean;
+  disabled?: boolean;
   onPress?: () => void;
 }) {
   const { colors } = useTheme();
   return (
     <Pressable
       onPress={onPress}
+      disabled={disabled || !onPress}
+      accessibilityRole={onPress ? 'button' : undefined}
+      accessibilityState={
+        onPress ? { selected: Boolean(selected), disabled: Boolean(disabled) } : undefined
+      }
+      accessibilityLabel={onPress ? label : undefined}
       style={({ pressed }) => [
         styles.chip,
         { backgroundColor: selected ? colors.systemBlue : colors.fill },
-        pressed && { opacity: 0.6 },
+        (pressed || disabled) && { opacity: 0.6 },
       ]}
     >
       <AppText
@@ -38,7 +46,8 @@ export function Chip({
 
 const styles = StyleSheet.create({
   chip: {
-    height: 30,
+    minHeight: 32,
+    paddingVertical: 5,
     paddingHorizontal: 12,
     borderRadius: 999,
     alignItems: 'center',

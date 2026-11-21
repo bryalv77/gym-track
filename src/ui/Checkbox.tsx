@@ -9,7 +9,7 @@ export function Checkbox({ checked, onPress }: { checked: boolean; onPress?: () 
   return (
     <Pressable
       onPress={onPress}
-      hitSlop={10}
+      hitSlop={12}
       accessibilityRole="checkbox"
       accessibilityState={{ checked }}
       style={({ pressed }) => [
@@ -26,6 +26,6 @@ export function Checkbox({ checked, onPress }: { checked: boolean; onPress?: () 
 }
 
 const styles = StyleSheet.create({
-  box: { width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  box: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
   pressed: { transform: [{ scale: 0.9 }] },
 });

@@ -33,7 +33,8 @@ export const profile = {
     "noCoach": "No coach assigned yet",
     "noCoachHint": "An admin will assign your coach soon.",
     "session": "Session",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "signOutConfirm": "Are you sure you want to sign out of your account?"
   },
   es: {
     "roles": {
@@ -69,7 +70,8 @@ export const profile = {
     "noCoach": "Aún no tienes entrenador asignado",
     "noCoachHint": "Un administrador te asignará tu entrenador pronto.",
     "session": "Sesión",
-    "signOut": "Cerrar sesión"
+    "signOut": "Cerrar sesión",
+    "signOutConfirm": "¿Seguro que quieres cerrar sesión en tu cuenta?"
   },
   pt: {
     "roles": {
@@ -105,7 +107,8 @@ export const profile = {
     "noCoach": "Nenhum treinador atribuído ainda",
     "noCoachHint": "Um administrador atribuirá seu treinador em breve.",
     "session": "Sessão",
-    "signOut": "Sair"
+    "signOut": "Sair",
+    "signOutConfirm": "Tem certeza de que deseja sair da sua conta?"
   },
   de: {
     "roles": {
@@ -141,7 +144,8 @@ export const profile = {
     "noCoach": "Noch kein Coach zugewiesen",
     "noCoachHint": "Ein Admin weist dir bald einen Coach zu.",
     "session": "Sitzung",
-    "signOut": "Abmelden"
+    "signOut": "Abmelden",
+    "signOutConfirm": "Möchtest du dich wirklich von deinem Konto abmelden?"
   },
   fr: {
     "roles": {
@@ -177,6 +181,7 @@ export const profile = {
     "noCoach": "Aucun coach attribué pour l’instant",
     "noCoachHint": "Un admin va bientôt t’attribuer un coach.",
     "session": "Session",
-    "signOut": "Se déconnecter"
+    "signOut": "Se déconnecter",
+    "signOutConfirm": "Es-tu sûr de vouloir te déconnecter de ton compte ?"
   },
 } as Record<'en' | 'es' | 'pt' | 'de' | 'fr', Record<string, any>>;

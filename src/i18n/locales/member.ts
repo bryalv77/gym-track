@@ -21,6 +21,7 @@ export const member = {
       doneAt: 'done at {{time}}',
       exercise: 'Exercise',
       otherExercises: "Other exercises",
+      coachNote: "COACH'S NOTE",
     },
     selfie: {
       header: 'DAILY SELFIE',
@@ -134,6 +135,7 @@ export const member = {
       doneAt: 'hecho a las {{time}}',
       exercise: 'Ejercicio',
       otherExercises: "Otros ejercicios",
+      coachNote: 'NOTA DEL ENTRENADOR',
     },
     selfie: {
       header: 'SELFIE DIARIO',
@@ -247,6 +249,7 @@ export const member = {
       doneAt: 'feito às {{time}}',
       exercise: 'Exercício',
       otherExercises: "Outros exercícios",
+      coachNote: 'NOTA DO TREINADOR',
     },
     selfie: {
       header: 'SELFIE DIÁRIA',
@@ -360,6 +363,7 @@ export const member = {
       doneAt: 'erledigt um {{time}}',
       exercise: 'Übung',
       otherExercises: "Weitere Übungen",
+      coachNote: 'COACH-NOTIZ',
     },
     selfie: {
       header: 'TÄGLICHES SELFIE',
@@ -473,6 +477,7 @@ export const member = {
       doneAt: 'fait à {{time}}',
       exercise: 'Exercice',
       otherExercises: "Autres exercices",
+      coachNote: 'NOTE DU COACH',
     },
     selfie: {
       header: 'SELFIE DU JOUR',

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../theme';
@@ -30,18 +30,28 @@ export function UserEditModal({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const initialSnapshot = useRef('');
+
   // Re-initialize the form whenever it opens or its inputs change.
-  const [synced1, setSynced1] = useState<unknown[]>([]);
-  const deps1 = [visible, user];
-  if (deps1.some((value, index) => value !== synced1[index])) {
-    setSynced1(deps1);
-    if (visible && user) {
-      setRole(user.role);
-      setGymId(user.gymId);
-      setCoachId(user.coachId);
-      setError(null);
-    }
-  }
+  useEffect(() => {
+    if (!visible || !user) return;
+    setRole(user.role);
+    setGymId(user.gymId);
+    setCoachId(user.coachId);
+    setError(null);
+    initialSnapshot.current = JSON.stringify({
+      role: user.role,
+      gymId: user.gymId ?? null,
+      coachId: user.coachId ?? null,
+    });
+  }, [visible, user]);
+
+  const dirty = useMemo(
+    () =>
+      JSON.stringify({ role, gymId: gymId ?? null, coachId: coachId ?? null }) !==
+      initialSnapshot.current,
+    [role, gymId, coachId],
+  );
 
   if (!user) return null;
 
@@ -58,7 +68,11 @@ export function UserEditModal({
       onClose();
     } catch (saveError) {
       console.warn('[UserEditModal] save failed', saveError);
-      setError(t('admin.userEdit.saveFailed'));
+      setError(
+        saveError instanceof Error && saveError.message
+          ? saveError.message
+          : t('admin.userEdit.saveFailed'),
+      );
     } finally {
       setSaving(false);
     }
@@ -69,6 +83,7 @@ export function UserEditModal({
       visible={visible}
       onClose={onClose}
       title={user.name}
+      dirty={dirty}
       footer={<Button label={t('admin.userEdit.saveChanges')} onPress={handleSave} loading={saving} />}
     >
       <View style={styles.form}>

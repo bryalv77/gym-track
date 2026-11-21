@@ -48,6 +48,15 @@ export function RoutinesScreen() {
         subtitle={t('routines.count', { count: routines.length })}
       />
 
+      {/* Primary action stays at the top, above the list. */}
+      <Button
+        label={t('routines.newRoutine')}
+        icon="add"
+        size="md"
+        onPress={() => openForm(null)}
+        style={styles.newButton}
+      />
+
       {routines.length > 0 ? (
         <View style={styles.filters}>
           <SearchField value={query} onChangeText={setQuery} placeholder={t('routines.search')} />
@@ -86,14 +95,6 @@ export function RoutinesScreen() {
         </View>
       )}
 
-      <Button
-        label={t('routines.newRoutine')}
-        icon="add"
-        size="md"
-        onPress={() => openForm(null)}
-        style={styles.addButton}
-      />
-
       <RoutineFormModal
         visible={formVisible}
         onClose={() => setFormVisible(false)}
@@ -105,5 +106,5 @@ export function RoutinesScreen() {
 
 const styles = StyleSheet.create({
   filters: { marginBottom: 12 },
-  addButton: { marginTop: 16 },
+  newButton: { marginBottom: 12 },
 });

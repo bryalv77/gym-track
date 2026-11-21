@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { radius, useTheme } from '../theme';
-import { AppText, Button, Chip, NavBar, Screen, TextField } from '../ui';
+import { AppText, Button, Chip, NavBar, Screen, SegmentedControl, TextField } from '../ui';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { clearAuthError, signUpThunk } from '../store/slices/authSlice';
 import { subscribeToGyms } from '../services/gyms';
@@ -13,6 +13,7 @@ import { normalizeCoachCode } from '../utils/coachCode';
 import type { Gym } from '../types';
 
 type SignUpScreenProps = NativeStackScreenProps<AuthStackParamList, 'SignUp'>;
+type SignUpRole = 'member' | 'coach';
 
 export function SignUpScreen({ navigation }: SignUpScreenProps) {
   const { colors } = useTheme();
@@ -22,6 +23,7 @@ export function SignUpScreen({ navigation }: SignUpScreenProps) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState<SignUpRole>('member');
   const [coachCode, setCoachCode] = useState('');
   const [gymId, setGymId] = useState<string | null>(null);
   const [gyms, setGyms] = useState<Gym[]>([]);
@@ -29,6 +31,11 @@ export function SignUpScreen({ navigation }: SignUpScreenProps) {
 
   // Gyms are readable before sign-in so new users can pick theirs.
   useEffect(() => subscribeToGyms((value) => setGyms(Object.values(normalizeGyms(value)))), []);
+
+  // A code only means anything for a coach — clear it if the role changes back.
+  useEffect(() => {
+    if (role === 'member') setCoachCode('');
+  }, [role]);
 
   const sortedGyms = gyms.slice().sort((a, b) => a.name.localeCompare(b.name));
 
@@ -38,9 +45,13 @@ export function SignUpScreen({ navigation }: SignUpScreenProps) {
       setLocalError(t('auth.errors.fillFields'));
       return;
     }
-    // Each gym has its own code; the database rules check it against the chosen gym.
-    const code = normalizeCoachCode(coachCode);
-    const isCoach = code.length > 0;
+    const isCoach = role === 'coach';
+    // Each gym has its own code; the API checks it against the chosen gym.
+    const code = isCoach ? normalizeCoachCode(coachCode) : '';
+    if (isCoach && code.length === 0) {
+      setLocalError(t('auth.errors.coachCodeRequired'));
+      return;
+    }
     if ((isCoach || sortedGyms.length > 0) && !gymId) {
       setLocalError(t('auth.errors.chooseGym'));
       return;
@@ -95,12 +106,37 @@ export function SignUpScreen({ navigation }: SignUpScreenProps) {
           returnKeyType="next"
         />
 
+        <View style={styles.roleSection}>
+          <AppText variant="footnote" color={colors.secondaryLabel}>
+            {t('auth.roleTitle', { defaultValue: 'I am signing up as' })}
+          </AppText>
+          <SegmentedControl
+            options={[
+              t('auth.roleMember', { defaultValue: 'Member' }),
+              t('auth.roleCoach', { defaultValue: 'Coach' }),
+            ]}
+            selectedIndex={role === 'member' ? 0 : 1}
+            onChange={(index) => setRole(index === 0 ? 'member' : 'coach')}
+          />
+          {role === 'member' ? (
+            <AppText variant="footnote" color={colors.secondaryLabel}>
+              {t('auth.memberNoCodeHint', {
+                defaultValue: 'Members do not need a code — just pick your gym below.',
+              })}
+            </AppText>
+          ) : null}
+        </View>
+
         {sortedGyms.length > 0 ? (
           <View style={styles.gymSection}>
             <AppText variant="footnote" color={colors.secondaryLabel}>
               {t('auth.yourGym')}
             </AppText>
-            <View style={styles.chips}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.chipsScroll}
+            >
               {sortedGyms.map((gym) => (
                 <Chip
                   key={gym.id}
@@ -109,33 +145,40 @@ export function SignUpScreen({ navigation }: SignUpScreenProps) {
                   onPress={() => setGymId(gym.id)}
                 />
               ))}
-            </View>
+            </ScrollView>
           </View>
         ) : null}
 
-        <TextField
-          label={t('auth.coachCode')}
-          placeholder={t('auth.coachCodePlaceholder')}
-          value={coachCode}
-          onChangeText={setCoachCode}
-          autoCapitalize="characters"
-          returnKeyType="done"
-          onSubmitEditing={handleSignUp}
-        />
-        <AppText variant="footnote" color={colors.secondaryLabel} style={styles.hint}>
-          {t('auth.coachCodeHint')}
-        </AppText>
+        {role === 'coach' ? (
+          <View style={styles.coachSection}>
+            <TextField
+              label={t('auth.coachCode')}
+              placeholder={t('auth.coachCodePlaceholder')}
+              value={coachCode}
+              onChangeText={setCoachCode}
+              autoCapitalize="characters"
+              returnKeyType="done"
+              onSubmitEditing={handleSignUp}
+            />
+            <AppText variant="footnote" color={colors.secondaryLabel} style={styles.hint}>
+              {t('auth.coachCodeHint')}
+            </AppText>
+          </View>
+        ) : null}
+
         {localError ?? error ? (
           <AppText variant="footnote" color={colors.systemRed}>
             {localError ?? error}
           </AppText>
         ) : null}
         <Button label={t('auth.createAccount')} onPress={handleSignUp} loading={loading} />
-        <View style={[styles.noteBox, { backgroundColor: colors.blueTint }]}>
-          <AppText variant="footnote" color={colors.secondaryLabel}>
-            {t('auth.coachSeesNote')}
-          </AppText>
-        </View>
+        {role === 'member' ? (
+          <View style={[styles.noteBox, { backgroundColor: colors.blueTint }]}>
+            <AppText variant="footnote" color={colors.secondaryLabel}>
+              {t('auth.coachSeesNote')}
+            </AppText>
+          </View>
+        ) : null}
       </View>
     </Screen>
   );
@@ -143,8 +186,10 @@ export function SignUpScreen({ navigation }: SignUpScreenProps) {
 
 const styles = StyleSheet.create({
   form: { gap: 14 },
+  roleSection: { gap: 8 },
   gymSection: { gap: 8 },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  chipsScroll: { flexDirection: 'row', gap: 8, paddingVertical: 2 },
+  coachSection: { gap: 8 },
   hint: { marginTop: -4 },
   noteBox: { borderRadius: radius.md, padding: 12 },
 });

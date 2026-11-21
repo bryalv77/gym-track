@@ -1,21 +1,16 @@
 # GymTrack
 
-A multi-gym, multi-role training app built with **React Native + Expo + TypeScript**, styled after the **native iOS UI**, powered by **Firebase (Email/Password Auth + Realtime Database)**, and running on **iOS, Android and the Web** from one codebase.
+A multi-gym, multi-role training app built with **React Native + Expo + TypeScript**, styled after the **native iOS UI**, powered by **Hono on Cloudflare Workers (Wrangler)** and **Neon Serverless Postgres**, and running on **iOS, Android and the Web** from one codebase.
 
 ## Roles
 
 | Role | What they do |
 | --- | --- |
 | **Admin** | Manages gyms, users (role + gym membership) and the exercise library |
-| **Coach** | Belongs to one gym. Assigns library exercises to their members per day with a personalized prescription (sets/reps/weight, minutes/speed…). Manages the library too. |
-| **Member** | Belongs to one gym. Sees their daily exercises, checks them off (time saved), tracks streak/dashboard and weight & body measurements. |
+| **Coach** | Belongs to one gym. Assigns library exercises and routines to their members per day with a personalized prescription (sets/reps/weight, minutes/speed…). Manages the library too. |
+| **Member** | Belongs to one gym. Sees their daily exercises, checks them off (time saved), tracks streak/dashboard, weight & body measurements, and progress selfies. |
 
-The exercise library holds each exercise with **demo media** (inline image/GIF + link to a demo video) and **type-driven metrics**:
-- Strength → sets, reps, weight
-- Cardio → time, speed
-- Other → custom metric fields you define per exercise
-
-## Tech
+## Tech Stack
 
 | Layer | Choice |
 | --- | --- |
@@ -23,70 +18,64 @@ The exercise library holds each exercise with **demo media** (inline image/GIF +
 | Web | React Native Web (`pnpm web`) |
 | State | Redux Toolkit (`src/store`) |
 | UI | Custom iOS-style component kit (`src/ui`) |
-| Backend | Firebase Auth + Firebase Realtime Database |
+| API | **Hono** on **Cloudflare Workers** (`api/src/index.ts`, deployed via Wrangler) |
+| Database | **Neon Serverless Postgres** (`@neondatabase/serverless`, schema in `api/db/schema.sql`) |
+| Auth | Edge JWT (`hono/jwt`) + WebCrypto PBKDF2-SHA256 password hashing |
 
-## Project structure
+## Project Structure
 
 ```
+api/
+├── db/
+│   └── schema.sql     # Neon Postgres schema (9 tables + indexes)
+├── src/
+│   ├── index.ts       # Hono entrypoint & router mounting
+│   ├── db/            # Neon HTTP SQL client & camelCase row mappers
+│   ├── middleware/    # JWT verification & RBAC middleware (admin / coach / member)
+│   ├── routes/        # Domain routers (auth, users, gyms, exercises, routines, assignments, completions, measurements, selfies, sync)
+│   └── utils/         # WebCrypto password hashing & JWT helpers
 src/
-├── ui/            # UI component library (iOS style, zero app knowledge)
-├── theme/         # iOS design tokens (colors, SF type ramp, spacing, radius)
-├── components/    # App components (forms, sheets, media viewer, data sync)
-├── screens/
-│   ├── LoginScreen / SignUpScreen (with gym picker)
-│   ├── member/    # Today (checkbox + exercise detail), Dashboard, Progress
-│   ├── coach/     # Plan (assign per member), Members
-│   ├── admin/     # Gyms, Users
-│   └── shared/    # ExercisesLibraryScreen (coach + admin)
-├── navigation/    # Root navigator (auth ↔ member ↔ coach ↔ admin tabs)
-├── store/         # Redux Toolkit store + slices (auth, assignments, exercises,
-│                  #   gyms, completions, measurements, members)
-├── services/      # Firebase read/write helpers
-├── config/        # Firebase init
-└── utils/         # Date keys, metric presets, confirm dialog, link opener
+├── ui/                # UI component library (iOS style, zero app knowledge)
+├── theme/             # iOS design tokens (colors, SF type ramp, spacing, radius)
+├── components/        # App components (forms, sheets, media viewer, data sync)
+├── screens/           # Role-scoped screens (Admin, Coach, Member, Shared, Auth)
+├── navigation/        # Root navigator (auth ↔ member ↔ coach ↔ admin tabs)
+├── store/             # Redux Toolkit store + slices
+├── services/          # Typed Hono API service adapters + live polling/invalidation
+├── config/api.ts      # API client, JWT storage, and sync invalidation bus
+└── utils/             # Date keys, metric presets, confirm dialog, link opener
 ```
 
-## Data model (Realtime Database)
+## Backend Setup (NeonDB + Cloudflare Wrangler)
 
-```
-gyms/{gymId}                          → { name, createdAt }
-gymCodes/{gymId}                      → coach signup code (string, admin-only)
-users/{uid}                           → { uid, name, email, role: 'admin'|'coach'|'member', gymId?, coachId?, createdAt }
-exercises/{exerciseId}                → { name, type: 'strength'|'cardio'|'other', description?,
-                                          imageUrl?, videoUrl?, metricFields[], createdBy, createdAt }
-routines/{coachId}/{routineId}        → { name, coachId, items: [{ exerciseId, metrics, notes? }], createdAt } (private to the coach)
-assignments/{YYYY-MM-DD}/{id}         → { exerciseId, memberId, coachId, metrics: {sets…}, notes?, routineId?, routineName?, createdAt }
-completions/{uid}/{YYYY-MM-DD}/{id}   → { completedAt }
-measurements/{uid}/{entryId}          → { dateKey, weightKg?, chestCm?, waistCm?, armCm?, thighCm?, createdAt }
-```
+1. Create a free Postgres database at <https://neon.tech> and run [`api/db/schema.sql`](./api/db/schema.sql) in the Neon SQL Editor.
+2. Copy `.dev.vars.example` to `.dev.vars` and set your `DATABASE_URL` and `JWT_SECRET`:
+   ```bash
+   cp .dev.vars.example .dev.vars
+   ```
+3. Copy `.env.example` to `.env` so Expo points to your local or deployed Worker URL:
+   ```bash
+   cp .env.example .env
+   ```
+4. Start the Hono API locally with Wrangler:
+   ```bash
+   pnpm api:dev     # http://localhost:8787
+   ```
+5. Deploy to Cloudflare Workers free tier:
+   ```bash
+   npx wrangler secret put DATABASE_URL
+   npx wrangler secret put JWT_SECRET
+   pnpm api:deploy
+   ```
 
-## Firebase setup
-
-1. Create a project at <https://console.firebase.google.com>.
-2. **Authentication → Sign-in method →** enable **Email/Password**.
-3. **Build → Realtime Database → Create database** (the app uses RTDB, not Firestore).
-4. **Rules** → paste [`database.rules.json`](./database.rules.json) → **Publish**.
-5. Paste your web app config into **`src/config/firebase.ts`**.
-
-### Roles bootstrap
-
-- Members and coaches sign up themselves: everyone picks their **gym** at sign-up; coaches also enter their **gym's own coach code**. Each gym gets a unique code when it is created; admins see it (and can regenerate it) by tapping the gym in the Gyms tab. Codes live in `gymCodes/{gymId}` (admin-read only) and are verified by the database rules.
-- The **first admin** is created by setting `role: "admin"` on the user's node in `users/` from the Firebase console (or seed it like we did). Admins can then change any user's role/gym from the Users tab.
-
-## Running the app
+## Running the App
 
 ```bash
 pnpm install
-pnpm web         # http://localhost:8081
-pnpm ios         # Expo Go / simulator
-pnpm android
-pnpm typecheck   # tsc --noEmit
-pnpm build:web   # static site in dist/
+pnpm api:dev     # Hono Cloudflare Worker at http://localhost:8787
+pnpm web         # Expo Web at http://localhost:8081
+pnpm ios         # Expo Go / iOS Simulator
+pnpm android     # Android Emulator
+pnpm typecheck   # Typechecks both Expo app and Hono Worker
+pnpm lint        # ESLint
 ```
-
-## How it works
-
-1. **Admin** creates gyms and curates the exercise library (media + metric fields per type).
-2. **Coach** opens Plan, picks a day and a member, chooses an exercise from the library and sets the prescription (steppers per metric). Edits and unassigns anytime.
-3. **Member** sees the workout instantly (RTDB listeners): checks exercises off — each check stores the timestamp — and can open each exercise for the demo media and coach notes. Dashboard computes streak, weekly volume and 30-day history; Progress tracks weight & measures.
-4. Everything syncs live across all devices signed in to the same gym.

@@ -12,6 +12,11 @@ export const auth = {
     "namePlaceholder": "Brian Alvarez",
     "passwordMin": "Password (min. 6 characters)",
     "yourGym": "YOUR GYM",
+    "coachToggle": "Signing up as a coach? Enter coach code",
+    "roleTitle": "I am signing up as",
+    "roleMember": "Member",
+    "roleCoach": "Coach",
+    "memberNoCodeHint": "Members don't need a code — just pick your gym below.",
     "coachCode": "Coach code (optional)",
     "coachCodePlaceholder": "Coaches only",
     "coachCodeHint": "Only for coaches: enter your gym's code (pick your gym above). Leave empty to create a member account.",
@@ -19,6 +24,7 @@ export const auth = {
     "errors": {
       "fillFields": "Fill in your name, email and a password of at least 6 characters.",
       "invalidCoachCode": "That coach code is not valid. Leave it empty to join as a member.",
+      "coachCodeRequired": "Enter your gym's coach code to sign up as a coach.",
       "chooseGym": "Choose your gym to continue."
     }
   },
@@ -35,6 +41,11 @@ export const auth = {
     "namePlaceholder": "Brian Alvarez",
     "passwordMin": "Contraseña (mín. 6 caracteres)",
     "yourGym": "TU GIMNASIO",
+    "coachToggle": "¿Te registras como entrenador? Introduce el código",
+    "roleTitle": "Me registro como",
+    "roleMember": "Miembro",
+    "roleCoach": "Entrenador",
+    "memberNoCodeHint": "Los miembros no necesitan código: solo elige tu gimnasio abajo.",
     "coachCode": "Código de entrenador (opcional)",
     "coachCodePlaceholder": "Solo entrenadores",
     "coachCodeHint": "Solo para entrenadores: introduce el código de tu gimnasio (elige tu gimnasio arriba). Déjalo vacío para crear una cuenta de miembro.",
@@ -42,6 +53,7 @@ export const auth = {
     "errors": {
       "fillFields": "Introduce tu nombre, correo y una contraseña de al menos 6 caracteres.",
       "invalidCoachCode": "Ese código de entrenador no es válido. Déjalo vacío para unirte como miembro.",
+      "coachCodeRequired": "Introduce el código de entrenador de tu gimnasio para registrarte como entrenador.",
       "chooseGym": "Elige tu gimnasio para continuar."
     }
   },
@@ -58,6 +70,11 @@ export const auth = {
     "namePlaceholder": "Brian Alvarez",
     "passwordMin": "Senha (mín. 6 caracteres)",
     "yourGym": "SUA ACADEMIA",
+    "coachToggle": "Cadastrando-se como treinador? Digite o código",
+    "roleTitle": "Estou me cadastrando como",
+    "roleMember": "Membro",
+    "roleCoach": "Treinador",
+    "memberNoCodeHint": "Membros não precisam de código — apenas escolha sua academia abaixo.",
     "coachCode": "Código de treinador (opcional)",
     "coachCodePlaceholder": "Somente treinadores",
     "coachCodeHint": "Somente para treinadores: digite o código da sua academia (escolha a academia acima). Deixe vazio para criar uma conta de membro.",
@@ -65,6 +82,7 @@ export const auth = {
     "errors": {
       "fillFields": "Preencha seu nome, e-mail e uma senha de pelo menos 6 caracteres.",
       "invalidCoachCode": "Esse código de treinador não é válido. Deixe vazio para entrar como membro.",
+      "coachCodeRequired": "Digite o código de treinador da sua academia para se cadastrar como treinador.",
       "chooseGym": "Escolha sua academia para continuar."
     }
   },
@@ -81,6 +99,11 @@ export const auth = {
     "namePlaceholder": "Brian Alvarez",
     "passwordMin": "Passwort (mind. 6 Zeichen)",
     "yourGym": "DEIN STUDIO",
+    "coachToggle": "Als Trainer registrieren? Trainer-Code eingeben",
+    "roleTitle": "Ich registriere mich als",
+    "roleMember": "Mitglied",
+    "roleCoach": "Trainer",
+    "memberNoCodeHint": "Mitglieder brauchen keinen Code — wähle unten einfach dein Studio.",
     "coachCode": "Trainer-Code (optional)",
     "coachCodePlaceholder": "Nur für Trainer",
     "coachCodeHint": "Nur für Trainer: Gib den Code deines Studios ein (wähle oben dein Studio). Lass das Feld leer, um ein Mitgliedskonto zu erstellen.",
@@ -88,6 +111,7 @@ export const auth = {
     "errors": {
       "fillFields": "Gib deinen Namen, deine E-Mail und ein Passwort mit mindestens 6 Zeichen ein.",
       "invalidCoachCode": "Dieser Trainer-Code ist ungültig. Lass ihn leer, um als Mitglied beizutreten.",
+      "coachCodeRequired": "Gib den Trainer-Code deines Studios ein, um dich als Trainer zu registrieren.",
       "chooseGym": "Wähle dein Studio, um fortzufahren."
     }
   },
@@ -104,6 +128,11 @@ export const auth = {
     "namePlaceholder": "Brian Alvarez",
     "passwordMin": "Mot de passe (6 caractères min.)",
     "yourGym": "TA SALLE",
+    "coachToggle": "Tu t’inscris comme coach ? Saisir le code coach",
+    "roleTitle": "Je m'inscris en tant que",
+    "roleMember": "Membre",
+    "roleCoach": "Coach",
+    "memberNoCodeHint": "Les membres n'ont pas besoin de code — choisis simplement ta salle ci-dessous.",
     "coachCode": "Code coach (facultatif)",
     "coachCodePlaceholder": "Réservé aux coachs",
     "coachCodeHint": "Réservé aux coachs : saisis le code de ta salle (choisis ta salle ci-dessus). Laisse vide pour créer un compte membre.",
@@ -111,6 +140,7 @@ export const auth = {
     "errors": {
       "fillFields": "Renseigne ton nom, ton e-mail et un mot de passe d'au moins 6 caractères.",
       "invalidCoachCode": "Ce code coach n'est pas valide. Laisse-le vide pour rejoindre en tant que membre.",
+      "coachCodeRequired": "Saisis le code coach de ta salle pour t'inscrire en tant que coach.",
       "chooseGym": "Choisis ta salle pour continuer."
     }
   },

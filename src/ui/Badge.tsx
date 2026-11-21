@@ -29,7 +29,8 @@ export function Badge({ label, variant = 'neutral' }: { label: string; variant?:
 
 const styles = StyleSheet.create({
   badge: {
-    height: 20,
+    minHeight: 20,
+    paddingVertical: 2,
     paddingHorizontal: 8,
     borderRadius: 999,
     alignItems: 'center',

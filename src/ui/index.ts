@@ -13,7 +13,7 @@ export { BarChart, type BarChartItem } from './BarChart';
 export { SegmentedControl } from './SegmentedControl';
 export { TextField, type TextFieldProps } from './TextField';
 export { SearchField } from './SearchField';
-export { Stepper } from './Stepper';
+export { Stepper, type StepperProps } from './Stepper';
 export { ListGroup, ListGroupHeader, ListGroupFooter, ListRow, type ListRowProps } from './ListGroup';
 export { NavBar, type NavBarProps } from './NavBar';
 export { TabBar } from './TabBar';

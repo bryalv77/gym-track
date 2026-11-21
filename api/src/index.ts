@@ -14,14 +14,22 @@ import { syncRouter } from './routes/sync';
 
 const app = new Hono<AppEnv>();
 
+// CORS_ORIGIN is a comma-separated allowlist; native apps send no Origin header.
 app.use(
   '*',
   cors({
-    origin: (origin, c) => c.env?.CORS_ORIGIN || origin || '*',
+    origin: (origin, c) =>
+      (c.env?.CORS_ORIGIN ?? '').split(',').map((o: string) => o.trim()).includes(origin) ? origin : null,
     allowHeaders: ['Content-Type', 'Authorization'],
     allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   }),
 );
+
+// Fail closed instead of signing tokens with a guessable default.
+app.use('/api/*', async (c, next) => {
+  if (!c.env.JWT_SECRET) return c.json({ error: 'Server misconfigured' }, 500);
+  await next();
+});
 
 app.get('/api/health', (c) => c.json({ ok: true, service: 'gym-track-api' }));
 

@@ -55,7 +55,7 @@ authRouter.post('/register', async (c) => {
   `;
 
   const profile = mapUserRow(inserted[0]);
-  const secret = c.env.JWT_SECRET || 'dev-gymtrack-jwt-secret';
+  const secret = c.env.JWT_SECRET;
   const token = await signAuthToken({ uid, email, role }, secret);
 
   const response: AuthResponse = { token, profile };
@@ -85,7 +85,7 @@ authRouter.post('/login', async (c) => {
   }
 
   const profile = mapUserRow(row);
-  const secret = c.env.JWT_SECRET || 'dev-gymtrack-jwt-secret';
+  const secret = c.env.JWT_SECRET;
   const token = await signAuthToken(
     { uid: profile.uid, email: profile.email, role: profile.role },
     secret,

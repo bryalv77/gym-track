@@ -15,7 +15,7 @@ export async function requireAuth(c: Context<AppEnv>, next: Next) {
     return c.json({ error: 'Unauthorized', code: 'auth/unauthorized' }, 401);
   }
   const token = authHeader.slice('Bearer '.length).trim();
-  const secret = c.env.JWT_SECRET || 'dev-gymtrack-jwt-secret';
+  const secret = c.env.JWT_SECRET;
   const verified = await verifyAuthToken(token, secret);
   if (!verified) {
     return c.json({ error: 'Invalid or expired token', code: 'auth/invalid-credential' }, 401);

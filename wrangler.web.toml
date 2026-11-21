@@ -1,0 +1,7 @@
+name = "gym-track-web"
+compatibility_date = "2025-01-01"
+
+# Static Expo web export (`pnpm build:web`); unknown paths fall back to index.html.
+[assets]
+directory = "./dist"
+not_found_handling = "single-page-application"

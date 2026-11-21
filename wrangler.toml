@@ -4,7 +4,7 @@ compatibility_date = "2025-01-01"
 compatibility_flags = ["nodejs_compat"]
 
 [vars]
-CORS_ORIGIN = "*"
+CORS_ORIGIN = "https://gym-track-web.bryalv77.workers.dev,http://localhost:8081"
 
 # Secrets (set locally in .dev.vars or via `wrangler secret put`):
 # DATABASE_URL = "postgresql://..."

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { radius, useTheme } from '../theme';
@@ -9,6 +9,7 @@ import { isValidDateKey, parseDateKey, toDateKey } from '../utils/date';
 import { parseOptionalNumber } from '../utils/numbers';
 import { DatePager } from './DatePager';
 import type { Measurement } from '../types';
+import { useResetOnChange } from '../utils/useResetOnChange';
 
 const NUMERIC = 'numeric' as const;
 
@@ -40,8 +41,7 @@ export function MeasurementFormModal({
   const [saving, setSaving] = useState(false);
 
   // Re-initialize the form whenever it opens or its inputs change.
-  useEffect(() => {
-    if (!visible) return;
+  useResetOnChange([visible, editing, defaultDateKey], visible, () => {
     setDateKey(editing?.dateKey ?? defaultDateKey ?? toDateKey(new Date()));
     setWeight(editing?.weightKg != null ? String(editing.weightKg) : '');
     setChest(editing?.chestCm != null ? String(editing.chestCm) : '');
@@ -50,7 +50,7 @@ export function MeasurementFormModal({
     setThigh(editing?.thighCm != null ? String(editing.thighCm) : '');
     setNotes(editing?.notes ?? '');
     setError(null);
-  }, [visible, editing, defaultDateKey]);
+  });
 
   if (!profile) return null;
 

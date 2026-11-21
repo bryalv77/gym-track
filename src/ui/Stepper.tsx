@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { tabularNums, useTheme } from '../theme';
 import { AppText } from './Text';
 import { Ionicons } from './icons';
+import { useResetOnChange } from '../utils/useResetOnChange';
 
 export interface StepperProps {
   value: number;
@@ -32,17 +33,15 @@ export function Stepper({
 
   const valueRef = useRef(value);
   const onChangeRef = useRef(onChange);
-  valueRef.current = value;
-  onChangeRef.current = onChange;
+  useEffect(() => {
+    valueRef.current = value;
+    onChangeRef.current = onChange;
+  });
 
   const holdTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const holdTicksRef = useRef(0);
 
-  useEffect(() => {
-    if (!editing) {
-      setDraft(String(value));
-    }
-  }, [value, editing]);
+  useResetOnChange([value, editing], !editing, () => setDraft(String(value)));
 
   const stopHold = useCallback(() => {
     if (holdTimerRef.current) {

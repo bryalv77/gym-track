@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { exerciseName } from '../utils/defaultExerciseData';
@@ -25,6 +25,7 @@ import {
 import { unassignRoutine } from '../services/routines';
 import { confirmAction } from '../utils/confirm';
 import type { Assignment, Exercise, ExerciseType, MetricField } from '../types';
+import { useResetOnChange } from '../utils/useResetOnChange';
 
 type TypeFilter = 'all' | ExerciseType;
 const TYPE_FILTERS: TypeFilter[] = ['all', 'strength', 'cardio', 'other'];
@@ -92,8 +93,7 @@ export function AssignExerciseModal({
   }, [exercises, exerciseQuery, typeFilter]);
 
   // Re-initialize the form whenever it opens or its inputs change.
-  useEffect(() => {
-    if (!visible) return;
+  useResetOnChange([visible, assignment, initialMemberId], visible, () => {
     setMemberId(assignment?.memberId ?? initialMemberId ?? null);
     setExerciseId(assignment?.exerciseId ?? null);
     setNotes(assignment?.notes ?? '');
@@ -101,11 +101,11 @@ export function AssignExerciseModal({
     setExerciseQuery('');
     setTypeFilter('all');
     setError(null);
-  }, [visible, assignment, initialMemberId]);
+  });
 
   // When an exercise is picked, initialize metrics with the assignment's
   // existing values or the exercise defaults.
-  useEffect(() => {
+  useResetOnChange([visible, selectedExercise, assignment], !!selectedExercise, () => {
     if (!visible || !selectedExercise) return;
     const initial: Record<string, number> = {};
     for (const field of selectedExercise.metricFields) {
@@ -115,7 +115,7 @@ export function AssignExerciseModal({
           : field.defaultValue;
     }
     setMetrics(initial);
-  }, [visible, selectedExercise, assignment]);
+  });
 
   if (!coach) return null;
 

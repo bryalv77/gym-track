@@ -11,6 +11,7 @@ import { normalizeGyms } from '../store/slices/gymsSlice';
 import type { AuthStackParamList } from '../navigation/RootNavigator';
 import { normalizeCoachCode } from '../utils/coachCode';
 import type { Gym } from '../types';
+import { useResetOnChange } from '../utils/useResetOnChange';
 
 type SignUpScreenProps = NativeStackScreenProps<AuthStackParamList, 'SignUp'>;
 type SignUpRole = 'member' | 'coach';
@@ -33,9 +34,7 @@ export function SignUpScreen({ navigation }: SignUpScreenProps) {
   useEffect(() => subscribeToGyms((value) => setGyms(Object.values(normalizeGyms(value)))), []);
 
   // A code only means anything for a coach — clear it if the role changes back.
-  useEffect(() => {
-    if (role === 'member') setCoachCode('');
-  }, [role]);
+  useResetOnChange([role], role === 'member', () => setCoachCode(''));
 
   const sortedGyms = gyms.slice().sort((a, b) => a.name.localeCompare(b.name));
 

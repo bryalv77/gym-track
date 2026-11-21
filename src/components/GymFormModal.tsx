@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../theme';
@@ -6,6 +6,7 @@ import { AppText, Button, SheetModal, TextField } from '../ui';
 import { createGym, regenerateGymCode, renameGym, subscribeToGymCode } from '../services/gyms';
 import { confirmAction } from '../utils/confirm';
 import type { Gym } from '../types';
+import { useResetOnChange } from '../utils/useResetOnChange';
 
 /** Admin sheet to create or rename a gym. */
 export function GymFormModal({
@@ -23,17 +24,16 @@ export function GymFormModal({
   const [name, setName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const initialSnapshot = useRef('');
+  const [initialSnapshot, setInitialSnapshot] = useState('');
 
   // Re-initialize the form whenever it opens or its inputs change.
-  useEffect(() => {
-    if (!visible) return;
+  useResetOnChange([visible, gym], visible, () => {
     setName(gym?.name ?? '');
     setError(null);
-    initialSnapshot.current = gym?.name ?? '';
-  }, [visible, gym]);
+    setInitialSnapshot(gym?.name ?? '');
+  });
 
-  const dirty = useMemo(() => name !== initialSnapshot.current, [name]);
+  const dirty = useMemo(() => name !== initialSnapshot, [name, initialSnapshot]);
 
   // Admin-only code that lets coaches join this gym at sign-up.
   const [codeState, setCodeState] = useState<{ gymId: string; code: string | null } | null>(null);

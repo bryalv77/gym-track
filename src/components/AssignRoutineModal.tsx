@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { radius, useTheme } from '../theme';
@@ -9,6 +9,7 @@ import { selectRoutinesSorted } from '../store/slices/routinesSlice';
 import { assignRoutine } from '../services/routines';
 import { exerciseName } from '../utils/defaultExerciseData';
 import { formatFullDate, parseDateKey } from '../utils/date';
+import { useResetOnChange } from '../utils/useResetOnChange';
 
 /** Coach sheet to send one of their routines to one or more members for a day. */
 export function AssignRoutineModal({
@@ -38,13 +39,12 @@ export function AssignRoutineModal({
   const [saving, setSaving] = useState(false);
 
   // Re-initialize the form whenever it opens or its inputs change.
-  useEffect(() => {
-    if (!visible) return;
+  useResetOnChange([visible, initialMemberId], visible, () => {
     setRoutineId(null);
     setMemberIds(initialMemberId ? [initialMemberId] : []);
     setMemberQuery('');
     setError(null);
-  }, [visible, initialMemberId]);
+  });
 
   const visibleMembers = useMemo(() => {
     const needle = memberQuery.trim().toLowerCase();

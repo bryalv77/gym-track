@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { exerciseDescription, exerciseName } from '../utils/defaultExerciseData';
 import { StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -11,6 +11,7 @@ import { ExerciseMediaView } from './ExerciseMediaView';
 import { DEFAULT_BODY_WEIGHT_KG, estimateCalories } from '../utils/calories';
 import { metricLabel } from '../utils/exercisePresets';
 import type { Assignment, Completion, Exercise } from '../types';
+import { useResetOnChange } from '../utils/useResetOnChange';
 
 /** Member view of one assigned exercise: demo media, technique notes, the
  *  coach's prescription and the big done/undone button. */
@@ -37,10 +38,10 @@ export function ExerciseDetailSheet({
   const [toggleError, setToggleError] = useState<string | null>(null);
   const [toggling, setToggling] = useState(false);
 
-  useEffect(() => {
+  useResetOnChange([visible, assignment?.id], true, () => {
     setToggleError(null);
     setToggling(false);
-  }, [visible, assignment?.id]);
+  });
 
   if (!exercise || !assignment) return null;
   const done = completion != null;

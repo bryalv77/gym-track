@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { radius, useTheme } from '../theme';
@@ -20,6 +20,7 @@ import { exerciseName } from '../utils/defaultExerciseData';
 import { metricLabel } from '../utils/exercisePresets';
 import { confirmAction } from '../utils/confirm';
 import type { Exercise, ExerciseType, Routine } from '../types';
+import { useResetOnChange } from '../utils/useResetOnChange';
 
 type TypeFilter = 'all' | ExerciseType;
 const TYPE_FILTERS: TypeFilter[] = ['all', 'strength', 'cardio', 'other'];
@@ -65,8 +66,7 @@ export function RoutineFormModal({
   const [saving, setSaving] = useState(false);
 
   // Re-initialize the form whenever it opens or its inputs change.
-  useEffect(() => {
-    if (!visible) return;
+  useResetOnChange([visible, routine], visible, () => {
     setName(routine?.name ?? '');
     setItems(
       (routine?.items ?? []).map((item, index) => ({
@@ -81,7 +81,7 @@ export function RoutineFormModal({
     setQuery('');
     setTypeFilter('all');
     setError(null);
-  }, [visible, routine]);
+  });
 
   const visibleExercises = useMemo(() => {
     const needle = query.trim().toLowerCase();

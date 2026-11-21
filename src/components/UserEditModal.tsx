@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '../theme';
@@ -8,6 +8,7 @@ import { selectGymsSorted } from '../store/slices/gymsSlice';
 import { selectGymCoaches } from '../store/slices/membersSlice';
 import { updateUserProfile } from '../services/auth';
 import type { Role, UserProfile } from '../types';
+import { useResetOnChange } from '../utils/useResetOnChange';
 
 const ROLE_OPTIONS: Role[] = ['member', 'coach', 'admin'];
 /** Admin sheet to change a user's role and gym membership. */
@@ -30,27 +31,27 @@ export function UserEditModal({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const initialSnapshot = useRef('');
+  const [initialSnapshot, setInitialSnapshot] = useState('');
 
   // Re-initialize the form whenever it opens or its inputs change.
-  useEffect(() => {
-    if (!visible || !user) return;
+  useResetOnChange([visible, user], visible && !!user, () => {
+    if (!user) return;
     setRole(user.role);
     setGymId(user.gymId);
     setCoachId(user.coachId);
     setError(null);
-    initialSnapshot.current = JSON.stringify({
+    setInitialSnapshot(JSON.stringify({
       role: user.role,
       gymId: user.gymId ?? null,
       coachId: user.coachId ?? null,
-    });
-  }, [visible, user]);
+    }));
+  });
 
   const dirty = useMemo(
     () =>
       JSON.stringify({ role, gymId: gymId ?? null, coachId: coachId ?? null }) !==
-      initialSnapshot.current,
-    [role, gymId, coachId],
+      initialSnapshot,
+    [role, gymId, coachId, initialSnapshot],
   );
 
   if (!user) return null;

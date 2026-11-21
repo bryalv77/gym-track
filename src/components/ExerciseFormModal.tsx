@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { radius, useTheme } from '../theme';
@@ -21,6 +21,7 @@ import {
 } from '../utils/exercisePresets';
 import { confirmAction } from '../utils/confirm';
 import type { Exercise, ExerciseType, MetricField } from '../types';
+import { useResetOnChange } from '../utils/useResetOnChange';
 
 const TYPE_OPTIONS: ExerciseType[] = ['strength', 'cardio', 'other'];
 
@@ -54,12 +55,11 @@ export function ExerciseFormModal({
   const [saving, setSaving] = useState(false);
 
   // Snapshot of the last loaded/clean form, used to drive the discard prompt.
-  const initialSnapshot = useRef('');
+  const [initialSnapshot, setInitialSnapshot] = useState('');
 
   // Re-initialize the form whenever it opens or its inputs change. Doing this
   // in an effect (rather than during render) keeps React's state updates sane.
-  useEffect(() => {
-    if (!visible) return;
+  useResetOnChange([visible, editing], visible, () => {
     const nextType = editing?.type ?? 'strength';
     const nextFields =
       editing && editing.metricFields.length > 0
@@ -78,7 +78,7 @@ export function ExerciseFormModal({
     setDescription(nextDescription);
     setMet(nextMet);
     setError(null);
-    initialSnapshot.current = JSON.stringify({
+    setInitialSnapshot(JSON.stringify({
       name: nextName,
       type: nextType,
       fields: nextFields,
@@ -86,14 +86,14 @@ export function ExerciseFormModal({
       videoUrl: nextVideoUrl,
       description: nextDescription,
       met: nextMet,
-    });
-  }, [visible, editing]);
+    }));
+  });
 
   const dirty = useMemo(
     () =>
       JSON.stringify({ name, type, fields, imageUrl, videoUrl, description, met }) !==
-      initialSnapshot.current,
-    [name, type, fields, imageUrl, videoUrl, description, met],
+      initialSnapshot,
+    [name, type, fields, imageUrl, videoUrl, description, met, initialSnapshot],
   );
 
   if (!profile) return null;

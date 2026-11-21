@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { radius, useTheme } from '../theme';
@@ -7,6 +7,7 @@ import { useAppSelector } from '../store/hooks';
 import { addSelfie, updateSelfie } from '../services/selfies';
 import { pickSelfieDataUrl } from '../utils/photo';
 import type { DailySelfie } from '../types';
+import { useResetOnChange } from '../utils/useResetOnChange';
 
 /** Sheet to capture / preview / edit a daily selfie. */
 export function SelfieFormModal({
@@ -32,12 +33,11 @@ export function SelfieFormModal({
   const [picking, setPicking] = useState(false);
 
   // Re-initialize the form whenever it opens or its inputs change.
-  useEffect(() => {
-    if (!visible) return;
+  useResetOnChange([visible, editing, dateKey], visible, () => {
     setPhotoData(editing?.photoData ?? null);
     setNotes(editing?.notes ?? '');
     setError(null);
-  }, [visible, editing, dateKey]);
+  });
 
   if (!profile) return null;
 

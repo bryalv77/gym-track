@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { exerciseName } from '../../utils/defaultExerciseData';
 import { Image, Pressable, StyleSheet, Vibration, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -32,6 +32,7 @@ import {
   estimateCalories,
 } from '../../utils/calories';
 import type { Assignment, Completion } from '../../types';
+import { useResetOnChange } from '../../utils/useResetOnChange';
 
 /** Best-effort haptics on success. expo-haptics isn't installed; Vibration is
  *  the built-in, dependency-free fallback (a no-op where unsupported). */
@@ -51,7 +52,7 @@ export function TodayScreen() {
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [detailAssignmentId, setDetailAssignmentId] = useState<string | null>(null);
   const [selfieModalVisible, setSelfieModalVisible] = useState(false);
-  const [optimistic, setOptimistic] = useState<Record<string, boolean>>({});
+  const [optimistic, setOptimistic] = useState<Record<string, number | null>>({});
   const [toggleError, setToggleError] = useState<string | null>(null);
 
   const dateKey = toDateKey(selectedDate);
@@ -81,36 +82,37 @@ export function TodayScreen() {
   );
 
   // Clear pending/inline state when the day or member changes.
-  useEffect(() => {
+  useResetOnChange([dateKey, profile?.uid], true, () => {
     setOptimistic({});
     setToggleError(null);
-  }, [dateKey, profile?.uid]);
+  });
 
   // Drop an optimistic override once the store reflects the intended state,
   // so the subscription's eventual update doesn't cause a visible flicker.
-  useEffect(() => {
+  useResetOnChange([completions], true, () => {
     setOptimistic((prev) => {
       let changed = false;
-      const next: Record<string, boolean> = {};
-      for (const [id, desiredDone] of Object.entries(prev)) {
-        if ((completions[id] != null) === desiredDone) {
+      const next: Record<string, number | null> = {};
+      for (const [id, doneAt] of Object.entries(prev)) {
+        if ((completions[id] != null) === (doneAt !== null)) {
           changed = true;
         } else {
-          next[id] = desiredDone;
+          next[id] = doneAt;
         }
       }
       return changed ? next : prev;
     });
-  }, [completions]);
+  });
 
   const isDone = (id: string): boolean =>
     Object.prototype.hasOwnProperty.call(optimistic, id)
-      ? optimistic[id]
+      ? optimistic[id] !== null
       : completions[id] != null;
 
   const completionFor = (id: string): Completion | undefined => {
     if (Object.prototype.hasOwnProperty.call(optimistic, id)) {
-      return optimistic[id] ? { completedAt: Date.now() } : undefined;
+      const doneAt = optimistic[id];
+      return doneAt !== null ? { completedAt: doneAt } : undefined;
     }
     return completions[id];
   };
@@ -169,7 +171,7 @@ export function TodayScreen() {
     const desired = !isDone(assignment.id);
     setToggleError(null);
     // Optimistic: reflect the new state immediately.
-    setOptimistic((prev) => ({ ...prev, [assignment.id]: desired }));
+    setOptimistic((prev) => ({ ...prev, [assignment.id]: desired ? Date.now() : null }));
     try {
       await setCompletion(profile.uid, dateKey, assignment.id, desired);
       if (desired) successHaptic();

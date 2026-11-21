@@ -1,1 +1,25 @@
-{"0": "Gym Admin Management Screens", "1": "User Editing & Internationalization", "2": "Theme Tokens & UI Kit", "3": "Coach Plan & Progress Screens", "4": "Firebase Data Sync Layer", "5": "App Shell & Navigation", "6": "Routine Assignment Services", "7": "Data Normalization & Slices", "8": "Expo App Configuration", "9": "Product Concepts (README)", "10": "Exercise Catalog & CRUD", "11": "Redux Store Wiring", "12": "Runtime Dependencies", "13": "Gym Onboarding & Codes", "14": "Package Manifest & Tooling", "15": "Build & Deploy Scripts", "16": "Coach Exercise Slice", "17": "Completions Slice", "18": "ESLint Configuration", "19": "Gyms Slice", "20": "Routines Slice", "21": "TypeScript Configuration", "22": "Dep: Expo Image Manipulator", "23": "Dep: Expo Image Picker", "24": "Dep: Expo Localization", "25": "Dep: Expo Metro Runtime", "26": "Dep: Expo Status Bar", "27": "Dep: Expo Updates", "28": "Dep: Expo Vector Icons", "29": "Dep: i18next", "30": "Dep: React Native Screens", "31": "Dep: React Native Web", "32": "Dep: Bottom Tabs Navigator", "33": "Dep: React Redux"}
+{
+  "0": "TodayScreen.tsx",
+  "1": "i18n/index.ts",
+  "2": "useTheme",
+  "3": "schema.sql",
+  "4": "DataSync.tsx",
+  "5": "services/auth.ts",
+  "6": "types/index.ts",
+  "7": "slices/exercisesSlice.ts",
+  "8": "expo",
+  "9": "Realtime Database Data Model",
+  "10": "Firebase → Hono (Cloudflare Workers / Wrangler) + Neon Postgres Migration Plan",
+  "11": "Migration Status Tracker (`status_migration_plan.md`)",
+  "12": "dependencies",
+  "13": "compilerOptions",
+  "14": "migrate.mjs",
+  "15": "scripts",
+  "18": "eslint.config.js",
+  "21": "tsconfig.json",
+  "22": "defaultExerciseData.ts",
+  "25": "graphify.js",
+  "26": "Q: Why does useTheme() connect to 7 communities?",
+  "30": "rules/graphify.md",
+  "31": "workflows/graphify.md"
+}

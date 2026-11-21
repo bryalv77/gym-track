@@ -1,0 +1,11 @@
+name = "gym-track-api"
+main = "api/src/index.ts"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+CORS_ORIGIN = "*"
+
+# Secrets (set locally in .dev.vars or via `wrangler secret put`):
+# DATABASE_URL = "postgresql://..."
+# JWT_SECRET = "your-secret-key"

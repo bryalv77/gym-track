@@ -1,0 +1,3 @@
+# Cloudflare Wrangler Local Worker Secrets (.dev.vars)
+DATABASE_URL=postgresql://user:password@ep-your-neon-host.region.aws.neon.tech/neondb?sslmode=require
+JWT_SECRET=replace-with-a-random-32-byte-secret

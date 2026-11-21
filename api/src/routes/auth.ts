@@ -24,10 +24,8 @@ authRouter.post('/register', async (c) => {
   if (!email || !name) {
     return c.json({ error: 'Missing required fields', code: 'auth/invalid-argument' }, 400);
   }
-  const role: Role =
-    body.role === 'admin' || body.role === 'coach' || body.role === 'member'
-      ? body.role
-      : 'member';
+  // Public sign-up can never create an admin; promote users in the database.
+  const role: Role = body.role === 'coach' ? 'coach' : 'member';
 
   const sql = getSql(c.env);
   const existing = await sql`SELECT uid FROM users WHERE email = ${email} LIMIT 1`;

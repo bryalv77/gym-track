@@ -1,4 +1,6 @@
-import { mutate, subscribeToPath } from '../config/api';
+import { apiRequest, emitSyncInvalidate, mutate, subscribeToPath } from '../config/api';
+import { currentLang } from '../utils/defaultExerciseData';
+import type { SeedExercisesRequest } from '../types/api';
 import type { Exercise, ExercisesById } from '../types';
 
 export function subscribeToExercises(callback: (value: ExercisesById) => void): () => void {
@@ -18,4 +20,16 @@ export function updateExercise(
 
 export function deleteExercise(id: string): Promise<void> {
   return mutate('DELETE', `/api/exercises/${encodeURIComponent(id)}`, undefined, 'exercises');
+}
+
+/** Makes the suggested starter exercises available via the server seed endpoint. */
+export async function ensureDefaultExercises(): Promise<void> {
+  const body: SeedExercisesRequest = { language: currentLang() };
+  const res = await apiRequest<{ seeded?: boolean }>('/api/exercises/seed', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+  if (res?.seeded) {
+    emitSyncInvalidate('exercises', 'assignments');
+  }
 }

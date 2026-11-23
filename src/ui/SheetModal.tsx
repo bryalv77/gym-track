@@ -63,7 +63,7 @@ export function SheetModal({
       animationType={isWeb ? 'fade' : 'slide'}
       onRequestClose={handleRequestClose}
     >
-      <View style={[styles.backdrop, isWeb ? styles.backdropCenter : styles.backdropBottom]}>
+      <View style={[styles.backdrop, { backgroundColor: colors.scrim }, isWeb ? styles.backdropCenter : styles.backdropBottom]}>
         <Pressable
           style={StyleSheet.absoluteFill}
           onPress={handleRequestClose}
@@ -108,7 +108,7 @@ export function SheetModal({
 }
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.4)' },
+  backdrop: { flex: 1 },
   backdropBottom: { justifyContent: 'flex-end' },
   backdropCenter: { justifyContent: 'center', alignItems: 'center', padding: 24 },
   avoid: { width: '100%', alignItems: 'center' },

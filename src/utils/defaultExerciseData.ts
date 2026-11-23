@@ -1,9 +1,7 @@
 import i18n from '../i18n';
-import { apiRequest, emitSyncInvalidate } from '../config/api';
-import type { SeedExercisesRequest } from '../types/api';
 import { DEFAULT_EXERCISES, LANGS, type DefaultExercise, type Lang } from '../shared/exerciseDefaults';
 
-function currentLang(): Lang {
+export function currentLang(): Lang {
   const code = i18n.language?.slice(0, 2) as Lang;
   return LANGS.includes(code) ? code : 'en';
 }
@@ -38,16 +36,4 @@ export function exerciseDescription(exercise: {
   const stored = normalize(exercise.description);
   const isSeeded = LANGS.some((lang) => normalize(match.text[lang].description) === stored);
   return isSeeded ? match.text[currentLang()].description : exercise.description;
-}
-
-/** Makes the suggested starter exercises available via the server seed endpoint. */
-export async function ensureDefaultExercises(): Promise<void> {
-  const body: SeedExercisesRequest = { language: currentLang() };
-  const res = await apiRequest<{ seeded?: boolean }>('/api/exercises/seed', {
-    method: 'POST',
-    body: JSON.stringify(body),
-  });
-  if (res?.seeded) {
-    emitSyncInvalidate('exercises', 'assignments');
-  }
 }

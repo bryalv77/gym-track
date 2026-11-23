@@ -9,6 +9,8 @@ export interface ThemeColors {
   systemBlue: string;
   /** Foreground on accent-colored fills (selected chips, buttons, avatars). */
   onAccent: string;
+  /** Dim layer behind modal sheets. */
+  scrim: string;
   systemGreen: string;
   systemRed: string;
   systemOrange: string;
@@ -52,6 +54,7 @@ export interface ThemeColors {
 export const lightColors: ThemeColors = {
   systemBlue: '#007AFF',
   onAccent: '#FFFFFF',
+  scrim: 'rgba(0, 0, 0, 0.4)',
   systemGreen: '#34C759',
   systemRed: '#FF3B30',
   systemOrange: '#FF9500',
@@ -90,6 +93,7 @@ export const lightColors: ThemeColors = {
 export const darkColors: ThemeColors = {
   systemBlue: '#0A84FF',
   onAccent: '#FFFFFF',
+  scrim: 'rgba(0, 0, 0, 0.4)',
   systemGreen: '#30D158',
   systemRed: '#FF453A',
   systemOrange: '#FF9F0A',

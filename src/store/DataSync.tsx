@@ -1,12 +1,11 @@
 import { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from './hooks';
 import { subscribeToAssignments } from '../services/assignments';
-import { subscribeToExercises } from '../services/exercises';
+import { ensureDefaultExercises, subscribeToExercises } from '../services/exercises';
 import { subscribeToGyms } from '../services/gyms';
 import { subscribeToAllCompletions, subscribeToCompletions } from '../services/completions';
 import { subscribeToMeasurements } from '../services/measurements';
 import { subscribeToSelfies } from '../services/selfies';
-import { ensureDefaultExercises } from '../utils/defaultExerciseData';
 import { subscribeToRoutines } from '../services/routines';
 import { subscribeToUser, subscribeToUsers } from '../services/users';
 import { assignmentsUpdated } from './slices/assignmentsSlice';

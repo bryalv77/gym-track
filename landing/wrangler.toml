@@ -1,0 +1,7 @@
+name = "gym-track-landing"
+compatibility_date = "2025-01-01"
+
+# Static Astro build (`pnpm build`) served from Cloudflare's free static assets.
+[assets]
+directory = "./dist"
+not_found_handling = "404-page"

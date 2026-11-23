@@ -107,21 +107,19 @@ export function SignUpScreen({ navigation }: SignUpScreenProps) {
 
         <View style={styles.roleSection}>
           <AppText variant="footnote" color={colors.secondaryLabel}>
-            {t('auth.roleTitle', { defaultValue: 'I am signing up as' })}
+            {t('auth.roleTitle')}
           </AppText>
           <SegmentedControl
             options={[
-              t('auth.roleMember', { defaultValue: 'Member' }),
-              t('auth.roleCoach', { defaultValue: 'Coach' }),
+              t('auth.roleMember'),
+              t('auth.roleCoach'),
             ]}
             selectedIndex={role === 'member' ? 0 : 1}
             onChange={(index) => setRole(index === 0 ? 'member' : 'coach')}
           />
           {role === 'member' ? (
             <AppText variant="footnote" color={colors.secondaryLabel}>
-              {t('auth.memberNoCodeHint', {
-                defaultValue: 'Members do not need a code — just pick your gym below.',
-              })}
+              {t('auth.memberNoCodeHint')}
             </AppText>
           ) : null}
         </View>

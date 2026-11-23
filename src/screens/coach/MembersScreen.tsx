@@ -196,7 +196,7 @@ function MemberOverviewSheet({
     <SheetModal
       visible={uid != null}
       onClose={onClose}
-      title={member?.name ?? t('coach.members.overviewTitle', { defaultValue: 'Member Overview' })}
+      title={member?.name ?? t('coach.members.overviewTitle')}
     >
       <View style={styles.overview}>
         {member ? (
@@ -212,25 +212,25 @@ function MemberOverviewSheet({
             </View>
 
             <AppText variant="footnote" color={colors.secondaryLabel} style={styles.sectionLabel}>
-              {t('coach.members.overviewTitle', { defaultValue: 'Member Overview' }).toUpperCase()}
+              {t('coach.members.overviewTitle').toUpperCase()}
             </AppText>
             <ListGroup>
               <ListRow
-                title={t('coach.members.gym', { defaultValue: 'Gym' })}
-                value={gymName ?? t('coach.members.noGym', { defaultValue: 'No gym' })}
+                title={t('coach.members.gym')}
+                value={gymName ?? t('coach.members.noGym')}
               />
               <ListRow
-                title={t('coach.members.coach', { defaultValue: 'Coach' })}
-                value={coachName ?? t('coach.members.noCoach', { defaultValue: 'No coach assigned' })}
+                title={t('coach.members.coach')}
+                value={coachName ?? t('coach.members.noCoach')}
               />
               <ListRow
-                title={t('coach.members.email', { defaultValue: 'Email' })}
+                title={t('coach.members.email')}
                 value={member.email}
               />
             </ListGroup>
 
             <AppText variant="footnote" color={colors.secondaryLabel} style={styles.sectionLabel}>
-              {t('coach.members.progress', { defaultValue: 'Progress' }).toUpperCase()}
+              {t('coach.members.progress').toUpperCase()}
             </AppText>
             <View style={styles.statRow}>
               <StatTile value={assignedToday} label={t('coach.members.assignedToday')} />

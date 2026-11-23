@@ -84,7 +84,7 @@ export function CalendarMonth({
                 style={{
                   fontSize: 17,
                   color: isSelected
-                    ? '#FFFFFF'
+                    ? colors.onAccent
                     : disabled
                       ? colors.tertiaryLabel
                       : isToday

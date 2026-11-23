@@ -22,6 +22,7 @@ import { EXERCISE_PRESETS } from '../shared/exerciseDefaults';
 import { confirmAction } from '../utils/confirm';
 import type { ExerciseType, MetricField } from '../types';
 import { useResetOnChange } from '../utils/useResetOnChange';
+import { useSubmit } from '../utils/useSubmit';
 import { errorMessage } from '../utils/errorMessage';
 
 const TYPE_OPTIONS: ExerciseType[] = ['strength', 'cardio', 'other'];
@@ -51,8 +52,7 @@ export function ExerciseFormModal({
   const [videoUrl, setVideoUrl] = useState('');
   const [description, setDescription] = useState('');
   const [met, setMet] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
+  const { saving, error, setError, submit } = useSubmit('ExerciseFormModal');
 
   const [initialSnapshot, setInitialSnapshot] = useState('');
 
@@ -125,13 +125,10 @@ export function ExerciseFormModal({
       JSON.stringify(fields) !== JSON.stringify(EXERCISE_PRESETS[type]);
     if (hasCustomFields) {
       confirmAction(
-        t('common.switchTypeTitle', { defaultValue: 'Change exercise type?' }),
-        t('common.switchTypeMessage', {
-          defaultValue:
-            'Changing the type replaces your custom metrics with the defaults for the new type. Your edits will be lost.',
-        }),
+        t('common.switchTypeTitle'),
+        t('common.switchTypeMessage'),
         apply,
-        t('common.switchTypeConfirm', { defaultValue: 'Change type' }),
+        t('common.switchTypeConfirm'),
       );
       return;
     }
@@ -151,8 +148,6 @@ export function ExerciseFormModal({
       setError(t('library.form.errors.metricRequired'));
       return;
     }
-    setSaving(true);
-    setError(null);
     const metValue = Number(met.trim().replace(',', '.'));
     const payload = {
       name: trimmed,
@@ -163,21 +158,18 @@ export function ExerciseFormModal({
       videoUrl: videoUrl.trim() || undefined,
       ...(Number.isFinite(metValue) && metValue > 0 ? { met: metValue } : {}),
     };
-    try {
-      if (editing) {
-        await updateExercise(editing.id, payload);
-      } else {
-        await createExercise(payload);
-      }
-      onClose();
-    } catch (saveError) {
-      console.warn('[ExerciseFormModal] save failed', saveError);
-      setError(
-        errorMessage(saveError, t('library.form.errors.saveFailed')),
-      );
-    } finally {
-      setSaving(false);
-    }
+    await submit(
+      async () => {
+        if (editing) {
+          await updateExercise(editing.id, payload);
+        } else {
+          await createExercise(payload);
+        }
+        onClose();
+      },
+      t('library.form.errors.saveFailed'),
+      true,
+    );
   };
 
   const handleDelete = () => {
@@ -320,16 +312,14 @@ export function ExerciseFormModal({
         />
         <View style={styles.intensitySection}>
           <TextField
-            label={t('common.intensityLabel', { defaultValue: 'Intensity (optional)' })}
+            label={t('common.intensityLabel')}
             placeholder={t('library.form.metPlaceholder')}
             value={met}
             onChangeText={setMet}
             keyboardType="numeric"
           />
           <AppText variant="footnote" color={colors.secondaryLabel}>
-            {t('common.intensityHint', {
-              defaultValue: 'Rough effort level, used to estimate calories burned.',
-            })}
+            {t('common.intensityHint')}
           </AppText>
         </View>
         <TextField

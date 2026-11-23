@@ -250,7 +250,7 @@ export function TodayScreen() {
               <Ionicons
                 name="checkmark"
                 size={20}
-                color={allDone ? '#FFFFFF' : colors.systemGray2}
+                color={allDone ? colors.onAccent : colors.systemGray2}
               />
             </View>
           </View>
@@ -467,7 +467,7 @@ function WorkoutExerciseCard({
               pressed && styles.pressed,
             ]}
           >
-            <Ionicons name="checkmark" size={26} color={done ? '#FFFFFF' : colors.secondaryLabel} />
+            <Ionicons name="checkmark" size={26} color={done ? colors.onAccent : colors.secondaryLabel} />
           </Pressable>
         </View>
 

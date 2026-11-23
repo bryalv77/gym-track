@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { exerciseName } from '../utils/defaultExerciseData';
 import { metricLabel } from '../utils/exercisePresets';
@@ -9,6 +9,8 @@ import {
   Avatar,
   Button,
   Chip,
+  ChipRow,
+  MANY_CHIPS,
   SearchField,
   SheetModal,
   Stepper,
@@ -26,6 +28,7 @@ import {
 import { confirmAction } from '../utils/confirm';
 import type { Assignment, Exercise, ExerciseType, MetricField } from '../types';
 import { useResetOnChange } from '../utils/useResetOnChange';
+import { useSubmit } from '../utils/useSubmit';
 import { matchesQuery } from '../utils/search';
 
 type TypeFilter = 'all' | ExerciseType;
@@ -65,8 +68,7 @@ export function AssignExerciseModal({
   const [exerciseId, setExerciseId] = useState<string | null>(null);
   const [metrics, setMetrics] = useState<Record<string, number>>({});
   const [notes, setNotes] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
+  const { saving, error, setError, submit } = useSubmit('AssignExerciseModal');
 
   const selectedExercise: Exercise | undefined = useMemo(
     () => exercises.find((exercise) => exercise.id === exerciseId),
@@ -119,33 +121,29 @@ export function AssignExerciseModal({
       setError(t('coach.assign.pickExercise'));
       return;
     }
-    setSaving(true);
-    setError(null);
-    try {
-      if (assignment) {
-        await updateAssignment(dateKey, assignment.id, {
-          exerciseId: selectedExercise.id,
-          memberId,
-          metrics,
-          notes: notes.trim() || undefined,
-        });
-      } else {
-        await createAssignment({
-          dateKey,
-          exerciseId: selectedExercise.id,
-          memberId,
-          coachId: coach.uid,
-          metrics,
-          notes: notes.trim() || undefined,
-        });
-      }
-      onClose();
-    } catch (saveError) {
-      console.warn('[AssignExerciseModal] save failed', saveError);
-      setError(t('coach.assign.saveFailed'));
-    } finally {
-      setSaving(false);
-    }
+    await submit(
+      async () => {
+        if (assignment) {
+          await updateAssignment(dateKey, assignment.id, {
+            exerciseId: selectedExercise.id,
+            memberId,
+            metrics,
+            notes: notes.trim() || undefined,
+          });
+        } else {
+          await createAssignment({
+            dateKey,
+            exerciseId: selectedExercise.id,
+            memberId,
+            coachId: coach.uid,
+            metrics,
+            notes: notes.trim() || undefined,
+          });
+        }
+        onClose();
+      },
+      t('coach.assign.saveFailed'),
+    );
   };
 
   const handleUnassign = () => {
@@ -209,25 +207,17 @@ export function AssignExerciseModal({
     </View>
   ) : (
     <View style={styles.pickerStack}>
-      {gymMembers.length > 6 ? (
+      {gymMembers.length > MANY_CHIPS ? (
         <SearchField
           value={memberQuery}
           onChangeText={setMemberQuery}
           placeholder={t('coach.assign.searchMembers')}
         />
       ) : null}
-      {visibleMembers.length > 6 ? (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.chipsScroll}
-        >
-          {memberChipsList}
-        </ScrollView>
-      ) : (
-        <View style={styles.chips}>
-          {memberChipsList}
-          {gymMembers.length === 0 ? (
+      <ChipRow
+        scroll={visibleMembers.length > MANY_CHIPS}
+        empty={
+          gymMembers.length === 0 ? (
             <AppText variant="footnote" color={colors.secondaryLabel}>
               {t('coach.assign.noMembers')}
             </AppText>
@@ -235,9 +225,11 @@ export function AssignExerciseModal({
             <AppText variant="footnote" color={colors.secondaryLabel}>
               {t('coach.members.noResults')}
             </AppText>
-          ) : null}
-        </View>
-      )}
+          ) : null
+        }
+      >
+        {memberChipsList}
+      </ChipRow>
     </View>
   );
 
@@ -304,12 +296,8 @@ export function AssignExerciseModal({
             onChangeText={setExerciseQuery}
             placeholder={t('coach.assign.searchExercises')}
           />
-          {exercises.length > 6 ? (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.chipsScroll}
-            >
+          {exercises.length > MANY_CHIPS ? (
+            <ChipRow scroll>
               {TYPE_FILTERS.map((filter) => (
                 <Chip
                   key={filter}
@@ -318,26 +306,20 @@ export function AssignExerciseModal({
                   onPress={() => setTypeFilter(filter)}
                 />
               ))}
-            </ScrollView>
+            </ChipRow>
           ) : null}
-          {visibleExercises.length > 6 ? (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.chipsScroll}
-            >
-              {exerciseChipsList}
-            </ScrollView>
-          ) : (
-            <View style={styles.chips}>
-              {exerciseChipsList}
-              {visibleExercises.length === 0 ? (
+          <ChipRow
+            scroll={visibleExercises.length > MANY_CHIPS}
+            empty={
+              visibleExercises.length === 0 ? (
                 <AppText variant="footnote" color={colors.secondaryLabel}>
                   {t('coach.assign.noExerciseMatch', { query: exerciseQuery })}
                 </AppText>
-              ) : null}
-            </View>
-          )}
+              ) : null
+            }
+          >
+            {exerciseChipsList}
+          </ChipRow>
         </View>
 
         {selectedExercise ? (
@@ -379,8 +361,6 @@ const styles = StyleSheet.create({
   form: { gap: 16, paddingBottom: 8 },
   section: { gap: 8 },
   pickerStack: { gap: 8 },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chipsScroll: { flexDirection: 'row', gap: 8, paddingVertical: 2 },
   memberPill: {
     flexDirection: 'row',
     alignItems: 'center',

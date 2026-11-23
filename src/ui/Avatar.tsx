@@ -53,7 +53,7 @@ export function Avatar({
         { width: size, height: size, borderRadius: size / 2, backgroundColor: background },
       ]}
     >
-      <AppText style={{ color: '#FFFFFF', fontSize, fontWeight: '600' }}>{initials}</AppText>
+      <AppText style={{ color: colors.onAccent, fontSize, fontWeight: '600' }}>{initials}</AppText>
     </View>
   );
 }

@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { useTheme } from '../theme';
+import { radius, useTheme } from '../theme';
 
 /** Rounded progress track (iOS-style). */
 export function ProgressBar({
@@ -20,7 +20,7 @@ export function ProgressBar({
         style={{
           width: `${clamped * 100}%`,
           backgroundColor: color ?? colors.systemBlue,
-          borderRadius: 999,
+          borderRadius: radius.pill,
         }}
       />
     </View>
@@ -28,5 +28,5 @@ export function ProgressBar({
 }
 
 const styles = StyleSheet.create({
-  track: { borderRadius: 999, overflow: 'hidden', flexDirection: 'row' },
+  track: { borderRadius: radius.pill, overflow: 'hidden', flexDirection: 'row' },
 });

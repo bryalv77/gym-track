@@ -106,11 +106,11 @@ export function Stepper({
   const plusDisabled = value >= max;
 
   const decreaseA11yLabel = label
-    ? t('common.decreaseLabel', { label, defaultValue: `Decrease ${label}` })
-    : t('common.decrease', { defaultValue: 'Decrease value' });
+    ? t('common.decreaseLabel', { label })
+    : t('common.decrease');
   const increaseA11yLabel = label
-    ? t('common.increaseLabel', { label, defaultValue: `Increase ${label}` })
-    : t('common.increase', { defaultValue: 'Increase value' });
+    ? t('common.increaseLabel', { label })
+    : t('common.increase');
 
   return (
     <View style={styles.row}>
@@ -156,7 +156,7 @@ export function Stepper({
             keyboardType="decimal-pad"
             returnKeyType="done"
             selectTextOnFocus
-            accessibilityLabel={label ?? t('common.value', { defaultValue: 'Value' })}
+            accessibilityLabel={label ?? t('common.value')}
             style={[
               styles.input,
               tabularNums,

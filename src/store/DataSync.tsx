@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { useAppDispatch, useAppSelector } from './hooks';
 import { subscribeToAssignments } from '../services/assignments';
 import { subscribeToExercises } from '../services/exercises';
 import { subscribeToGyms } from '../services/gyms';
@@ -9,17 +9,17 @@ import { subscribeToSelfies } from '../services/selfies';
 import { ensureDefaultExercises } from '../utils/defaultExerciseData';
 import { subscribeToRoutines } from '../services/routines';
 import { subscribeToUser, subscribeToUsers } from '../services/users';
-import { assignmentsUpdated } from '../store/slices/assignmentsSlice';
-import { exercisesUpdated } from '../store/slices/exercisesSlice';
-import { gymsUpdated } from '../store/slices/gymsSlice';
+import { assignmentsUpdated } from './slices/assignmentsSlice';
+import { exercisesUpdated } from './slices/exercisesSlice';
+import { gymsUpdated } from './slices/gymsSlice';
 import {
   completionsUpdated,
   completionsUserUpdated,
-} from '../store/slices/completionsSlice';
-import { measurementsUpdated } from '../store/slices/measurementsSlice';
-import { selfiesUpdated } from '../store/slices/selfiesSlice';
-import { routinesUpdated } from '../store/slices/routinesSlice';
-import { membersUpdated, userUpdated } from '../store/slices/membersSlice';
+} from './slices/completionsSlice';
+import { measurementsUpdated } from './slices/measurementsSlice';
+import { selfiesUpdated } from './slices/selfiesSlice';
+import { routinesUpdated } from './slices/routinesSlice';
+import { membersUpdated, userUpdated } from './slices/membersSlice';
 
 /**
  * Invisible component that keeps the Redux store in sync with the Hono

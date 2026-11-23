@@ -35,7 +35,7 @@ export function Button({
 
   const textColor =
     variant === 'filled'
-      ? '#FFFFFF'
+      ? colors.onAccent
       : variant === 'destructive'
         ? colors.systemRed
         : variant === 'gray'

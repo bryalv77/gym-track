@@ -154,9 +154,9 @@ export function ProfileScreen() {
                 ]}
               >
                 {photoBusy ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
+                  <ActivityIndicator size="small" color={colors.onAccent} />
                 ) : (
-                  <Ionicons name="camera" size={13} color="#FFFFFF" />
+                  <Ionicons name="camera" size={13} color={colors.onAccent} />
                 )}
               </View>
             </View>

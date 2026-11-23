@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { radius, useTheme } from '../theme';
-import { AppText, Button, Chip, SearchField, SheetModal } from '../ui';
+import { AppText, Button, Chip, ChipRow, MANY_CHIPS, SearchField, SheetModal } from '../ui';
 import { useAppSelector } from '../store/hooks';
 import { selectGymMembers } from '../store/slices/membersSlice';
 import { selectRoutinesSorted } from '../store/slices/routinesSlice';
@@ -10,6 +10,7 @@ import { assignRoutine } from '../services/assignments';
 import { exerciseName } from '../utils/defaultExerciseData';
 import { formatFullDate, parseDateKey } from '../utils/date';
 import { useResetOnChange } from '../utils/useResetOnChange';
+import { useSubmit } from '../utils/useSubmit';
 import { matchesQuery } from '../utils/search';
 
 /** Coach sheet to send one of their routines to one or more members for a day. */
@@ -36,8 +37,7 @@ export function AssignRoutineModal({
   const [routineId, setRoutineId] = useState<string | null>(null);
   const [memberIds, setMemberIds] = useState<string[]>([]);
   const [memberQuery, setMemberQuery] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
+  const { saving, error, setError, submit } = useSubmit('AssignRoutineModal');
 
   useResetOnChange([visible, initialMemberId], visible, () => {
     setRoutineId(null);
@@ -70,17 +70,10 @@ export function AssignRoutineModal({
       setError(t('routines.assign.pickMembers'));
       return;
     }
-    setSaving(true);
-    setError(null);
-    try {
+    await submit(async () => {
       await assignRoutine({ routine, memberIds, dateKey, coachId: coach.uid });
       onClose();
-    } catch (saveError) {
-      console.warn('[AssignRoutineModal] assign failed', saveError);
-      setError(t('coach.assign.saveFailed'));
-    } finally {
-      setSaving(false);
-    }
+    }, t('coach.assign.saveFailed'));
   };
 
   return (
@@ -109,7 +102,13 @@ export function AssignRoutineModal({
           <AppText variant="footnote" color={colors.secondaryLabel}>
             {t('routines.assign.routineHeader')}
           </AppText>
-          <View style={styles.chips}>
+          <ChipRow scroll={false} empty={
+            routines.length === 0 ? (
+              <AppText variant="footnote" color={colors.secondaryLabel}>
+                {t('routines.assign.noRoutines')}
+              </AppText>
+            ) : null
+          }>
             {routines.map((candidate) => (
               <Chip
                 key={candidate.id}
@@ -118,12 +117,7 @@ export function AssignRoutineModal({
                 onPress={() => setRoutineId(candidate.id)}
               />
             ))}
-            {routines.length === 0 ? (
-              <AppText variant="footnote" color={colors.secondaryLabel}>
-                {t('routines.assign.noRoutines')}
-              </AppText>
-            ) : null}
-          </View>
+          </ChipRow>
           {routine ? (
             <View style={[styles.preview, { backgroundColor: colors.background }]}>
               {routine.items.map((item, index) => {
@@ -142,53 +136,17 @@ export function AssignRoutineModal({
           <AppText variant="footnote" color={colors.secondaryLabel}>
             {t('routines.assign.membersHeader')}
           </AppText>
-          {gymMembers.length > 6 ? (
+          {gymMembers.length > MANY_CHIPS ? (
             <SearchField
               value={memberQuery}
               onChangeText={setMemberQuery}
               placeholder={t('coach.assign.searchMembers')}
             />
           ) : null}
-          {visibleMembers.length > 6 ? (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.chipsScroll}
-            >
-              {gymMembers.length > 1 ? (
-                <Chip
-                  label={t('routines.assign.everyone')}
-                  selected={allSelected}
-                  onPress={() => setMemberIds(allSelected ? [] : gymMembers.map((member) => member.uid))}
-                />
-              ) : null}
-              {visibleMembers.map((member) => (
-                <Chip
-                  key={member.uid}
-                  label={member.name}
-                  selected={memberIds.includes(member.uid)}
-                  onPress={() => toggleMember(member.uid)}
-                />
-              ))}
-            </ScrollView>
-          ) : (
-            <View style={styles.chips}>
-              {gymMembers.length > 1 && memberQuery.trim().length === 0 ? (
-                <Chip
-                  label={t('routines.assign.everyone')}
-                  selected={allSelected}
-                  onPress={() => setMemberIds(allSelected ? [] : gymMembers.map((member) => member.uid))}
-                />
-              ) : null}
-              {visibleMembers.map((member) => (
-                <Chip
-                  key={member.uid}
-                  label={member.name}
-                  selected={memberIds.includes(member.uid)}
-                  onPress={() => toggleMember(member.uid)}
-                />
-              ))}
-              {gymMembers.length === 0 ? (
+          <ChipRow
+            scroll={visibleMembers.length > MANY_CHIPS}
+            empty={
+              gymMembers.length === 0 ? (
                 <AppText variant="footnote" color={colors.secondaryLabel}>
                   {t('coach.assign.noMembers')}
                 </AppText>
@@ -196,9 +154,25 @@ export function AssignRoutineModal({
                 <AppText variant="footnote" color={colors.secondaryLabel}>
                   {t('coach.members.noResults')}
                 </AppText>
-              ) : null}
-            </View>
-          )}
+              ) : null
+            }
+          >
+            {gymMembers.length > 1 && memberQuery.trim().length === 0 ? (
+              <Chip
+                label={t('routines.assign.everyone')}
+                selected={allSelected}
+                onPress={() => setMemberIds(allSelected ? [] : gymMembers.map((member) => member.uid))}
+              />
+            ) : null}
+            {visibleMembers.map((member) => (
+              <Chip
+                key={member.uid}
+                label={member.name}
+                selected={memberIds.includes(member.uid)}
+                onPress={() => toggleMember(member.uid)}
+              />
+            ))}
+          </ChipRow>
         </View>
 
         <AppText variant="footnote" color={colors.tertiaryLabel}>
@@ -212,8 +186,6 @@ export function AssignRoutineModal({
 const styles = StyleSheet.create({
   form: { gap: 16, paddingBottom: 8 },
   section: { gap: 8 },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chipsScroll: { flexDirection: 'row', gap: 8, paddingVertical: 2 },
   preview: { gap: 2, borderRadius: radius.md, padding: 12 },
   footer: { gap: 10 },
 });

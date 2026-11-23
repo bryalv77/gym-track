@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, StyleSheet } from 'react-native';
-import { useTheme } from '../theme';
+import { radius, useTheme } from '../theme';
 import { AppText } from './Text';
 
 /** Toggleable capsule used for filters and pickers. */
@@ -35,7 +35,7 @@ export function Chip({
         style={{
           fontSize: 13,
           fontWeight: '600',
-          color: selected ? '#FFFFFF' : colors.secondaryLabel,
+          color: selected ? colors.onAccent : colors.secondaryLabel,
         }}
       >
         {label}
@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
     minHeight: 32,
     paddingVertical: 5,
     paddingHorizontal: 12,
-    borderRadius: 999,
+    borderRadius: radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
   },

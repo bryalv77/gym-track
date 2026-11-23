@@ -8,6 +8,7 @@ import { addSelfie, updateSelfie } from '../services/selfies';
 import { pickSelfieDataUrl } from '../utils/photo';
 import type { DailySelfie } from '../types';
 import { useResetOnChange } from '../utils/useResetOnChange';
+import { useSubmit } from '../utils/useSubmit';
 
 /** Sheet to capture / preview / edit a daily selfie. */
 export function SelfieFormModal({
@@ -28,8 +29,7 @@ export function SelfieFormModal({
 
   const [photoData, setPhotoData] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
+  const { saving, error, setError, submit } = useSubmit('SelfieFormModal');
   const [picking, setPicking] = useState(false);
 
   useResetOnChange([visible, editing, dateKey], visible, () => {
@@ -59,31 +59,27 @@ export function SelfieFormModal({
       setError(t('member.selfie.needPhoto'));
       return;
     }
-    setSaving(true);
-    setError(null);
-    try {
-      if (editing) {
-        await updateSelfie(profile.uid, {
-          ...editing,
-          photoData,
-          notes: notes.trim() || undefined,
-          takenAt: Date.now(),
-        });
-      } else {
-        await addSelfie(profile.uid, {
-          dateKey,
-          photoData,
-          notes: notes.trim() || undefined,
-          takenAt: Date.now(),
-        });
-      }
-      onClose();
-    } catch (saveError) {
-      console.warn('[SelfieFormModal] save failed', saveError);
-      setError(t('member.selfie.saveError'));
-    } finally {
-      setSaving(false);
-    }
+    await submit(
+      async () => {
+        if (editing) {
+          await updateSelfie(profile.uid, {
+            ...editing,
+            photoData,
+            notes: notes.trim() || undefined,
+            takenAt: Date.now(),
+          });
+        } else {
+          await addSelfie(profile.uid, {
+            dateKey,
+            photoData,
+            notes: notes.trim() || undefined,
+            takenAt: Date.now(),
+          });
+        }
+        onClose();
+      },
+      t('member.selfie.saveError'),
+    );
   };
 
   return (

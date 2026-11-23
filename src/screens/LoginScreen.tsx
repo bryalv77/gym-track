@@ -35,7 +35,7 @@ export function LoginScreen({ navigation }: LoginScreenProps) {
       <NavBar title={t('auth.signIn')} />
       <View style={styles.header}>
         <View style={[styles.logo, { backgroundColor: colors.systemBlue }]}>
-          <Ionicons name="barbell" size={42} color="#FFFFFF" />
+          <Ionicons name="barbell" size={42} color={colors.onAccent} />
         </View>
         <AppText variant="largeTitle">GymTrack</AppText>
         <AppText variant="subheadline" color={colors.secondaryLabel}>

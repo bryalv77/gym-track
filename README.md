@@ -37,7 +37,7 @@ api/
 src/
 ├── ui/                # UI component library (iOS style, zero app knowledge)
 ├── theme/             # iOS design tokens (colors, SF type ramp, spacing, radius)
-├── components/        # App components (forms, sheets, media viewer, data sync)
+├── components/        # App components (forms, sheets, media viewer)
 ├── screens/           # Role-scoped screens (Admin, Coach, Member, Shared, Auth)
 ├── navigation/        # Root navigator (auth ↔ member ↔ coach ↔ admin tabs)
 ├── store/             # Redux Toolkit store + slices

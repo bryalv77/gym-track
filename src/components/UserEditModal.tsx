@@ -9,7 +9,7 @@ import { selectGymCoaches } from '../store/slices/membersSlice';
 import { updateUserProfile } from '../services/auth';
 import type { Role, UserProfile } from '../types';
 import { useResetOnChange } from '../utils/useResetOnChange';
-import { errorMessage } from '../utils/errorMessage';
+import { useSubmit } from '../utils/useSubmit';
 
 const ROLE_OPTIONS: Role[] = ['member', 'coach', 'admin'];
 /** Admin sheet to change a user's role and gym membership. */
@@ -29,8 +29,7 @@ export function UserEditModal({
   const [gymId, setGymId] = useState<string | undefined>(undefined);
   const [coachId, setCoachId] = useState<string | undefined>(undefined);
   const coaches = useAppSelector((state) => selectGymCoaches(state, gymId));
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { saving, error, setError, submit } = useSubmit('UserEditModal');
 
   const [initialSnapshot, setInitialSnapshot] = useState('');
 
@@ -57,24 +56,19 @@ export function UserEditModal({
   if (!user) return null;
 
   const handleSave = async () => {
-    setSaving(true);
-    setError(null);
-    try {
-      await updateUserProfile(user.uid, {
-        role,
-        ...(role === 'admin' ? {} : { gymId: gymId ?? null }),
-        // Only members have a coach; clear it on any other role.
-        coachId: role === 'member' ? (coachId ?? null) : null,
-      });
-      onClose();
-    } catch (saveError) {
-      console.warn('[UserEditModal] save failed', saveError);
-      setError(
-        errorMessage(saveError, t('admin.userEdit.saveFailed')),
-      );
-    } finally {
-      setSaving(false);
-    }
+    await submit(
+      async () => {
+        await updateUserProfile(user.uid, {
+          role,
+          ...(role === 'admin' ? {} : { gymId: gymId ?? null }),
+          // Only members have a coach; clear it on any other role.
+          coachId: role === 'member' ? (coachId ?? null) : null,
+        });
+        onClose();
+      },
+      t('admin.userEdit.saveFailed'),
+      true,
+    );
   };
 
   return (

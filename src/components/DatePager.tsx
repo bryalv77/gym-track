@@ -38,7 +38,7 @@ export function DatePager({
         onPress={() => onChange(addDays(date, -1))}
         hitSlop={8}
         accessibilityRole="button"
-        accessibilityLabel={t('member.datePager.previous', { defaultValue: 'Previous day' })}
+        accessibilityLabel={t('member.datePager.previous')}
       >
         <Ionicons name="chevron-back" size={18} color={colors.systemBlue} />
       </Pressable>
@@ -50,7 +50,7 @@ export function DatePager({
           pressed && { opacity: 0.6 },
         ]}
         onPress={() => setCalendarVisible(true)}
-        accessibilityLabel={t('member.datePager.openCalendar', { defaultValue: 'Toggle calendar' })}
+        accessibilityLabel={t('member.datePager.openCalendar')}
         accessibilityRole="button"
       >
         <AppText variant="subheadline" style={{ fontWeight: '600' }}>
@@ -74,7 +74,7 @@ export function DatePager({
         hitSlop={8}
         accessibilityRole="button"
         accessibilityState={{ disabled: !canGoForward }}
-        accessibilityLabel={t('member.datePager.next', { defaultValue: 'Next day' })}
+        accessibilityLabel={t('member.datePager.next')}
       >
         <Ionicons
           name="chevron-forward"

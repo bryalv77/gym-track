@@ -7,6 +7,7 @@ import { createGym, regenerateGymCode, renameGym, subscribeToGymCode } from '../
 import { confirmAction } from '../utils/confirm';
 import type { Gym } from '../types';
 import { useResetOnChange } from '../utils/useResetOnChange';
+import { useSubmit } from '../utils/useSubmit';
 import { errorMessage } from '../utils/errorMessage';
 
 /** Admin sheet to create or rename a gym. */
@@ -23,8 +24,7 @@ export function GymFormModal({
   const { colors } = useTheme();
   const { t } = useTranslation();
   const [name, setName] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
+  const { saving, error, setError, submit } = useSubmit('GymFormModal');
   const [initialSnapshot, setInitialSnapshot] = useState('');
 
   useResetOnChange([visible, gym], visible, () => {
@@ -62,23 +62,18 @@ export function GymFormModal({
       setError(t('admin.gymForm.nameRequired'));
       return;
     }
-    setSaving(true);
-    setError(null);
-    try {
-      if (gym) {
-        await renameGym(gym.id, name);
-      } else {
-        await createGym(name);
-      }
-      onClose();
-    } catch (saveError) {
-      console.warn('[GymFormModal] save failed', saveError);
-      setError(
-        errorMessage(saveError, t('admin.gymForm.saveFailed')),
-      );
-    } finally {
-      setSaving(false);
-    }
+    await submit(
+      async () => {
+        if (gym) {
+          await renameGym(gym.id, name);
+        } else {
+          await createGym(name);
+        }
+        onClose();
+      },
+      t('admin.gymForm.saveFailed'),
+      true,
+    );
   };
 
   return (

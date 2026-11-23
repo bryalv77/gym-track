@@ -10,6 +10,7 @@ import { parseOptionalNumber } from '../utils/numbers';
 import { DatePager } from './DatePager';
 import type { Measurement } from '../types';
 import { useResetOnChange } from '../utils/useResetOnChange';
+import { useSubmit } from '../utils/useSubmit';
 
 const NUMERIC = 'numeric' as const;
 
@@ -37,8 +38,7 @@ export function MeasurementFormModal({
   const [arm, setArm] = useState('');
   const [thigh, setThigh] = useState('');
   const [notes, setNotes] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
+  const { saving, error, setError, submit } = useSubmit('MeasurementFormModal');
 
   useResetOnChange([visible, editing, defaultDateKey], visible, () => {
     setDateKey(editing?.dateKey ?? defaultDateKey ?? toDateKey(new Date()));
@@ -77,8 +77,6 @@ export function MeasurementFormModal({
       setError(t('member.measure.needOne'));
       return;
     }
-    setSaving(true);
-    setError(null);
     const payload = {
       dateKey: dateKey.trim(),
       weightKg,
@@ -88,23 +86,21 @@ export function MeasurementFormModal({
       thighCm,
       notes: notes.trim() || undefined,
     };
-    try {
-      if (editing) {
-        await updateMeasurement(profile.uid, {
-          ...payload,
-          id: editing.id,
-          createdAt: editing.createdAt,
-        });
-      } else {
-        await addMeasurement(profile.uid, payload);
-      }
-      onClose();
-    } catch (saveError) {
-      console.warn('[MeasurementFormModal] save failed', saveError);
-      setError(t('member.selfie.saveError'));
-    } finally {
-      setSaving(false);
-    }
+    await submit(
+      async () => {
+        if (editing) {
+          await updateMeasurement(profile.uid, {
+            ...payload,
+            id: editing.id,
+            createdAt: editing.createdAt,
+          });
+        } else {
+          await addMeasurement(profile.uid, payload);
+        }
+        onClose();
+      },
+      t('member.selfie.saveError'),
+    );
   };
 
   return (

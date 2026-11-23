@@ -1,11 +1,13 @@
 import React, { useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { radius, useTheme } from '../theme';
 import {
   AppText,
   Button,
   Chip,
+  ChipRow,
+  MANY_CHIPS,
   Ionicons,
   SearchField,
   SheetModal,
@@ -21,6 +23,7 @@ import { metricLabel } from '../utils/exercisePresets';
 import { confirmAction } from '../utils/confirm';
 import type { Exercise, ExerciseType, Routine } from '../types';
 import { useResetOnChange } from '../utils/useResetOnChange';
+import { useSubmit } from '../utils/useSubmit';
 import { matchesQuery } from '../utils/search';
 
 type TypeFilter = 'all' | ExerciseType;
@@ -63,8 +66,7 @@ export function RoutineFormModal({
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [query, setQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
-  const [error, setError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
+  const { saving, error, setError, submit } = useSubmit('RoutineFormModal');
 
   useResetOnChange([visible, routine], visible, () => {
     setName(routine?.name ?? '');
@@ -141,21 +143,17 @@ export function RoutineFormModal({
       setError(t('routines.form.itemsRequired'));
       return;
     }
-    setSaving(true);
-    setError(null);
-    try {
-      await saveRoutine(coach.uid, {
-        ...(routine ? { id: routine.id } : {}),
-        name,
-        items: items.map(({ exerciseId, metrics, notes }) => ({ exerciseId, metrics, notes })),
-      });
-      onClose();
-    } catch (saveError) {
-      console.warn('[RoutineFormModal] save failed', saveError);
-      setError(t('routines.form.saveFailed'));
-    } finally {
-      setSaving(false);
-    }
+    await submit(
+      async () => {
+        await saveRoutine(coach.uid, {
+          ...(routine ? { id: routine.id } : {}),
+          name,
+          items: items.map(({ exerciseId, metrics, notes }) => ({ exerciseId, metrics, notes })),
+        });
+        onClose();
+      },
+      t('routines.form.saveFailed'),
+    );
   };
 
   const handleDelete = () => {
@@ -313,12 +311,8 @@ export function RoutineFormModal({
             onChangeText={setQuery}
             placeholder={t('coach.assign.searchExercises')}
           />
-          {exercises.length > 6 ? (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.chipsScroll}
-            >
+          {exercises.length > MANY_CHIPS ? (
+            <ChipRow scroll>
               {TYPE_FILTERS.map((filter) => (
                 <Chip
                   key={filter}
@@ -327,26 +321,20 @@ export function RoutineFormModal({
                   onPress={() => setTypeFilter(filter)}
                 />
               ))}
-            </ScrollView>
+            </ChipRow>
           ) : null}
-          {visibleExercises.length > 6 ? (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.chipsScroll}
-            >
-              {exerciseChipsList}
-            </ScrollView>
-          ) : (
-            <View style={styles.chips}>
-              {exerciseChipsList}
-              {visibleExercises.length === 0 ? (
+          <ChipRow
+            scroll={visibleExercises.length > MANY_CHIPS}
+            empty={
+              visibleExercises.length === 0 ? (
                 <AppText variant="footnote" color={colors.secondaryLabel}>
                   {t('coach.assign.noExerciseMatch', { query })}
                 </AppText>
-              ) : null}
-            </View>
-          )}
+              ) : null
+            }
+          >
+            {exerciseChipsList}
+          </ChipRow>
         </View>
       </View>
     </SheetModal>
@@ -383,8 +371,6 @@ function IconButton({
 const styles = StyleSheet.create({
   form: { gap: 16, paddingBottom: 8 },
   section: { gap: 8 },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chipsScroll: { flexDirection: 'row', gap: 8, paddingVertical: 2 },
   itemBox: { gap: 10, borderRadius: radius.md, padding: 12 },
   itemHeader: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   itemTitlePressable: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 },

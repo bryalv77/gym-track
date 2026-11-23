@@ -15,7 +15,7 @@ import type { AuthStackParamList } from './types';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { authStateChanged } from '../store/slices/authSlice';
 import { fetchProfile, listenToAuth } from '../services/auth';
-import { DataSync } from '../components/DataSync';
+import { DataSync } from '../store/DataSync';
 import { LoginScreen } from '../screens/LoginScreen';
 import { SignUpScreen } from '../screens/SignUpScreen';
 import { TodayScreen } from '../screens/member/TodayScreen';

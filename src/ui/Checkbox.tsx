@@ -20,7 +20,7 @@ export function Checkbox({ checked, onPress }: { checked: boolean; onPress?: () 
         pressed && styles.pressed,
       ]}
     >
-      {checked ? <Ionicons name="checkmark" size={16} color="#FFFFFF" /> : null}
+      {checked ? <Ionicons name="checkmark" size={16} color={colors.onAccent} /> : null}
     </Pressable>
   );
 }

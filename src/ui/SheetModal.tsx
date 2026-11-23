@@ -10,7 +10,7 @@ import {
   View,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useTheme } from '../theme';
+import { radius, useTheme } from '../theme';
 import { confirmAction } from '../utils/confirm';
 import { AppText } from './Text';
 import { Ionicons } from './icons';
@@ -41,12 +41,10 @@ export function SheetModal({
   const handleRequestClose = useCallback(() => {
     if (hasUnsavedChanges) {
       confirmAction(
-        t('common.discardChangesTitle', { defaultValue: 'Discard changes?' }),
-        t('common.discardChangesMessage', {
-          defaultValue: 'You have unsaved changes that will be lost.',
-        }),
+        t('common.discardChangesTitle'),
+        t('common.discardChangesMessage'),
         onClose,
-        t('common.discard', { defaultValue: 'Discard' }),
+        t('common.discard'),
       );
       return;
     }
@@ -70,7 +68,7 @@ export function SheetModal({
           style={StyleSheet.absoluteFill}
           onPress={handleRequestClose}
           accessibilityRole="button"
-          accessibilityLabel={t('common.cancel', { defaultValue: 'Cancel' })}
+          accessibilityLabel={t('common.cancel')}
         />
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -93,7 +91,7 @@ export function SheetModal({
                 hitSlop={10}
                 style={styles.close}
                 accessibilityRole="button"
-                accessibilityLabel={t('common.cancel', { defaultValue: 'Cancel' })}
+                accessibilityLabel={t('common.cancel')}
               >
                 <Ionicons name="close" size={18} color={colors.systemGray} />
               </Pressable>
@@ -122,7 +120,7 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   sheetWeb: { borderRadius: 16, maxWidth: 460 },
-  grabber: { alignSelf: 'center', width: 36, height: 5, borderRadius: 999, marginTop: 6 },
+  grabber: { alignSelf: 'center', width: 36, height: 5, borderRadius: radius.pill, marginTop: 6 },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8 },
   close: { position: 'absolute', right: 12, top: 10, padding: 6 },
   body: { paddingHorizontal: 20, flexShrink: 1, minHeight: 0 },

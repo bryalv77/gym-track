@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { useTheme, type ThemeColors } from '../theme';
+import { radius, useTheme, type ThemeColors } from '../theme';
 import { AppText } from './Text';
 
 type BadgeVariant = 'neutral' | 'blue' | 'green' | 'orange';
@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
     minHeight: 20,
     paddingVertical: 2,
     paddingHorizontal: 8,
-    borderRadius: 999,
+    borderRadius: radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',

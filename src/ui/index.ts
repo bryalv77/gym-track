@@ -8,6 +8,7 @@ export { Card } from './Card';
 export { Checkbox } from './Checkbox';
 export { Badge } from './Badge';
 export { Chip } from './Chip';
+export { ChipRow, MANY_CHIPS } from './ChipRow';
 export { ProgressBar } from './ProgressBar';
 export { BarChart, type BarChartItem } from './BarChart';
 export { SegmentedControl } from './SegmentedControl';

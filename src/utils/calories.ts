@@ -19,8 +19,7 @@ const DEFAULT_MET: Record<Exercise['type'], number> = {
 };
 
 /** Estimated active duration in minutes (including rest for strength). */
-export function estimateDurationMinutes(
-  exercise: Exercise | undefined,
+function estimateDurationMinutes(
   metrics: Record<string, number>,
 ): number {
   const keys = Object.keys(metrics);
@@ -32,7 +31,7 @@ export function estimateDurationMinutes(
 }
 
 /** Effective MET for the prescription, refined by cardio intensity metrics. */
-export function estimateMet(
+function estimateMet(
   exercise: Exercise | undefined,
   metrics: Record<string, number>,
 ): number {
@@ -58,7 +57,7 @@ export function estimateCalories(
   bodyWeightKg: number,
 ): number {
   const met = estimateMet(exercise, metrics);
-  const minutes = estimateDurationMinutes(exercise, metrics);
+  const minutes = estimateDurationMinutes(metrics);
   return Math.round(met * bodyWeightKg * (minutes / 60));
 }
 

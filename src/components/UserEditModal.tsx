@@ -9,6 +9,7 @@ import { selectGymCoaches } from '../store/slices/membersSlice';
 import { updateUserProfile } from '../services/auth';
 import type { Role, UserProfile } from '../types';
 import { useResetOnChange } from '../utils/useResetOnChange';
+import { errorMessage } from '../utils/errorMessage';
 
 const ROLE_OPTIONS: Role[] = ['member', 'coach', 'admin'];
 /** Admin sheet to change a user's role and gym membership. */
@@ -33,7 +34,6 @@ export function UserEditModal({
 
   const [initialSnapshot, setInitialSnapshot] = useState('');
 
-  // Re-initialize the form whenever it opens or its inputs change.
   useResetOnChange([visible, user], visible && !!user, () => {
     if (!user) return;
     setRole(user.role);
@@ -70,9 +70,7 @@ export function UserEditModal({
     } catch (saveError) {
       console.warn('[UserEditModal] save failed', saveError);
       setError(
-        saveError instanceof Error && saveError.message
-          ? saveError.message
-          : t('admin.userEdit.saveFailed'),
+        errorMessage(saveError, t('admin.userEdit.saveFailed')),
       );
     } finally {
       setSaving(false);

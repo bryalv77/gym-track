@@ -25,7 +25,7 @@ import { DatePager } from '../../components/DatePager';
 import { ExerciseDetailSheet } from '../../components/ExerciseDetailSheet';
 import { SelfieFormModal } from '../../components/SelfieFormModal';
 import { confirmAction } from '../../utils/confirm';
-import { isToday, toDateKey } from '../../utils/date';
+import { formatTime, isToday, toDateKey } from '../../utils/date';
 import { metricLabel } from '../../utils/exercisePresets';
 import {
   DEFAULT_BODY_WEIGHT_KG,
@@ -72,9 +72,7 @@ export function TodayScreen() {
   const latestWeight = useAppSelector(
     (state) => selectMeasurementsSorted(state)[0]?.weightKg ?? DEFAULT_BODY_WEIGHT_KG,
   );
-  const selfie = useAppSelector((state) =>
-    profile ? selectSelfieForDate(state, profile.uid, dateKey) : undefined,
-  );
+  const selfie = useAppSelector((state) => selectSelfieForDate(state, dateKey));
   const detailAssignment = useAppSelector((state) =>
     detailAssignmentId && state.assignments.byDate[dateKey]
       ? state.assignments.byDate[dateKey][detailAssignmentId] ?? null
@@ -84,7 +82,6 @@ export function TodayScreen() {
     detailAssignment ? selectExerciseById(state, detailAssignment.exerciseId) : undefined,
   );
 
-  // Clear pending/inline state when the day or member changes.
   useResetOnChange([dateKey, profile?.uid], true, () => {
     setOptimistic({});
     setToggleError(null);
@@ -173,13 +170,11 @@ export function TodayScreen() {
   const toggle = async (assignment: Assignment) => {
     const desired = !isDone(assignment.id);
     setToggleError(null);
-    // Optimistic: reflect the new state immediately.
     setOptimistic((prev) => ({ ...prev, [assignment.id]: desired ? Date.now() : null }));
     try {
       await setCompletion(profile.uid, dateKey, assignment.id, desired);
       if (desired) successHaptic();
     } catch (error) {
-      // Roll back and surface a visible, readable error.
       setOptimistic((prev) => {
         const next = { ...prev };
         delete next[assignment.id];
@@ -414,17 +409,14 @@ function WorkoutExerciseCard({
   onOpenDetail: () => void;
 }) {
   const { colors } = useTheme();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const exercise = useAppSelector((state) =>
     selectExerciseById(state, assignment.exerciseId),
   );
   const done = completion != null;
   const doneAt = done
     ? t('member.today.doneAt', {
-        time: new Date(completion.completedAt).toLocaleTimeString(i18n.language, {
-          hour: '2-digit',
-          minute: '2-digit',
-        }),
+        time: formatTime(completion.completedAt),
       })
     : null;
   const icon =

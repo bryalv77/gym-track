@@ -2,7 +2,6 @@ export const auth = {
   en: {
     "signIn": "Sign In",
     "tagline": "Train. Track. Progress.",
-    "firebaseWarning": "Firebase is not configured yet — add your keys in src/config/firebase.ts (see README.md).",
     "email": "Email",
     "emailPlaceholder": "you@example.com",
     "password": "Password",
@@ -31,7 +30,6 @@ export const auth = {
   es: {
     "signIn": "Iniciar sesión",
     "tagline": "Entrena. Registra. Progresa.",
-    "firebaseWarning": "Firebase aún no está configurado — añade tus claves en src/config/firebase.ts (ver README.md).",
     "email": "Correo electrónico",
     "emailPlaceholder": "tu@ejemplo.com",
     "password": "Contraseña",
@@ -60,7 +58,6 @@ export const auth = {
   pt: {
     "signIn": "Entrar",
     "tagline": "Treine. Registre. Evolua.",
-    "firebaseWarning": "O Firebase ainda não está configurado — adicione suas chaves em src/config/firebase.ts (veja o README.md).",
     "email": "E-mail",
     "emailPlaceholder": "voce@exemplo.com",
     "password": "Senha",
@@ -89,7 +86,6 @@ export const auth = {
   de: {
     "signIn": "Anmelden",
     "tagline": "Trainieren. Tracken. Fortschritt.",
-    "firebaseWarning": "Firebase ist noch nicht konfiguriert — trage deine Schlüssel in src/config/firebase.ts ein (siehe README.md).",
     "email": "E-Mail",
     "emailPlaceholder": "du@beispiel.de",
     "password": "Passwort",
@@ -118,7 +114,6 @@ export const auth = {
   fr: {
     "signIn": "Se connecter",
     "tagline": "T'entraîner. Suivre. Progresser.",
-    "firebaseWarning": "Firebase n'est pas encore configuré — ajoute tes clés dans src/config/firebase.ts (voir README.md).",
     "email": "E-mail",
     "emailPlaceholder": "toi@exemple.com",
     "password": "Mot de passe",

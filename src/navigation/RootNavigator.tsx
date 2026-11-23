@@ -9,15 +9,12 @@ import {
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useTheme } from '../theme';
-import {
-  Ionicons,
-  ScreenLoader,
-  TabBar,
-} from '../ui';
+import { Ionicons, ScreenLoader, TabBar, type IconName } from '../ui';
+import type { Role } from '../types';
+import type { AuthStackParamList } from './types';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { authStateChanged } from '../store/slices/authSlice';
-import { isFirebaseConfigured } from '../config/api';
-import { fetchOrCreateProfile, listenToAuth } from '../services/auth';
+import { fetchProfile, listenToAuth } from '../services/auth';
 import { DataSync } from '../components/DataSync';
 import { LoginScreen } from '../screens/LoginScreen';
 import { SignUpScreen } from '../screens/SignUpScreen';
@@ -32,11 +29,6 @@ import { UsersScreen } from '../screens/admin/UsersScreen';
 import { ExercisesLibraryScreen } from '../screens/shared/ExercisesLibraryScreen';
 import { ProfileScreen } from '../screens/shared/ProfileScreen';
 
-export type AuthStackParamList = {
-  Login: undefined;
-  SignUp: undefined;
-};
-
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
 const Tab = createBottomTabNavigator();
 
@@ -49,141 +41,53 @@ function AuthNavigator() {
   );
 }
 
-function MemberTabs() {
-  return (
-    <Tab.Navigator
-      screenOptions={{ headerShown: false, tabBarHideOnKeyboard: Platform.OS !== 'web' }}
-      tabBar={(props) => <TabBar {...props} />}
-    >
-      <Tab.Screen
-        name="Today"
-        component={TodayScreen}
-        options={{
-          tabBarIcon: ({ color }) => <Ionicons name="today-outline" size={24} color={color} />,
-        }}
-      />
-      <Tab.Screen
-        name="Dashboard"
-        component={DashboardScreen}
-        options={{
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="stats-chart-outline" size={24} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Progress"
-        component={ProgressScreen}
-        options={{
-          tabBarIcon: ({ color }) => <Ionicons name="body-outline" size={24} color={color} />,
-        }}
-      />
-      <Tab.Screen
-        name="Profile"
-        component={ProfileScreen}
-        options={{
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="person-circle-outline" size={24} color={color} />
-          ),
-        }}
-      />
-    </Tab.Navigator>
-  );
+interface TabSpec {
+  name: string;
+  component: React.ComponentType;
+  icon: IconName;
 }
 
-function CoachTabs() {
-  return (
-    <Tab.Navigator
-      screenOptions={{ headerShown: false, tabBarHideOnKeyboard: Platform.OS !== 'web' }}
-      tabBar={(props) => <TabBar {...props} />}
-    >
-      <Tab.Screen
-        name="Plan"
-        component={PlanScreen}
-        options={{
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="calendar-outline" size={24} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Routines"
-        component={RoutinesScreen}
-        options={{
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="albums-outline" size={24} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Exercises"
-        component={ExercisesLibraryScreen}
-        options={{
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="barbell-outline" size={24} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Members"
-        component={MembersScreen}
-        options={{
-          tabBarIcon: ({ color }) => <Ionicons name="people-outline" size={24} color={color} />,
-        }}
-      />
-      <Tab.Screen
-        name="Profile"
-        component={ProfileScreen}
-        options={{
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="person-circle-outline" size={24} color={color} />
-          ),
-        }}
-      />
-    </Tab.Navigator>
-  );
-}
+const PROFILE_TAB: TabSpec = { name: 'Profile', component: ProfileScreen, icon: 'person-circle-outline' };
+const EXERCISES_TAB: TabSpec = { name: 'Exercises', component: ExercisesLibraryScreen, icon: 'barbell-outline' };
 
-function AdminTabs() {
+const TABS_BY_ROLE: Record<Role, TabSpec[]> = {
+  member: [
+    { name: 'Today', component: TodayScreen, icon: 'today-outline' },
+    { name: 'Dashboard', component: DashboardScreen, icon: 'stats-chart-outline' },
+    { name: 'Progress', component: ProgressScreen, icon: 'body-outline' },
+    PROFILE_TAB,
+  ],
+  coach: [
+    { name: 'Plan', component: PlanScreen, icon: 'calendar-outline' },
+    { name: 'Routines', component: RoutinesScreen, icon: 'albums-outline' },
+    EXERCISES_TAB,
+    { name: 'Members', component: MembersScreen, icon: 'people-outline' },
+    PROFILE_TAB,
+  ],
+  admin: [
+    { name: 'Gyms', component: GymsScreen, icon: 'business-outline' },
+    { name: 'Users', component: UsersScreen, icon: 'people-outline' },
+    EXERCISES_TAB,
+    PROFILE_TAB,
+  ],
+};
+
+function RoleTabs({ role }: { role: Role }) {
   return (
     <Tab.Navigator
       screenOptions={{ headerShown: false, tabBarHideOnKeyboard: Platform.OS !== 'web' }}
       tabBar={(props) => <TabBar {...props} />}
     >
-      <Tab.Screen
-        name="Gyms"
-        component={GymsScreen}
-        options={{
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="business-outline" size={24} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Users"
-        component={UsersScreen}
-        options={{
-          tabBarIcon: ({ color }) => <Ionicons name="people-outline" size={24} color={color} />,
-        }}
-      />
-      <Tab.Screen
-        name="Exercises"
-        component={ExercisesLibraryScreen}
-        options={{
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="barbell-outline" size={24} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Profile"
-        component={ProfileScreen}
-        options={{
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="person-circle-outline" size={24} color={color} />
-          ),
-        }}
-      />
+      {TABS_BY_ROLE[role].map(({ name, component, icon }) => (
+        <Tab.Screen
+          key={name}
+          name={name}
+          component={component}
+          options={{
+            tabBarIcon: ({ color }) => <Ionicons name={icon} size={24} color={color} />,
+          }}
+        />
+      ))}
     </Tab.Navigator>
   );
 }
@@ -210,17 +114,13 @@ export function RootNavigator() {
   );
 
   useEffect(() => {
-    if (!isFirebaseConfigured) {
-      dispatch(authStateChanged({ profile: null }));
-      return;
-    }
     const unsubscribe = listenToAuth(async (user) => {
       if (!user) {
         dispatch(authStateChanged({ profile: null }));
         return;
       }
       try {
-        const loaded = await fetchOrCreateProfile(user);
+        const loaded = await fetchProfile();
         dispatch(authStateChanged({ profile: loaded }));
       } catch (error) {
         console.warn('[auth] failed to load profile', error);
@@ -239,15 +139,7 @@ export function RootNavigator() {
       <StatusBar style={mode === 'dark' ? 'light' : 'dark'} />
       <DataSync />
       <NavigationContainer theme={navigationTheme}>
-        {profile === null ? (
-          <AuthNavigator />
-        ) : profile.role === 'admin' ? (
-          <AdminTabs />
-        ) : profile.role === 'coach' ? (
-          <CoachTabs />
-        ) : (
-          <MemberTabs />
-        )}
+        {profile === null ? <AuthNavigator /> : <RoleTabs role={profile.role} />}
       </NavigationContainer>
     </>
   );

@@ -7,6 +7,7 @@ import { createGym, regenerateGymCode, renameGym, subscribeToGymCode } from '../
 import { confirmAction } from '../utils/confirm';
 import type { Gym } from '../types';
 import { useResetOnChange } from '../utils/useResetOnChange';
+import { errorMessage } from '../utils/errorMessage';
 
 /** Admin sheet to create or rename a gym. */
 export function GymFormModal({
@@ -26,7 +27,6 @@ export function GymFormModal({
   const [saving, setSaving] = useState(false);
   const [initialSnapshot, setInitialSnapshot] = useState('');
 
-  // Re-initialize the form whenever it opens or its inputs change.
   useResetOnChange([visible, gym], visible, () => {
     setName(gym?.name ?? '');
     setError(null);
@@ -50,9 +50,7 @@ export function GymFormModal({
       regenerateGymCode(gym.id).catch((codeError) => {
         console.warn('[GymFormModal] code regenerate failed', codeError);
         setError(
-          codeError instanceof Error && codeError.message
-            ? codeError.message
-            : t('admin.gymForm.saveFailed'),
+          errorMessage(codeError, t('admin.gymForm.saveFailed')),
         );
       });
     if (code) confirmAction(t('admin.gymForm.newCode'), t('admin.gymForm.newCodeConfirm'), run, t('admin.gymForm.newCode'));
@@ -76,9 +74,7 @@ export function GymFormModal({
     } catch (saveError) {
       console.warn('[GymFormModal] save failed', saveError);
       setError(
-        saveError instanceof Error && saveError.message
-          ? saveError.message
-          : t('admin.gymForm.saveFailed'),
+        errorMessage(saveError, t('admin.gymForm.saveFailed')),
       );
     } finally {
       setSaving(false);

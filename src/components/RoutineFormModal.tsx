@@ -21,6 +21,7 @@ import { metricLabel } from '../utils/exercisePresets';
 import { confirmAction } from '../utils/confirm';
 import type { Exercise, ExerciseType, Routine } from '../types';
 import { useResetOnChange } from '../utils/useResetOnChange';
+import { matchesQuery } from '../utils/search';
 
 type TypeFilter = 'all' | ExerciseType;
 const TYPE_FILTERS: TypeFilter[] = ['all', 'strength', 'cardio', 'other'];
@@ -65,7 +66,6 @@ export function RoutineFormModal({
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  // Re-initialize the form whenever it opens or its inputs change.
   useResetOnChange([visible, routine], visible, () => {
     setName(routine?.name ?? '');
     setItems(
@@ -84,13 +84,9 @@ export function RoutineFormModal({
   });
 
   const visibleExercises = useMemo(() => {
-    const needle = query.trim().toLowerCase();
     return exercises
       .filter((exercise) => typeFilter === 'all' || exercise.type === typeFilter)
-      .filter(
-        (exercise) =>
-          needle.length === 0 || exerciseName(exercise).toLowerCase().includes(needle),
-      );
+      .filter((exercise) => matchesQuery(query, exerciseName(exercise)));
   }, [exercises, query, typeFilter]);
 
   if (!coach) return null;

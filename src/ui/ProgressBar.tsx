@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useTheme } from '../theme';
 
-/** Rounded progress track (iOS-style). `progress` is clamped to 0…1. */
+/** Rounded progress track (iOS-style). */
 export function ProgressBar({
   progress,
   color,

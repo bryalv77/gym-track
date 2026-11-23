@@ -40,7 +40,6 @@ export function MeasurementFormModal({
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  // Re-initialize the form whenever it opens or its inputs change.
   useResetOnChange([visible, editing, defaultDateKey], visible, () => {
     setDateKey(editing?.dateKey ?? defaultDateKey ?? toDateKey(new Date()));
     setWeight(editing?.weightKg != null ? String(editing.weightKg) : '');

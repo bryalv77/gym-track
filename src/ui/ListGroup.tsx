@@ -20,7 +20,6 @@ export function ListGroup({ children }: { children: React.ReactNode }) {
   );
 }
 
-/** Small gray caption shown above a group. */
 export function ListGroupHeader({ label }: { label: string }) {
   const { colors } = useTheme();
   return (
@@ -30,7 +29,6 @@ export function ListGroupHeader({ label }: { label: string }) {
   );
 }
 
-/** Small gray caption shown below a group. */
 export function ListGroupFooter({ label }: { label: string }) {
   const { colors } = useTheme();
   return (

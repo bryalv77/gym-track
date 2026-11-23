@@ -2,6 +2,8 @@ import {
   ApiError,
   apiRequest,
   emitSyncInvalidate,
+  mutate,
+  onUnauthorized,
   getAuthToken,
   setAuthToken,
 } from '../config/api';
@@ -98,6 +100,8 @@ export async function signOutAccount(): Promise<void> {
   setSessionProfile(null, true);
 }
 
+onUnauthorized(() => void signOutAccount());
+
 export function listenToAuth(
   callback: (user: AuthUserSession | null) => void,
 ): () => void {
@@ -133,88 +137,32 @@ export function listenToAuth(
   };
 }
 
-/** Fetches the current authenticated user's profile from GET /api/auth/me. */
-export async function fetchOrCreateProfile(
-  user?: AuthUserSession | null,
-): Promise<UserProfile> {
+/** Loads the signed-in user's profile; falls back to the cached one when offline. */
+export async function fetchProfile(): Promise<UserProfile> {
   try {
     const profile = await apiRequest<UserProfile>('/api/auth/me');
     setSessionProfile(profile, false);
     return profile;
   } catch (err) {
-    if (currentProfile && (!user || currentProfile.uid === user.uid)) {
-      return currentProfile;
-    }
+    if (currentProfile) return currentProfile;
     throw err;
   }
 }
 
-/** Admin updates another user's role, gym, or coach (null removes it). */
-export async function updateUserProfile(
-  uid: string,
-  patch: { role?: Role; gymId?: string | null; coachId?: string | null },
-): Promise<void> {
-  const body: UpdateUserPatch = {};
-  if (patch.role !== undefined) body.role = patch.role;
-  if (patch.gymId !== undefined) body.gymId = patch.gymId;
-  if (patch.coachId !== undefined) body.coachId = patch.coachId;
-
-  await apiRequest<unknown>(`/api/users/${encodeURIComponent(uid)}`, {
-    method: 'PATCH',
-    body: JSON.stringify(body),
-  });
-  emitSyncInvalidate('users');
-}
-
-/** User renames themselves via PATCH /api/users/:uid. */
-export async function updateUserDisplayName(
-  uid: string,
-  name: string,
-): Promise<void> {
-  const trimmed = name.trim();
-  const body: UpdateUserPatch = { name: trimmed };
-  await apiRequest<unknown>(`/api/users/${encodeURIComponent(uid)}`, {
-    method: 'PATCH',
-    body: JSON.stringify(body),
-  });
-  if (currentProfile?.uid === uid) {
-    setSessionProfile({ ...currentProfile, name: trimmed }, true);
-  }
-  emitSyncInvalidate('users');
-}
-
-/** Saves the avatar (small base64 data URL) on the user's own profile. */
-export async function updateUserPhoto(
-  uid: string,
-  photoData: string,
-): Promise<void> {
-  const body: UpdateUserPatch = { photoData };
-  await apiRequest<unknown>(`/api/users/${encodeURIComponent(uid)}`, {
-    method: 'PATCH',
-    body: JSON.stringify(body),
-  });
-  if (currentProfile?.uid === uid) {
-    setSessionProfile({ ...currentProfile, photoData }, true);
-  }
-  emitSyncInvalidate('users');
-}
-
-export async function removeUserPhoto(uid: string): Promise<void> {
-  const body: UpdateUserPatch = { photoData: null };
-  await apiRequest<unknown>(`/api/users/${encodeURIComponent(uid)}`, {
-    method: 'PATCH',
-    body: JSON.stringify(body),
-  });
-  if (currentProfile?.uid === uid) {
-    const { photoData: _removed, ...rest } = currentProfile;
-    setSessionProfile(rest, true);
-  }
-  emitSyncInvalidate('users');
+/** Patches a profile (own name/photo, or role/gym/coach as admin; null clears a field). */
+export async function updateUserProfile(uid: string, patch: UpdateUserPatch): Promise<UserProfile> {
+  const updated = await mutate<UserProfile>(
+    'PATCH',
+    `/api/users/${encodeURIComponent(uid)}`,
+    patch,
+    'users',
+  );
+  if (currentProfile?.uid === uid) setSessionProfile(updated, true);
+  return updated;
 }
 
 /** Changes the user's password via POST /api/auth/change-password. */
 export async function changeUserPassword(
-  _email: string,
   currentPassword: string,
   newPassword: string,
 ): Promise<void> {

@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import type { AppEnv } from '../types';
 import type { Measurement } from '../../../src/types';
-import { getSql, generateId } from '../db/client';
+import { getSql, generateId, type SqlClient } from '../db/client';
 import { mapMeasurementRow, mapMeasurementsToRecord } from '../db/mappers';
 import { requireAuth, requireSelfOrRole } from '../middleware/auth';
 
@@ -16,25 +16,12 @@ measurementsRouter.get('/:uid', async (c) => {
   return c.json(mapMeasurementsToRecord(rows));
 });
 
-measurementsRouter.post('/:uid', requireSelfOrRole('uid', 'admin'), async (c) => {
-  const uid = c.req.param('uid');
-  const body = await c.req.json<Omit<Measurement, 'id' | 'createdAt'>>();
-  const id = generateId();
-  const createdAt = Date.now();
-  const sql = getSql(c.env);
+type MeasurementInput = Omit<Measurement, 'id' | 'createdAt'> & { createdAt?: number };
 
+async function upsertMeasurement(sql: SqlClient, uid: string, id: string, body: MeasurementInput) {
   const rows = await sql`
     INSERT INTO measurements (
-      id,
-      uid,
-      date_key,
-      weight_kg,
-      chest_cm,
-      waist_cm,
-      arm_cm,
-      thigh_cm,
-      notes,
-      created_at
+      id, uid, date_key, weight_kg, chest_cm, waist_cm, arm_cm, thigh_cm, notes, created_at
     ) VALUES (
       ${id},
       ${uid},
@@ -45,44 +32,7 @@ measurementsRouter.post('/:uid', requireSelfOrRole('uid', 'admin'), async (c) =>
       ${body.armCm ?? null},
       ${body.thighCm ?? null},
       ${body.notes ?? null},
-      ${createdAt}
-    )
-    RETURNING *
-  `;
-
-  return c.json(mapMeasurementRow(rows[0]), 201);
-});
-
-measurementsRouter.put('/:uid/:id', requireSelfOrRole('uid', 'admin'), async (c) => {
-  const uid = c.req.param('uid');
-  const id = c.req.param('id');
-  const body = await c.req.json<Measurement>();
-  const createdAt = body.createdAt || Date.now();
-  const sql = getSql(c.env);
-
-  const rows = await sql`
-    INSERT INTO measurements (
-      id,
-      uid,
-      date_key,
-      weight_kg,
-      chest_cm,
-      waist_cm,
-      arm_cm,
-      thigh_cm,
-      notes,
-      created_at
-    ) VALUES (
-      ${id},
-      ${uid},
-      ${body.dateKey},
-      ${body.weightKg ?? null},
-      ${body.chestCm ?? null},
-      ${body.waistCm ?? null},
-      ${body.armCm ?? null},
-      ${body.thighCm ?? null},
-      ${body.notes ?? null},
-      ${createdAt}
+      ${body.createdAt || Date.now()}
     )
     ON CONFLICT (id) DO UPDATE SET
       date_key = EXCLUDED.date_key,
@@ -96,12 +46,27 @@ measurementsRouter.put('/:uid/:id', requireSelfOrRole('uid', 'admin'), async (c)
     WHERE measurements.uid = ${uid}
     RETURNING *
   `;
+  return rows[0] ? mapMeasurementRow(rows[0]) : null;
+}
 
-  if (rows.length === 0) {
-    return c.json({ error: 'Not found' }, 404);
-  }
+measurementsRouter.post('/:uid', requireSelfOrRole('uid', 'admin'), async (c) => {
+  const body = await c.req.json<MeasurementInput>();
+  const created = await upsertMeasurement(getSql(c.env), c.req.param('uid')!, generateId(), {
+    ...body,
+    createdAt: undefined,
+  });
+  return c.json(created, 201);
+});
 
-  return c.json(mapMeasurementRow(rows[0]));
+measurementsRouter.put('/:uid/:id', requireSelfOrRole('uid', 'admin'), async (c) => {
+  const body = await c.req.json<Measurement>();
+  const updated = await upsertMeasurement(
+    getSql(c.env),
+    c.req.param('uid')!,
+    c.req.param('id')!,
+    body,
+  );
+  return updated ? c.json(updated) : c.json({ error: 'Not found' }, 404);
 });
 
 measurementsRouter.delete('/:uid/:id', requireSelfOrRole('uid', 'admin'), async (c) => {

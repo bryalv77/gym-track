@@ -1,39 +1,21 @@
-import { apiRequest, createPoller, emitSyncInvalidate } from '../config/api';
+import { mutate, subscribeToPath } from '../config/api';
 import type { Exercise, ExercisesById } from '../types';
 
-export function subscribeToExercises(callback: (value: unknown) => void): () => void {
-  return createPoller(
-    'exercises',
-    () => apiRequest<ExercisesById>('/api/exercises'),
-    callback,
-    (error) => console.warn('[exercises] subscription error:', error.message),
-  );
+export function subscribeToExercises(callback: (value: ExercisesById) => void): () => void {
+  return subscribeToPath('exercises', '/api/exercises', callback);
 }
 
-export async function createExercise(
-  input: Omit<Exercise, 'id' | 'createdAt'>,
-): Promise<void> {
-  await apiRequest('/api/exercises', {
-    method: 'POST',
-    body: JSON.stringify(input),
-  });
-  emitSyncInvalidate('exercises');
+export function createExercise(input: Omit<Exercise, 'id' | 'createdAt' | 'createdBy'>): Promise<void> {
+  return mutate('POST', '/api/exercises', input, 'exercises');
 }
 
-export async function updateExercise(
+export function updateExercise(
   id: string,
-  patch: Partial<Omit<Exercise, 'id' | 'createdAt'>>,
+  patch: Partial<Omit<Exercise, 'id' | 'createdAt' | 'createdBy'>>,
 ): Promise<void> {
-  await apiRequest(`/api/exercises/${encodeURIComponent(id)}`, {
-    method: 'PATCH',
-    body: JSON.stringify(patch),
-  });
-  emitSyncInvalidate('exercises');
+  return mutate('PATCH', `/api/exercises/${encodeURIComponent(id)}`, patch, 'exercises');
 }
 
-export async function deleteExercise(id: string): Promise<void> {
-  await apiRequest(`/api/exercises/${encodeURIComponent(id)}`, {
-    method: 'DELETE',
-  });
-  emitSyncInvalidate('exercises');
+export function deleteExercise(id: string): Promise<void> {
+  return mutate('DELETE', `/api/exercises/${encodeURIComponent(id)}`, undefined, 'exercises');
 }

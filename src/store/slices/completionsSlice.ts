@@ -1,5 +1,4 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import { asNumber, isRecord } from '../../utils/guards';
 import type { CompletionsByDate, CompletionsByUser, Completion } from '../../types';
 
 interface CompletionsState {
@@ -8,45 +7,18 @@ interface CompletionsState {
 
 const initialState: CompletionsState = { byUser: {} };
 
-function normalizeUserDays(value: unknown): CompletionsByDate {
-  const days: CompletionsByDate = {};
-  if (!isRecord(value)) return days;
-  for (const [dateKey, dayValue] of Object.entries(value)) {
-    if (!isRecord(dayValue)) continue;
-    const tasks: Record<string, Completion> = {};
-    for (const [taskId, entry] of Object.entries(dayValue)) {
-      if (!isRecord(entry)) continue;
-      tasks[taskId] = { completedAt: asNumber(entry.completedAt, 0) };
-    }
-    days[dateKey] = tasks;
-  }
-  return days;
-}
-
-/** Converts the whole `completions` RTDB tree (coach subscription). */
-export function normalizeAllCompletions(value: unknown): CompletionsByUser {
-  const result: CompletionsByUser = {};
-  if (!isRecord(value)) return result;
-  for (const [uid, userValue] of Object.entries(value)) {
-    result[uid] = normalizeUserDays(userValue);
-  }
-  return result;
-}
-
 const completionsSlice = createSlice({
   name: 'completions',
   initialState,
   reducers: {
-    /** Coach: replace the full completions tree. */
-    completionsUpdated(state, action: PayloadAction<unknown>) {
-      state.byUser = normalizeAllCompletions(action.payload);
+    completionsUpdated(state, action: PayloadAction<CompletionsByUser>) {
+      state.byUser = action.payload;
     },
-    /** Member: replace only their own subtree. */
     completionsUserUpdated(
       state,
-      action: PayloadAction<{ uid: string; value: unknown }>,
+      action: PayloadAction<{ uid: string; value: CompletionsByDate }>,
     ) {
-      state.byUser[action.payload.uid] = normalizeUserDays(action.payload.value);
+      state.byUser[action.payload.uid] = action.payload.value;
     },
   },
 });

@@ -1,6 +1,10 @@
 /** Shared domain types for the GymTrack app. */
 
-export type Role = 'admin' | 'coach' | 'member';
+export const ROLES = ['admin', 'coach', 'member'] as const;
+
+export type Role = (typeof ROLES)[number];
+
+export const isRole = (value: unknown): value is Role => ROLES.includes(value as Role);
 
 export interface UserProfile {
   uid: string;

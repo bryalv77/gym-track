@@ -9,9 +9,11 @@ import { selectMeasurementsSorted } from '../store/slices/measurementsSlice';
 import { useAppSelector } from '../store/hooks';
 import { ExerciseMediaView } from './ExerciseMediaView';
 import { DEFAULT_BODY_WEIGHT_KG, estimateCalories } from '../utils/calories';
+import { formatTime } from '../utils/date';
 import { metricLabel } from '../utils/exercisePresets';
 import type { Assignment, Completion, Exercise } from '../types';
 import { useResetOnChange } from '../utils/useResetOnChange';
+import { errorMessage } from '../utils/errorMessage';
 
 /** Member view of one assigned exercise: demo media, technique notes, the
  *  coach's prescription and the big done/undone button. */
@@ -31,7 +33,7 @@ export function ExerciseDetailSheet({
   onToggle: () => void | Promise<void>;
 }) {
   const { colors } = useTheme();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const bodyWeight = useAppSelector(
     (state) => selectMeasurementsSorted(state)[0]?.weightKg ?? DEFAULT_BODY_WEIGHT_KG,
   );
@@ -46,12 +48,7 @@ export function ExerciseDetailSheet({
   if (!exercise || !assignment) return null;
   const done = completion != null;
   const kcal = estimateCalories(exercise, assignment.metrics, bodyWeight);
-  const doneAt = done
-    ? new Date((completion as Completion).completedAt).toLocaleTimeString(i18n.language, {
-        hour: '2-digit',
-        minute: '2-digit',
-      })
-    : null;
+  const doneAt = completion ? formatTime(completion.completedAt) : null;
 
   const handleToggle = async () => {
     setToggleError(null);
@@ -60,9 +57,7 @@ export function ExerciseDetailSheet({
       await onToggle();
     } catch (error) {
       setToggleError(
-        error instanceof Error && error.message
-          ? error.message
-          : t('common.genericError'),
+        errorMessage(error, t('common.genericError')),
       );
     } finally {
       setToggling(false);

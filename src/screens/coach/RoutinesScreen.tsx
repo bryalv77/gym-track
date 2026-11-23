@@ -18,6 +18,7 @@ import { selectRoutinesSorted } from '../../store/slices/routinesSlice';
 import { RoutineFormModal } from '../../components/RoutineFormModal';
 import { exerciseName } from '../../utils/defaultExerciseData';
 import type { Routine } from '../../types';
+import { matchesQuery } from '../../utils/search';
 
 /** Coach: their own routines (create, edit, delete). Routines are assigned to
  *  members from the Plan tab. */
@@ -30,10 +31,7 @@ export function RoutinesScreen() {
   const [formVisible, setFormVisible] = useState(false);
   const [editing, setEditing] = useState<Routine | null>(null);
 
-  const visible = useMemo(() => {
-    const needle = query.trim().toLowerCase();
-    return routines.filter((routine) => needle.length === 0 || routine.name.toLowerCase().includes(needle));
-  }, [routines, query]);
+  const visible = useMemo(() => routines.filter((routine) => matchesQuery(query, routine.name)), [routines, query]);
 
   const openForm = (routine: Routine | null) => {
     setEditing(routine);
@@ -48,7 +46,6 @@ export function RoutinesScreen() {
         subtitle={t('routines.count', { count: routines.length })}
       />
 
-      {/* Primary action stays at the top, above the list. */}
       <Button
         label={t('routines.newRoutine')}
         icon="add"

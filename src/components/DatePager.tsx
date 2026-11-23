@@ -6,7 +6,7 @@ import { AppText, CalendarMonth, Ionicons, SheetModal } from '../ui';
 import { addDays, formatFullDate, isToday } from '../utils/date';
 
 /** Date browser: ‹ day › with a full month calendar sheet. Tapping the date
- *  opens an iOS-style calendar; every day is selectable by default. */
+ *  opens an iOS-style calendar. */
 export function DatePager({
   date,
   onChange,
@@ -15,7 +15,7 @@ export function DatePager({
 }: {
   date: Date;
   onChange: (date: Date) => void;
-  /** Pass false to stop the arrow navigation at today (calendar unaffected). */
+  /** Pass false to stop the arrow navigation at today. */
   allowFuture?: boolean;
   /** Days that should show a dot in the calendar (e.g. days with activity). */
   markedDays?: Set<string>;

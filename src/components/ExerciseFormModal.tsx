@@ -14,14 +14,15 @@ import { useAppSelector } from '../store/hooks';
 import { createExercise, deleteExercise, updateExercise } from '../services/exercises';
 import { selectExerciseById } from '../store/slices/exercisesSlice';
 import {
-  EXERCISE_PRESETS,
   exerciseTypeLabel,
   metricLabel,
   slugifyKey,
 } from '../utils/exercisePresets';
+import { EXERCISE_PRESETS } from '../shared/exerciseDefaults';
 import { confirmAction } from '../utils/confirm';
-import type { Exercise, ExerciseType, MetricField } from '../types';
+import type { ExerciseType, MetricField } from '../types';
 import { useResetOnChange } from '../utils/useResetOnChange';
+import { errorMessage } from '../utils/errorMessage';
 
 const TYPE_OPTIONS: ExerciseType[] = ['strength', 'cardio', 'other'];
 
@@ -39,7 +40,6 @@ export function ExerciseFormModal({
 }) {
   const { colors } = useTheme();
   const { t } = useTranslation();
-  const profile = useAppSelector((state) => state.auth.profile);
   const editing = useAppSelector((state) =>
     exerciseId ? selectExerciseById(state, exerciseId) : undefined,
   );
@@ -54,11 +54,8 @@ export function ExerciseFormModal({
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  // Snapshot of the last loaded/clean form, used to drive the discard prompt.
   const [initialSnapshot, setInitialSnapshot] = useState('');
 
-  // Re-initialize the form whenever it opens or its inputs change. Doing this
-  // in an effect (rather than during render) keeps React's state updates sane.
   useResetOnChange([visible, editing], visible, () => {
     const nextType = editing?.type ?? 'strength';
     const nextFields =
@@ -95,8 +92,6 @@ export function ExerciseFormModal({
       initialSnapshot,
     [name, type, fields, imageUrl, videoUrl, description, met, initialSnapshot],
   );
-
-  if (!profile) return null;
 
   const patchField = (index: number, patch: Partial<MetricField>) => {
     setFields((current) =>
@@ -172,15 +167,13 @@ export function ExerciseFormModal({
       if (editing) {
         await updateExercise(editing.id, payload);
       } else {
-        await createExercise({ ...payload, createdBy: profile.uid });
+        await createExercise(payload);
       }
       onClose();
     } catch (saveError) {
       console.warn('[ExerciseFormModal] save failed', saveError);
       setError(
-        saveError instanceof Error && saveError.message
-          ? saveError.message
-          : t('library.form.errors.saveFailed'),
+        errorMessage(saveError, t('library.form.errors.saveFailed')),
       );
     } finally {
       setSaving(false);
@@ -199,9 +192,7 @@ export function ExerciseFormModal({
         } catch (deleteError) {
           console.warn('[ExerciseFormModal] delete failed', deleteError);
           setError(
-            deleteError instanceof Error && deleteError.message
-              ? deleteError.message
-              : t('common.genericError'),
+            errorMessage(deleteError, t('common.genericError')),
           );
         }
       },

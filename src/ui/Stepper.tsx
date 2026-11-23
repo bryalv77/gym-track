@@ -13,7 +13,6 @@ export interface StepperProps {
   max?: number;
   step?: number;
   label?: string;
-  unit?: string;
 }
 
 /** iOS-style stepper (− / +) with an inline editable numeric readout and press-and-hold repeat. */
@@ -24,7 +23,6 @@ export function Stepper({
   max = 999,
   step = 1,
   label,
-  unit,
 }: StepperProps) {
   const { colors } = useTheme();
   const { t } = useTranslation();
@@ -165,11 +163,6 @@ export function Stepper({
               { color: colors.label },
             ]}
           />
-          {unit ? (
-            <AppText variant="caption1" color={colors.secondaryLabel} style={styles.unit}>
-              {unit}
-            </AppText>
-          ) : null}
         </View>
         <View style={[styles.divider, { backgroundColor: colors.separator }]} />
         <Pressable
@@ -215,9 +208,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     paddingVertical: 4,
     paddingHorizontal: 2,
-  },
-  unit: {
-    marginLeft: 2,
   },
   dimmed: { opacity: 0.35 },
 });

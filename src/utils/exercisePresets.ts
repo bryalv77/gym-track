@@ -1,22 +1,6 @@
 import i18n from '../i18n';
 import type { ExerciseType, MetricField } from '../types';
 
-/** Default metric fields per exercise type. Coaches can tweak them per exercise. */
-export const EXERCISE_PRESETS: Record<ExerciseType, MetricField[]> = {
-  strength: [
-    { key: 'sets', label: 'sets', unit: '', min: 1, max: 20, step: 1, defaultValue: 3 },
-    { key: 'reps', label: 'reps', unit: '', min: 1, max: 50, step: 1, defaultValue: 10 },
-    { key: 'weightKg', label: 'weight', unit: 'kg', min: 0, max: 400, step: 2.5, defaultValue: 40 },
-  ],
-  cardio: [
-    { key: 'minutes', label: 'time', unit: 'min', min: 1, max: 180, step: 1, defaultValue: 20 },
-    { key: 'speed', label: 'speed', unit: 'km/h', min: 0, max: 30, step: 0.5, defaultValue: 8 },
-  ],
-  other: [
-    { key: 'minutes', label: 'time', unit: 'min', min: 1, max: 180, step: 1, defaultValue: 10 },
-  ],
-};
-
 /** Localized display label of an exercise type. */
 export function exerciseTypeLabel(type: ExerciseType): string {
   return i18n.t(`library.types.${type}`);

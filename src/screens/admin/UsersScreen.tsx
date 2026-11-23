@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useTheme } from '../../theme';
 import {
   Avatar,
   Badge,
@@ -20,6 +19,7 @@ import { selectUsersSorted } from '../../store/slices/membersSlice';
 import { selectGymName } from '../../store/slices/gymsSlice';
 import { UserEditModal } from '../../components/UserEditModal';
 import type { Role, UserProfile } from '../../types';
+import { matchesQuery } from '../../utils/search';
 
 type RoleFilter = 'all' | Role;
 
@@ -48,15 +48,9 @@ export function UsersScreen() {
   );
 
   const visibleUsers = useMemo(() => {
-    const needle = query.trim().toLowerCase();
     return users
       .filter((user) => roleFilter === 'all' || user.role === roleFilter)
-      .filter(
-        (user) =>
-          needle.length === 0 ||
-          user.name.toLowerCase().includes(needle) ||
-          user.email.toLowerCase().includes(needle),
-      );
+      .filter((user) => matchesQuery(query, user.name, user.email));
   }, [users, query, roleFilter]);
 
   return (

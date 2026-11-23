@@ -7,10 +7,10 @@ import { AppText, Button, Chip, NavBar, Screen, SegmentedControl, TextField } fr
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { clearAuthError, signUpThunk } from '../store/slices/authSlice';
 import { subscribeToGyms } from '../services/gyms';
-import { normalizeGyms } from '../store/slices/gymsSlice';
-import type { AuthStackParamList } from '../navigation/RootNavigator';
+import type { AuthStackParamList } from '../navigation/types';
 import { normalizeCoachCode } from '../utils/coachCode';
 import type { Gym } from '../types';
+import { MIN_PASSWORD_LENGTH } from '../types/api';
 import { useResetOnChange } from '../utils/useResetOnChange';
 
 type SignUpScreenProps = NativeStackScreenProps<AuthStackParamList, 'SignUp'>;
@@ -31,7 +31,7 @@ export function SignUpScreen({ navigation }: SignUpScreenProps) {
   const [localError, setLocalError] = useState<string | null>(null);
 
   // Gyms are readable before sign-in so new users can pick theirs.
-  useEffect(() => subscribeToGyms((value) => setGyms(Object.values(normalizeGyms(value)))), []);
+  useEffect(() => subscribeToGyms((value) => setGyms(Object.values(value))), []);
 
   // A code only means anything for a coach — clear it if the role changes back.
   useResetOnChange([role], role === 'member', () => setCoachCode(''));
@@ -40,7 +40,7 @@ export function SignUpScreen({ navigation }: SignUpScreenProps) {
 
   const handleSignUp = () => {
     setLocalError(null);
-    if (!name.trim() || !email.trim() || password.length < 6) {
+    if (!name.trim() || !email.trim() || password.length < MIN_PASSWORD_LENGTH) {
       setLocalError(t('auth.errors.fillFields'));
       return;
     }

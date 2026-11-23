@@ -1,6 +1,5 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import { asNumber, asOptionalString, asString, isRecord } from '../../utils/guards';
-import type { Role, UserProfile } from '../../types';
+import type { UserProfile } from '../../types';
 
 interface MembersState {
   byUid: Record<string, UserProfile>;
@@ -8,46 +7,16 @@ interface MembersState {
 
 const initialState: MembersState = { byUid: {} };
 
-const VALID_ROLES: Role[] = ['admin', 'coach', 'member'];
-
-/** Converts one raw `users/{uid}` RTDB node into a typed profile. */
-export function normalizeUser(uid: string, entry: unknown): UserProfile | null {
-  if (!isRecord(entry)) return null;
-  const role = VALID_ROLES.includes(entry.role as Role) ? (entry.role as Role) : 'member';
-  return {
-    uid,
-    name: asString(entry.name, 'Member'),
-    email: asString(entry.email, ''),
-    role,
-    ...(asOptionalString(entry.gymId) ? { gymId: entry.gymId as string } : {}),
-    ...(asOptionalString(entry.coachId) ? { coachId: entry.coachId as string } : {}),
-    ...(asOptionalString(entry.photoData) ? { photoData: entry.photoData as string } : {}),
-    createdAt: asNumber(entry.createdAt, 0),
-  };
-}
-
-/** Converts the raw `users` RTDB payload into typed profiles. */
-export function normalizeUsers(value: unknown): Record<string, UserProfile> {
-  const users: Record<string, UserProfile> = {};
-  if (!isRecord(value)) return users;
-  for (const [uid, entry] of Object.entries(value)) {
-    const user = normalizeUser(uid, entry);
-    if (user) users[uid] = user;
-  }
-  return users;
-}
-
 const membersSlice = createSlice({
   name: 'members',
   initialState,
   reducers: {
-    membersUpdated(state, action: PayloadAction<unknown>) {
-      state.byUid = normalizeUsers(action.payload);
+    membersUpdated(state, action: PayloadAction<Record<string, UserProfile>>) {
+      state.byUid = action.payload;
     },
     /** Upserts (or removes, when the node is gone) a single user. */
-    userUpdated(state, action: PayloadAction<{ uid: string; value: unknown }>) {
-      const user = normalizeUser(action.payload.uid, action.payload.value);
-      if (user) state.byUid[action.payload.uid] = user;
+    userUpdated(state, action: PayloadAction<{ uid: string; value: UserProfile | null }>) {
+      if (action.payload.value) state.byUid[action.payload.uid] = action.payload.value;
       else delete state.byUid[action.payload.uid];
     },
   },

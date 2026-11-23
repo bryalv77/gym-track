@@ -1,13 +1,12 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { isApiConfigured } from '../config/api';
 import { subscribeToAssignments } from '../services/assignments';
 import { subscribeToExercises } from '../services/exercises';
 import { subscribeToGyms } from '../services/gyms';
 import { subscribeToAllCompletions, subscribeToCompletions } from '../services/completions';
 import { subscribeToMeasurements } from '../services/measurements';
 import { subscribeToSelfies } from '../services/selfies';
-import { ensureDefaultExercises } from '../utils/defaultExercises';
+import { ensureDefaultExercises } from '../utils/defaultExerciseData';
 import { subscribeToRoutines } from '../services/routines';
 import { subscribeToUser, subscribeToUsers } from '../services/users';
 import { assignmentsUpdated } from '../store/slices/assignmentsSlice';
@@ -38,7 +37,7 @@ export function DataSync() {
   );
 
   useEffect(() => {
-    if (!isApiConfigured || !profile) return;
+    if (!profile) return;
     const unsubscribers: Array<() => void> = [
       subscribeToAssignments((value) => dispatch(assignmentsUpdated(value))),
       subscribeToExercises((value) => dispatch(exercisesUpdated(value))),
@@ -77,17 +76,16 @@ export function DataSync() {
 
   // Coaches and admins seed the suggested starter exercises (once, if missing).
   const canSeedExercises = profile?.role === 'coach' || profile?.role === 'admin';
-  const profileUid = profile?.uid;
   useEffect(() => {
-    if (!isApiConfigured || !canSeedExercises || !profileUid) return;
-    ensureDefaultExercises(profileUid).catch((error) =>
+    if (!canSeedExercises) return;
+    ensureDefaultExercises().catch((error) =>
       console.warn('[exercises] default seeding failed:', error),
     );
-  }, [canSeedExercises, profileUid]);
+  }, [canSeedExercises]);
 
   // Members only read their own coach's record, not the whole directory.
   useEffect(() => {
-    if (!isApiConfigured || !ownCoachId) return;
+    if (!ownCoachId) return;
     return subscribeToUser(ownCoachId, (value) =>
       dispatch(userUpdated({ uid: ownCoachId, value })),
     );

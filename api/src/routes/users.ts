@@ -3,7 +3,7 @@ import type { AppEnv } from '../types';
 import type { UpdateUserPatch } from '../../../src/types/api';
 import { getSql } from '../db/client';
 import { mapUserRow, mapUsersToRecord } from '../db/mappers';
-import { requireAuth, requireRole } from '../middleware/auth';
+import { requireAuth, requireRole, requireSelfOrRole } from '../middleware/auth';
 
 export const usersRouter = new Hono<AppEnv>();
 
@@ -22,12 +22,9 @@ usersRouter.get('/:uid', async (c) => {
   return rows.length ? c.json(mapUserRow(rows[0])) : c.json(null);
 });
 
-usersRouter.patch('/:uid', async (c) => {
+usersRouter.patch('/:uid', requireSelfOrRole('uid', 'admin'), async (c) => {
   const uid = c.req.param('uid');
   const user = c.get('user');
-  if (user.role !== 'admin' && user.uid !== uid) {
-    return c.json({ error: 'Forbidden', code: 'auth/forbidden' }, 403);
-  }
 
   const sql = getSql(c.env);
   const existingRows = await sql`SELECT * FROM users WHERE uid = ${uid} LIMIT 1`;

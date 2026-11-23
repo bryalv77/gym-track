@@ -21,11 +21,12 @@ import {
   createAssignment,
   deleteAssignment,
   updateAssignment,
+  unassignRoutine,
 } from '../services/assignments';
-import { unassignRoutine } from '../services/routines';
 import { confirmAction } from '../utils/confirm';
 import type { Assignment, Exercise, ExerciseType, MetricField } from '../types';
 import { useResetOnChange } from '../utils/useResetOnChange';
+import { matchesQuery } from '../utils/search';
 
 type TypeFilter = 'all' | ExerciseType;
 const TYPE_FILTERS: TypeFilter[] = ['all', 'strength', 'cardio', 'other'];
@@ -72,27 +73,17 @@ export function AssignExerciseModal({
     [exercises, exerciseId],
   );
 
-  const visibleMembers = useMemo(() => {
-    const needle = memberQuery.trim().toLowerCase();
-    if (needle.length === 0) return gymMembers;
-    return gymMembers.filter(
-      (member) =>
-        member.name.toLowerCase().includes(needle) ||
-        member.email.toLowerCase().includes(needle),
-    );
-  }, [gymMembers, memberQuery]);
+  const visibleMembers = useMemo(
+    () => gymMembers.filter((member) => matchesQuery(memberQuery, member.name, member.email)),
+    [gymMembers, memberQuery],
+  );
 
   const visibleExercises = useMemo(() => {
-    const needle = exerciseQuery.trim().toLowerCase();
     return exercises
       .filter((exercise) => typeFilter === 'all' || exercise.type === typeFilter)
-      .filter(
-        (exercise) =>
-          needle.length === 0 || exerciseName(exercise).toLowerCase().includes(needle),
-      );
+      .filter((exercise) => matchesQuery(exerciseQuery, exerciseName(exercise)));
   }, [exercises, exerciseQuery, typeFilter]);
 
-  // Re-initialize the form whenever it opens or its inputs change.
   useResetOnChange([visible, assignment, initialMemberId], visible, () => {
     setMemberId(assignment?.memberId ?? initialMemberId ?? null);
     setExerciseId(assignment?.exerciseId ?? null);
@@ -185,7 +176,7 @@ export function AssignExerciseModal({
       async () => {
         setError(null);
         try {
-          await unassignRoutine(dateKey, routineId, assignment.memberId);
+          await unassignRoutine({ dateKey, routineId, memberId: assignment.memberId });
           onClose();
         } catch (deleteError) {
           console.warn('[AssignExerciseModal] unassign routine failed', deleteError);

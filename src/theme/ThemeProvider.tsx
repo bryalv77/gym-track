@@ -16,7 +16,6 @@ interface ThemeContextValue {
   colors: ThemeColors;
   /** Effective mode after resolving 'system'. */
   mode: 'light' | 'dark';
-  isDark: boolean;
   /** What the user picked (persisted). */
   preference: ThemePreference;
   setPreference: (preference: ThemePreference) => void;
@@ -49,17 +48,15 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const mode: 'light' | 'dark' =
     preference === 'system' ? (systemScheme === 'dark' ? 'dark' : 'light') : preference;
-  const isDark = mode === 'dark';
 
   const value = useMemo<ThemeContextValue>(
     () => ({
-      colors: isDark ? darkColors : lightColors,
+      colors: mode === 'dark' ? darkColors : lightColors,
       mode,
-      isDark,
       preference: loaded ? preference : 'system',
       setPreference,
     }),
-    [isDark, mode, preference, loaded],
+    [mode, preference, loaded],
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;

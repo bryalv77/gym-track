@@ -13,8 +13,7 @@ import {
 } from '../ui';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { clearAuthError, signInThunk } from '../store/slices/authSlice';
-import { isFirebaseConfigured } from '../config/api';
-import type { AuthStackParamList } from '../navigation/RootNavigator';
+import type { AuthStackParamList } from '../navigation/types';
 
 type LoginScreenProps = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
@@ -43,15 +42,6 @@ export function LoginScreen({ navigation }: LoginScreenProps) {
           {t('auth.tagline')}
         </AppText>
       </View>
-
-      {!isFirebaseConfigured ? (
-        <View style={[styles.banner, { backgroundColor: colors.orangeTint }]}>
-          <Ionicons name="warning" size={16} color={colors.systemOrange} />
-          <AppText variant="footnote" color={colors.systemOrange} style={{ flex: 1 }}>
-            {t('auth.firebaseWarning')}
-          </AppText>
-        </View>
-      ) : null}
 
       <View style={styles.form}>
         <TextField
@@ -102,14 +92,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8,
-  },
-  banner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    borderRadius: radius.md,
-    padding: 12,
-    marginBottom: 16,
   },
   form: { gap: 14 },
 });

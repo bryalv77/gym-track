@@ -1,7 +1,8 @@
 import { sign, verify } from 'hono/jwt';
 import type { AuthUser } from '../types';
-import type { Role } from '../../../src/types';
+import { isRole } from '../../../src/types';
 import { verifyFirebaseScrypt } from './firebaseScrypt';
+import { timingSafeEqual } from './timingSafeEqual';
 
 export const LEGACY_PREFIX = 'fbscrypt:';
 
@@ -27,29 +28,27 @@ function hexToBytes(hex: string): Uint8Array<ArrayBuffer> {
   return bytes;
 }
 
-/** Hashes a plaintext password using WebCrypto PBKDF2-SHA256 (`saltHex:hashHex`). */
-export async function hashPassword(password: string): Promise<string> {
-  const salt = new Uint8Array(16);
-  crypto.getRandomValues(salt);
-  const encoder = new TextEncoder();
+async function derivePbkdf2(password: string, salt: Uint8Array<ArrayBuffer>): Promise<string> {
   const keyMaterial = await crypto.subtle.importKey(
     'raw',
-    encoder.encode(password),
+    new TextEncoder().encode(password),
     { name: 'PBKDF2' },
     false,
     ['deriveBits'],
   );
   const derivedBits = await crypto.subtle.deriveBits(
-    {
-      name: 'PBKDF2',
-      salt,
-      iterations: ITERATIONS,
-      hash: 'SHA-256',
-    },
+    { name: 'PBKDF2', salt, iterations: ITERATIONS, hash: 'SHA-256' },
     keyMaterial,
     KEY_LENGTH * 8,
   );
-  return `${bytesToHex(salt)}:${bytesToHex(new Uint8Array(derivedBits))}`;
+  return bytesToHex(new Uint8Array(derivedBits));
+}
+
+/** Hashes a plaintext password using WebCrypto PBKDF2-SHA256 (`saltHex:hashHex`). */
+export async function hashPassword(password: string): Promise<string> {
+  const salt = new Uint8Array(16);
+  crypto.getRandomValues(salt);
+  return `${bytesToHex(salt)}:${await derivePbkdf2(password, salt)}`;
 }
 
 /** Verifies a plaintext password against a stored `saltHex:hashHex` string. */
@@ -66,32 +65,7 @@ export async function verifyPassword(
   }
   const [saltHex, expectedHashHex] = storedHash.split(':');
   if (!saltHex || !expectedHashHex) return false;
-  const salt = hexToBytes(saltHex);
-  const encoder = new TextEncoder();
-  const keyMaterial = await crypto.subtle.importKey(
-    'raw',
-    encoder.encode(password),
-    { name: 'PBKDF2' },
-    false,
-    ['deriveBits'],
-  );
-  const derivedBits = await crypto.subtle.deriveBits(
-    {
-      name: 'PBKDF2',
-      salt,
-      iterations: ITERATIONS,
-      hash: 'SHA-256',
-    },
-    keyMaterial,
-    KEY_LENGTH * 8,
-  );
-  const actualHashHex = bytesToHex(new Uint8Array(derivedBits));
-  if (actualHashHex.length !== expectedHashHex.length) return false;
-  let diff = 0;
-  for (let i = 0; i < actualHashHex.length; i++) {
-    diff |= actualHashHex.charCodeAt(i) ^ expectedHashHex.charCodeAt(i);
-  }
-  return diff === 0;
+  return timingSafeEqual(await derivePbkdf2(password, hexToBytes(saltHex)), expectedHashHex);
 }
 
 /** Signs a 30-day JWT for an authenticated GymTrack user. */
@@ -116,8 +90,8 @@ export async function verifyAuthToken(token: string, secret: string): Promise<Au
     const payload = await verify(token, secret, 'HS256');
     const uid = typeof payload.sub === 'string' ? payload.sub : '';
     const email = typeof payload.email === 'string' ? payload.email : '';
-    const role = payload.role as Role;
-    if (!uid || !['admin', 'coach', 'member'].includes(role)) return null;
+    const role = payload.role;
+    if (!uid || !isRole(role)) return null;
     return { uid, email, role };
   } catch {
     return null;

@@ -37,6 +37,9 @@ const locale = () => i18n.language || 'en';
 const fmt = (date: Date, options: Intl.DateTimeFormatOptions) =>
   new Intl.DateTimeFormat(locale(), options).format(date);
 
+/** "09:30 AM" (localized) for a timestamp in ms */
+export const formatTime = (ms: number) => fmt(new Date(ms), { hour: '2-digit', minute: '2-digit' });
+
 /** "Monday, September 22" (localized) */
 export function formatFullDate(date: Date): string {
   return fmt(date, { weekday: 'long', month: 'long', day: 'numeric' });

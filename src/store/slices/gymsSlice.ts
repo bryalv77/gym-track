@@ -1,5 +1,4 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import { asNumber, asString, isRecord } from '../../utils/guards';
 import type { Gym, GymsById } from '../../types';
 
 interface GymsState {
@@ -8,26 +7,12 @@ interface GymsState {
 
 const initialState: GymsState = { byId: {} };
 
-export function normalizeGyms(value: unknown): GymsById {
-  const result: GymsById = {};
-  if (!isRecord(value)) return result;
-  for (const [id, entry] of Object.entries(value)) {
-    if (!isRecord(entry)) continue;
-    result[id] = {
-      id,
-      name: asString(entry.name, 'Gym'),
-      createdAt: asNumber(entry.createdAt, 0),
-    };
-  }
-  return result;
-}
-
 const gymsSlice = createSlice({
   name: 'gyms',
   initialState,
   reducers: {
-    gymsUpdated(state, action: PayloadAction<unknown>) {
-      state.byId = normalizeGyms(action.payload);
+    gymsUpdated(state, action: PayloadAction<GymsById>) {
+      state.byId = action.payload;
     },
   },
 });

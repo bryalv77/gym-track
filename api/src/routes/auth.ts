@@ -1,10 +1,11 @@
 import { Hono } from 'hono';
 import type { AppEnv } from '../types';
-import type {
-  AuthResponse,
-  ChangePasswordRequest,
-  LoginRequest,
-  RegisterRequest,
+import {
+  MIN_PASSWORD_LENGTH,
+  type AuthResponse,
+  type ChangePasswordRequest,
+  type LoginRequest,
+  type RegisterRequest,
 } from '../../../src/types/api';
 import type { Role } from '../../../src/types';
 import { getSql, generateId } from '../db/client';
@@ -16,7 +17,7 @@ export const authRouter = new Hono<AppEnv>();
 
 authRouter.post('/register', async (c) => {
   const body = await c.req.json<RegisterRequest>();
-  if (!body.password || body.password.length < 6) {
+  if (!body.password || body.password.length < MIN_PASSWORD_LENGTH) {
     return c.json({ error: 'Weak password', code: 'auth/weak-password' }, 400);
   }
   const email = (body.email ?? '').trim().toLowerCase();

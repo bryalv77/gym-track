@@ -18,6 +18,7 @@ import { selectGymsSorted } from '../../store/slices/gymsSlice';
 import { selectUsersSorted } from '../../store/slices/membersSlice';
 import { GymFormModal } from '../../components/GymFormModal';
 import type { Gym } from '../../types';
+import { matchesQuery } from '../../utils/search';
 
 /** Admin: manage the gyms, with search. */
 export function GymsScreen() {
@@ -29,10 +30,7 @@ export function GymsScreen() {
   const [editing, setEditing] = useState<Gym | null>(null);
   const [query, setQuery] = useState('');
 
-  const visibleGyms = useMemo(() => {
-    const needle = query.trim().toLowerCase();
-    return gyms.filter((gym) => needle.length === 0 || gym.name.toLowerCase().includes(needle));
-  }, [gyms, query]);
+  const visibleGyms = useMemo(() => gyms.filter((gym) => matchesQuery(query, gym.name)), [gyms, query]);
 
   const countFor = (gymId: string) => ({
     coaches: users.filter((user) => user.gymId === gymId && user.role === 'coach').length,
@@ -47,7 +45,6 @@ export function GymsScreen() {
         subtitle={t('admin.gyms.count', { count: gyms.length })}
       />
 
-      {/* Primary action stays at the top, above the list. */}
       <Button
         label={t('admin.gyms.newGym')}
         icon="add"

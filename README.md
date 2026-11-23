@@ -32,7 +32,7 @@ api/
 │   ├── index.ts       # Hono entrypoint & router mounting
 │   ├── db/            # Neon HTTP SQL client & camelCase row mappers
 │   ├── middleware/    # JWT verification & RBAC middleware (admin / coach / member)
-│   ├── routes/        # Domain routers (auth, users, gyms, exercises, routines, assignments, completions, measurements, selfies, sync)
+│   ├── routes/        # Domain routers (auth, users, gyms, exercises, routines, assignments, completions, measurements, selfies)
 │   └── utils/         # WebCrypto password hashing & JWT helpers
 src/
 ├── ui/                # UI component library (iOS style, zero app knowledge)

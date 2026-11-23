@@ -1,22 +1,7 @@
-import type {
-  Assignment,
-  AssignmentsByDate,
-  CompletionsByDate,
-  CompletionsByUser,
-  DailySelfie,
-  Exercise,
-  ExercisesById,
-  Gym,
-  GymsById,
-  Measurement,
-  MeasurementsById,
-  Role,
-  Routine,
-  RoutineItem,
-  RoutinesById,
-  SelfiesById,
-  UserProfile,
-} from './index';
+import type { Role, Routine, RoutineItem, UserProfile } from './index';
+import type { Lang } from '../shared/exerciseDefaults';
+
+export const MIN_PASSWORD_LENGTH = 6;
 
 export interface AuthResponse {
   token: string;
@@ -70,39 +55,5 @@ export interface SaveRoutineRequest {
 }
 
 export interface SeedExercisesRequest {
-  createdBy: string;
-  language: 'en' | 'es';
+  language: Lang;
 }
-
-export interface SyncBatchResponse {
-  assignments: AssignmentsByDate;
-  exercises: ExercisesById;
-  gyms: GymsById;
-  users?: Record<string, UserProfile>;
-  userProfile?: UserProfile | null;
-  coachProfile?: UserProfile | null;
-  routines?: RoutinesById;
-  allCompletions?: CompletionsByUser;
-  userCompletions?: CompletionsByDate;
-  measurements?: MeasurementsById;
-  selfies?: SelfiesById;
-}
-
-export type SyncChannel =
-  | 'auth'
-  | 'users'
-  | 'gyms'
-  | 'gymCodes'
-  | 'exercises'
-  | 'routines'
-  | 'assignments'
-  | 'completions'
-  | 'measurements'
-  | 'selfies';
-
-export type UnusedImportsGuard =
-  | Assignment
-  | DailySelfie
-  | Exercise
-  | Gym
-  | Measurement;

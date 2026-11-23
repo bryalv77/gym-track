@@ -1,5 +1,4 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { SyncChannel } from '../types/api';
 
 const TOKEN_STORAGE_KEY = '@gymtrack/auth_token';
 
@@ -10,14 +9,6 @@ const TOKEN_STORAGE_KEY = '@gymtrack/auth_token';
 export const API_BASE_URL = (
   process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8787'
 ).replace(/\/+$/, '');
-
-/**
- * True when the API URL is configured (not a placeholder).
- * Exported as both `isApiConfigured` and `isFirebaseConfigured` so existing UI
- * components continue working seamlessly.
- */
-export const isApiConfigured = !API_BASE_URL.includes('YOUR_');
-export const isFirebaseConfigured = isApiConfigured;
 
 let memoryToken: string | null = null;
 let tokenLoaded = false;
@@ -59,6 +50,13 @@ export class ApiError extends Error {
   }
 }
 
+let unauthorizedHandler: (() => void) | null = null;
+
+/** Called when a signed-in request is rejected with 401 (session expired or user removed). */
+export function onUnauthorized(handler: () => void): void {
+  unauthorizedHandler = handler;
+}
+
 export async function apiRequest<T>(
   path: string,
   options: RequestInit = {},
@@ -92,6 +90,10 @@ export async function apiRequest<T>(
     }
   }
 
+  if (response.status === 401 && token && !path.startsWith('/api/auth/')) {
+    unauthorizedHandler?.();
+  }
+
   if (!response.ok) {
     const errObj = (data ?? {}) as { error?: string; code?: string };
     throw new ApiError(
@@ -104,7 +106,17 @@ export async function apiRequest<T>(
   return data as T;
 }
 
-/* ─── Real-Time Polling & Invalidation Pub/Sub Engine ─────────────────────── */
+export type SyncChannel =
+  | 'auth'
+  | 'users'
+  | 'gyms'
+  | 'gymCodes'
+  | 'exercises'
+  | 'routines'
+  | 'assignments'
+  | 'completions'
+  | 'measurements'
+  | 'selfies';
 
 type ChannelListener = () => void;
 const channelListeners = new Map<SyncChannel, Set<ChannelListener>>();
@@ -175,4 +187,33 @@ export function createPoller<T>(
     clearInterval(timer);
     channelListeners.get(channel)?.delete(run);
   };
+}
+
+/** Polls `path` (and refetches on invalidation of `channel`), delivering typed JSON to `callback`. */
+export function subscribeToPath<T>(
+  channel: SyncChannel,
+  path: string,
+  callback: (value: T) => void,
+): () => void {
+  return createPoller(
+    channel,
+    () => apiRequest<T>(path),
+    callback,
+    (error) => console.warn(`[${channel}] subscription error:`, error.message),
+  );
+}
+
+/** Sends a JSON mutation, then refetches the affected channels. */
+export async function mutate<T = void>(
+  method: 'POST' | 'PUT' | 'PATCH' | 'DELETE',
+  path: string,
+  body: unknown,
+  ...channels: SyncChannel[]
+): Promise<T> {
+  const result = await apiRequest<T>(path, {
+    method,
+    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+  });
+  emitSyncInvalidate(...channels);
+  return result;
 }

@@ -121,16 +121,6 @@ export const darkColors: ThemeColors = {
   tabBarInactive: 'rgba(235, 235, 245, 0.60)',
 };
 
-export const spacing = {
-  xs: 4,
-  sm: 8,
-  md: 12,
-  lg: 16,
-  xlg: 20,
-  xxl: 24,
-  xxxl: 32,
-} as const;
-
 export const radius = {
   sm: 8,
   md: 10,
@@ -162,5 +152,4 @@ export const typography = {
 
 export type TypographyVariant = keyof typeof typography;
 
-// Re-exported for convenience — components import everything from '../theme'.
 export { ThemeProvider, useTheme, type ThemePreference } from './ThemeProvider';

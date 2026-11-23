@@ -32,7 +32,6 @@ export function SelfieFormModal({
   const [saving, setSaving] = useState(false);
   const [picking, setPicking] = useState(false);
 
-  // Re-initialize the form whenever it opens or its inputs change.
   useResetOnChange([visible, editing, dateKey], visible, () => {
     setPhotoData(editing?.photoData ?? null);
     setNotes(editing?.notes ?? '');

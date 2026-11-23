@@ -4,40 +4,27 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '../theme';
 import { AppText } from './Text';
 import { Ionicons } from './icons';
-import { formatMonthYear, weekdayInitial } from '../utils/date';
+import { formatMonthYear, isSameDay, toDateKey, weekdayInitial } from '../utils/date';
 
 /** Sunday-first weekday initials in the active language (2023-01-01 is a Sunday). */
 const weekdayInitials = () =>
   Array.from({ length: 7 }, (_, index) => weekdayInitial(new Date(2023, 0, 1 + index)));
 
-const sameDay = (a: Date, b: Date) =>
-  a.getFullYear() === b.getFullYear() &&
-  a.getMonth() === b.getMonth() &&
-  a.getDate() === b.getDate();
-
 export interface CalendarMonthProps {
   selectedDate: Date;
   onSelect: (date: Date) => void;
-  /** Latest selectable day. Omit to allow every day, future included. */
-  maxDate?: Date;
   /** Days with content — shown as a dot under the day number. */
   markedDays?: Set<string>;
-  /** Key function for marked days (YYYY-MM-DD). */
-  toKey?: (date: Date) => string;
 }
 
-/** iOS-style month calendar. Days outside the month are dimmed, the selected
- *  day is a filled blue circle and marked days show a small dot. Every day is
- *  selectable unless a maxDate is given. */
+/** iOS-style month calendar: selected day is a filled blue circle, marked days (date keys) get a dot. */
 export function CalendarMonth({
   selectedDate,
   onSelect,
-  maxDate,
   markedDays,
-  toKey = defaultKey,
 }: CalendarMonthProps) {
   const { colors } = useTheme();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const initials = weekdayInitials();
   const [cursor, setCursor] = useState(
     new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1),
@@ -81,11 +68,10 @@ export function CalendarMonth({
       <View style={styles.grid}>
         {cells.map((date) => {
           const isOtherMonth = date.getMonth() !== cursor.getMonth();
-          const isSelected = sameDay(date, selectedDate);
-          const isToday = sameDay(date, today);
-          const isFuture = maxDate ? date > maxDate && !sameDay(date, maxDate) : false;
-          const disabled = isOtherMonth || isFuture;
-          const marked = markedDays?.has(toKey(date)) ?? false;
+          const isSelected = isSameDay(date, selectedDate);
+          const isToday = isSameDay(date, today);
+          const disabled = isOtherMonth;
+          const marked = markedDays?.has(toDateKey(date)) ?? false;
           return (
             <Pressable
               key={date.toISOString()}
@@ -120,11 +106,6 @@ export function CalendarMonth({
       </View>
     </View>
   );
-}
-
-function defaultKey(date: Date): string {
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
 const styles = StyleSheet.create({

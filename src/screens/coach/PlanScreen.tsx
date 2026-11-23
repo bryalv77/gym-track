@@ -25,6 +25,7 @@ import { AssignExerciseModal } from '../../components/AssignExerciseModal';
 import { AssignRoutineModal } from '../../components/AssignRoutineModal';
 import { isToday, toDateKey } from '../../utils/date';
 import type { Assignment } from '../../types';
+import { matchesQuery } from '../../utils/search';
 
 /** Coach planner: browse a day, assign library exercises to members
  *  individually, edit the prescription or unassign. */
@@ -72,15 +73,15 @@ export function PlanScreen() {
   );
 
   const visibleAssignments = useMemo(() => {
-    const needle = query.trim().toLowerCase();
     return assignments
       .filter((assignment) => gymMemberIds.has(assignment.memberId))
-      .filter((assignment) => {
-        if (needle.length === 0) return true;
-        const exerciseName = exercisesById[assignment.exerciseId]?.name.toLowerCase() ?? '';
-        const memberName = usersByUid[assignment.memberId]?.name.toLowerCase() ?? '';
-        return exerciseName.includes(needle) || memberName.includes(needle);
-      });
+      .filter((assignment) =>
+        matchesQuery(
+          query,
+          exercisesById[assignment.exerciseId]?.name ?? '',
+          usersByUid[assignment.memberId]?.name ?? '',
+        ),
+      );
   }, [assignments, query, gymMemberIds, exercisesById, usersByUid]);
 
   if (!profile) return null;

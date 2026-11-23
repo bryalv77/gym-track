@@ -24,11 +24,9 @@ import { selectGymName } from '../../store/slices/gymsSlice';
 import { selectUserById } from '../../store/slices/membersSlice';
 import {
   changeUserPassword,
-  fetchOrCreateProfile,
-  removeUserPhoto,
-  updateUserDisplayName,
-  updateUserPhoto,
+  updateUserProfile,
 } from '../../services/auth';
+import { MIN_PASSWORD_LENGTH, type UpdateUserPatch } from '../../types/api';
 import { pickAvatarDataUrl } from '../../utils/photo';
 import { LANGUAGES, getLanguageOverride, setLanguage, type LanguageCode } from '../../i18n';
 
@@ -73,14 +71,17 @@ export function ProfileScreen() {
 
   const nameChanged = name.trim() !== profile.name && name.trim().length > 0;
 
+  const saveProfile = async (patch: UpdateUserPatch) => {
+    const updated = await updateUserProfile(profile.uid, patch);
+    dispatch(authStateChanged({ profile: updated }));
+  };
+
   const handleSaveName = async () => {
     if (!nameChanged) return;
     setSavingName(true);
     setNameError(null);
     try {
-      await updateUserDisplayName(profile.uid, name);
-      const refreshed = await fetchOrCreateProfile();
-      dispatch(authStateChanged({ profile: refreshed }));
+      await saveProfile({ name: name.trim() });
     } catch (error) {
       console.warn('[ProfileScreen] name save failed', error);
       setNameError(t('profile.nameError'));
@@ -94,9 +95,7 @@ export function ProfileScreen() {
     try {
       const dataUrl = await pickAvatarDataUrl();
       if (dataUrl) {
-        await updateUserPhoto(profile.uid, dataUrl);
-        const refreshed = await fetchOrCreateProfile();
-        dispatch(authStateChanged({ profile: refreshed }));
+        await saveProfile({ photoData: dataUrl });
       }
     } catch (error) {
       console.warn('[ProfileScreen] photo failed', error);
@@ -108,9 +107,7 @@ export function ProfileScreen() {
   const handleRemovePhoto = async () => {
     setPhotoBusy(true);
     try {
-      await removeUserPhoto(profile.uid);
-      const refreshed = await fetchOrCreateProfile();
-      dispatch(authStateChanged({ profile: refreshed }));
+      await saveProfile({ photoData: null });
     } catch (error) {
       console.warn('[ProfileScreen] photo remove failed', error);
     } finally {
@@ -121,14 +118,14 @@ export function ProfileScreen() {
   const handleChangePassword = async () => {
     setPasswordMessage(null);
     setPasswordError(false);
-    if (currentPassword.length === 0 || newPassword.length < 6) {
+    if (currentPassword.length === 0 || newPassword.length < MIN_PASSWORD_LENGTH) {
       setPasswordMessage(t('profile.passwordRequired'));
       setPasswordError(true);
       return;
     }
     setSavingPassword(true);
     try {
-      await changeUserPassword(profile.email, currentPassword, newPassword);
+      await changeUserPassword(currentPassword, newPassword);
       setPasswordMessage(t('profile.passwordUpdated'));
       setCurrentPassword('');
       setNewPassword('');

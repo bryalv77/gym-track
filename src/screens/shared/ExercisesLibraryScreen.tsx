@@ -21,6 +21,8 @@ import { useAppSelector } from '../../store/hooks';
 import { selectExercisesSorted } from '../../store/slices/exercisesSlice';
 import { metricLabel } from '../../utils/exercisePresets';
 import { ExerciseFormModal } from '../../components/ExerciseFormModal';
+import type { Exercise, ExerciseType } from '../../types';
+import { matchesQuery } from '../../utils/search';
 
 type TypeFilter = 'all' | 'strength' | 'cardio' | 'other';
 
@@ -36,10 +38,9 @@ export function ExercisesLibraryScreen() {
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
 
   const visible = useMemo(() => {
-    const needle = query.trim().toLowerCase();
     return exercises
       .filter((exercise) => typeFilter === 'all' || exercise.type === typeFilter)
-      .filter((exercise) => needle.length === 0 || exerciseName(exercise).toLowerCase().includes(needle));
+      .filter((exercise) => matchesQuery(query, exerciseName(exercise)));
   }, [exercises, query, typeFilter]);
 
   // Suggested starter exercises get their own section on top (already in
@@ -47,11 +48,9 @@ export function ExercisesLibraryScreen() {
   const suggested = useMemo(() => visible.filter((exercise) => exercise.suggestedOrder != null), [visible]);
   const byType = useMemo(() => {
     const rest = visible.filter((exercise) => exercise.suggestedOrder == null);
-    return {
-      strength: rest.filter((exercise) => exercise.type === 'strength'),
-      cardio: rest.filter((exercise) => exercise.type === 'cardio'),
-      other: rest.filter((exercise) => exercise.type === 'other'),
-    };
+    return Object.fromEntries(
+      EXERCISE_TYPES.map((type) => [type, rest.filter((exercise) => exercise.type === type)]),
+    ) as Record<ExerciseType, Exercise[]>;
   }, [visible]);
 
   return (
@@ -62,7 +61,6 @@ export function ExercisesLibraryScreen() {
         subtitle={t('library.subtitle', { count: exercises.length })}
       />
 
-      {/* Primary action stays at the top, above the library. */}
       <Button
         label={t('library.newExercise')}
         icon="add"
@@ -114,15 +112,11 @@ export function ExercisesLibraryScreen() {
               onEdit={openEdit}
             />
           ) : null}
-          {byType.strength.length > 0 ? (
-            <TypeSection type="strength" exercises={byType.strength} onEdit={openEdit} />
-          ) : null}
-          {byType.cardio.length > 0 ? (
-            <TypeSection type="cardio" exercises={byType.cardio} onEdit={openEdit} />
-          ) : null}
-          {byType.other.length > 0 ? (
-            <TypeSection type="other" exercises={byType.other} onEdit={openEdit} />
-          ) : null}
+          {EXERCISE_TYPES.map((type) =>
+            byType[type].length > 0 ? (
+              <TypeSection key={type} type={type} exercises={byType[type]} onEdit={openEdit} />
+            ) : null,
+          )}
           <ListGroupFooter label={t('library.tapToEdit')} />
         </View>
       )}
@@ -147,17 +141,9 @@ function TypeSection({
   exercises,
   onEdit,
 }: {
-  type: 'strength' | 'cardio' | 'other';
-  /** Overrides the header (defaults to the type's label). */
+  type: ExerciseType;
   title?: string;
-  exercises: Array<{
-    id: string;
-    name: string;
-    suggestedOrder?: number;
-    imageUrl?: string;
-    videoUrl?: string;
-    metricFields: Array<{ label: string; unit: string }>;
-  }>;
+  exercises: Exercise[];
   onEdit: (id: string) => void;
 }) {
   const { colors } = useTheme();
@@ -190,6 +176,8 @@ function TypeSection({
     </View>
   );
 }
+
+const EXERCISE_TYPES: ExerciseType[] = ['strength', 'cardio', 'other'];
 
 const styles = StyleSheet.create({
   filters: { gap: 10, marginBottom: 12 },

@@ -1,4 +1,5 @@
 import { scrypt } from 'node:crypto';
+import { timingSafeEqual } from './timingSafeEqual';
 
 // Firebase Auth's modified scrypt, used only to verify passwords of users
 // migrated from Firebase. They are re-hashed with PBKDF2 on first login.
@@ -36,8 +37,5 @@ export async function verifyFirebaseScrypt(
     ),
   );
   const actual = btoa(String.fromCharCode(...hashed));
-  if (actual.length !== expectedB64.length) return false;
-  let diff = 0;
-  for (let i = 0; i < actual.length; i++) diff |= actual.charCodeAt(i) ^ expectedB64.charCodeAt(i);
-  return diff === 0;
+  return timingSafeEqual(actual, expectedB64);
 }

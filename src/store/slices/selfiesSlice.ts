@@ -1,5 +1,4 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import { asNumber, asOptionalString, asString, isRecord } from '../../utils/guards';
 import type { DailySelfie, SelfiesById } from '../../types';
 
 interface SelfiesState {
@@ -8,30 +7,12 @@ interface SelfiesState {
 
 const initialState: SelfiesState = { items: {} };
 
-/** Converts the raw `selfies/{uid}` RTDB payload into typed records. */
-export function normalizeSelfies(value: unknown): SelfiesById {
-  const items: SelfiesById = {};
-  if (!isRecord(value)) return items;
-  for (const [id, entry] of Object.entries(value)) {
-    if (!isRecord(entry)) continue;
-    items[id] = {
-      id,
-      dateKey: asString(entry.dateKey, ''),
-      photoData: asString(entry.photoData, ''),
-      notes: asOptionalString(entry.notes),
-      takenAt: asNumber(entry.takenAt, 0),
-      createdAt: asNumber(entry.createdAt, 0),
-    };
-  }
-  return items;
-}
-
 const selfiesSlice = createSlice({
   name: 'selfies',
   initialState,
   reducers: {
-    selfiesUpdated(state, action: PayloadAction<unknown>) {
-      state.items = normalizeSelfies(action.payload);
+    selfiesUpdated(state, action: PayloadAction<SelfiesById>) {
+      state.items = action.payload;
     },
   },
 });
@@ -52,9 +33,7 @@ export function selectSelfiesSorted(
 /** The selfie for a given day (there should be at most one). */
 export function selectSelfieForDate(
   state: { selfies: SelfiesState },
-  uid: string,
   dateKey: string,
 ): DailySelfie | undefined {
-  void uid;
   return Object.values(state.selfies.items).find((entry) => entry.dateKey === dateKey);
 }

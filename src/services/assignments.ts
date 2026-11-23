@@ -1,48 +1,42 @@
-import { apiRequest, createPoller, emitSyncInvalidate } from '../config/api';
+import { mutate, subscribeToPath } from '../config/api';
+import type { AssignRoutineRequest, UnassignRoutineRequest } from '../types/api';
 import type { Assignment, AssignmentsByDate } from '../types';
 
 /** Live subscription to the whole `assignments` tree (filtered client-side). */
-export function subscribeToAssignments(callback: (value: unknown) => void): () => void {
-  return createPoller(
-    'assignments',
-    () => apiRequest<AssignmentsByDate>('/api/assignments'),
-    callback,
-    (error) => console.warn('[assignments] subscription error:', error.message),
-  );
+export function subscribeToAssignments(callback: (value: AssignmentsByDate) => void): () => void {
+  return subscribeToPath('assignments', '/api/assignments', callback);
 }
 
-export async function createAssignment(
-  input: Omit<Assignment, 'id' | 'createdAt'>,
-): Promise<void> {
-  await apiRequest('/api/assignments', {
-    method: 'POST',
-    body: JSON.stringify(input),
-  });
-  emitSyncInvalidate('assignments');
+const assignmentPath = (dateKey: string, id: string) =>
+  `/api/assignments/${encodeURIComponent(dateKey)}/${encodeURIComponent(id)}`;
+
+export function createAssignment(input: Omit<Assignment, 'id' | 'createdAt'>): Promise<void> {
+  return mutate('POST', '/api/assignments', input, 'assignments');
 }
 
-export async function updateAssignment(
+export function updateAssignment(
   dateKey: string,
   assignmentId: string,
   patch: Partial<Omit<Assignment, 'id' | 'dateKey'>>,
 ): Promise<void> {
-  await apiRequest(
-    `/api/assignments/${encodeURIComponent(dateKey)}/${encodeURIComponent(assignmentId)}`,
-    {
-      method: 'PATCH',
-      body: JSON.stringify(patch),
-    },
-  );
-  emitSyncInvalidate('assignments');
+  return mutate('PATCH', assignmentPath(dateKey, assignmentId), patch, 'assignments');
 }
 
 /** Unassign: removes the exercise from the member's day. */
-export async function deleteAssignment(dateKey: string, assignmentId: string): Promise<void> {
-  await apiRequest(
-    `/api/assignments/${encodeURIComponent(dateKey)}/${encodeURIComponent(assignmentId)}`,
-    {
-      method: 'DELETE',
-    },
-  );
-  emitSyncInvalidate('assignments');
+export function deleteAssignment(dateKey: string, assignmentId: string): Promise<void> {
+  return mutate('DELETE', assignmentPath(dateKey, assignmentId), undefined, 'assignments');
+}
+
+/**
+ * Assigns a routine to members for a day as individual assignments (one per
+ * exercise) that carry the routine's name. Assigning the same routine to the
+ * same member and day again replaces the earlier copy instead of duplicating.
+ */
+export function assignRoutine(request: AssignRoutineRequest): Promise<void> {
+  return mutate('POST', '/api/assignments/routine', request, 'assignments');
+}
+
+/** Removes every exercise a member received from one routine on one day. */
+export function unassignRoutine(request: UnassignRoutineRequest): Promise<void> {
+  return mutate('POST', '/api/assignments/routine/unassign', request, 'assignments');
 }

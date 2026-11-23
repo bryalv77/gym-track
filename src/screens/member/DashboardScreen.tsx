@@ -25,6 +25,7 @@ import {
   formatShortDate,
   toDateKey,
   weekdayInitial,
+  formatTime,
 } from '../../utils/date';
 import { DEFAULT_BODY_WEIGHT_KG, estimateCalories } from '../../utils/calories';
 import type { ThemeColors } from '../../theme';
@@ -160,7 +161,7 @@ export function DashboardScreen() {
 
 function HistoryRow({ date, dateKey, kcal }: { date: Date; dateKey: string; kcal: number }) {
   const { colors } = useTheme();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const profile = useAppSelector((state) => state.auth.profile);
   const assignments = useAppSelector((state) =>
     profile ? selectMemberAssignments(state, dateKey, profile.uid) : [],
@@ -190,10 +191,7 @@ function HistoryRow({ date, dateKey, kcal }: { date: Date; dateKey: string; kcal
               name: firstName,
               more: done > 1 ? t('member.dashboard.more', { count: done - 1 }) : '',
               kcal,
-              time: new Date(lastCompletedAt).toLocaleTimeString(i18n.language, {
-                hour: '2-digit',
-                minute: '2-digit',
-              }),
+              time: formatTime(lastCompletedAt),
             })
           : undefined
       }

@@ -21,23 +21,16 @@ export async function requireAuth(c: Context<AppEnv>, next: Next) {
     return c.json({ error: 'Invalid or expired token', code: 'auth/invalid-credential' }, 401);
   }
 
-  // Check current role in DB if available, falling back to token claim
-  try {
-    const sql = getSql(c.env);
-    const rows = await sql`SELECT uid, email, role FROM users WHERE uid = ${verified.uid} LIMIT 1`;
-    if (rows.length > 0) {
-      const dbRole = rows[0].role as Role;
-      c.set('user', {
-        uid: String(rows[0].uid),
-        email: String(rows[0].email ?? verified.email),
-        role: dbRole,
-      });
-    } else {
-      c.set('user', verified);
-    }
-  } catch {
-    c.set('user', verified);
+  const sql = getSql(c.env);
+  const rows = await sql`SELECT uid, email, role FROM users WHERE uid = ${verified.uid} LIMIT 1`;
+  if (rows.length === 0) {
+    return c.json({ error: 'Invalid or expired token', code: 'auth/invalid-credential' }, 401);
   }
+  c.set('user', {
+    uid: String(rows[0].uid),
+    email: String(rows[0].email ?? verified.email),
+    role: rows[0].role as Role,
+  });
 
   await next();
 }

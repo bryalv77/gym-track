@@ -6,10 +6,11 @@ import { AppText, Button, Chip, SearchField, SheetModal } from '../ui';
 import { useAppSelector } from '../store/hooks';
 import { selectGymMembers } from '../store/slices/membersSlice';
 import { selectRoutinesSorted } from '../store/slices/routinesSlice';
-import { assignRoutine } from '../services/routines';
+import { assignRoutine } from '../services/assignments';
 import { exerciseName } from '../utils/defaultExerciseData';
 import { formatFullDate, parseDateKey } from '../utils/date';
 import { useResetOnChange } from '../utils/useResetOnChange';
+import { matchesQuery } from '../utils/search';
 
 /** Coach sheet to send one of their routines to one or more members for a day. */
 export function AssignRoutineModal({
@@ -38,7 +39,6 @@ export function AssignRoutineModal({
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  // Re-initialize the form whenever it opens or its inputs change.
   useResetOnChange([visible, initialMemberId], visible, () => {
     setRoutineId(null);
     setMemberIds(initialMemberId ? [initialMemberId] : []);
@@ -46,15 +46,10 @@ export function AssignRoutineModal({
     setError(null);
   });
 
-  const visibleMembers = useMemo(() => {
-    const needle = memberQuery.trim().toLowerCase();
-    if (needle.length === 0) return gymMembers;
-    return gymMembers.filter(
-      (member) =>
-        member.name.toLowerCase().includes(needle) ||
-        member.email.toLowerCase().includes(needle),
-    );
-  }, [gymMembers, memberQuery]);
+  const visibleMembers = useMemo(
+    () => gymMembers.filter((member) => matchesQuery(memberQuery, member.name, member.email)),
+    [gymMembers, memberQuery],
+  );
 
   if (!coach) return null;
 

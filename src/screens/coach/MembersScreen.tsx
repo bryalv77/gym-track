@@ -21,6 +21,7 @@ import { useAppSelector } from '../../store/hooks';
 import { selectGymMembers, selectUserById } from '../../store/slices/membersSlice';
 import { selectCompletionCountForDates } from '../../store/slices/completionsSlice';
 import { addDays, toDateKey } from '../../utils/date';
+import { matchesQuery } from '../../utils/search';
 
 type SortMode = 'name' | 'activity';
 
@@ -39,15 +40,10 @@ export function MembersScreen() {
     return Array.from({ length: 7 }, (_, index) => toDateKey(addDays(today, index - 6)));
   }, []);
 
-  const visibleMembers = useMemo(() => {
-    const needle = query.trim().toLowerCase();
-    return members.filter(
-      (member) =>
-        needle.length === 0 ||
-        member.name.toLowerCase().includes(needle) ||
-        member.email.toLowerCase().includes(needle),
-    );
-  }, [members, query]);
+  const visibleMembers = useMemo(
+    () => members.filter((member) => matchesQuery(query, member.name, member.email)),
+    [members, query],
+  );
 
   const completionsByUser = useAppSelector((state) => state.completions.byUser);
   const sortedMembers = useMemo(() => {

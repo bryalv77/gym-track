@@ -77,9 +77,4 @@ export async function getLanguageOverride(): Promise<LanguageCode | null> {
   }
 }
 
-/** BCP-47 tag of the active language, for Intl / toLocale* formatting. */
-export function currentLocale(): string {
-  return i18n.language || 'en';
-}
-
 export default i18n;

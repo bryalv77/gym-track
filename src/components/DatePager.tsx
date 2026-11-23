@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { radius, useTheme } from '../theme';
+import { radius, useTheme, pressedOpacity } from '../theme';
 import { AppText, CalendarMonth, Ionicons, SheetModal } from '../ui';
 import { addDays, formatFullDate, isToday } from '../utils/date';
 
@@ -33,7 +33,7 @@ export function DatePager({
         style={({ pressed }) => [
           styles.arrow,
           { backgroundColor: colors.surface },
-          pressed && { opacity: 0.5 },
+          pressed && { opacity: pressedOpacity },
         ]}
         onPress={() => onChange(addDays(date, -1))}
         hitSlop={8}
@@ -47,7 +47,7 @@ export function DatePager({
         style={({ pressed }) => [
           styles.dateButton,
           { backgroundColor: colors.surface },
-          pressed && { opacity: 0.6 },
+          pressed && { opacity: pressedOpacity },
         ]}
         onPress={() => setCalendarVisible(true)}
         accessibilityLabel={t('member.datePager.openCalendar')}
@@ -67,7 +67,7 @@ export function DatePager({
         style={({ pressed }) => [
           styles.arrow,
           { backgroundColor: colors.surface },
-          pressed && { opacity: 0.5 },
+          pressed && { opacity: pressedOpacity },
         ]}
         onPress={() => onChange(addDays(date, 1))}
         disabled={!canGoForward}

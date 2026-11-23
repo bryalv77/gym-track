@@ -40,7 +40,7 @@ export function MeasurementFormModal({
   const [notes, setNotes] = useState('');
   const { saving, error, setError, submit } = useSubmit('MeasurementFormModal');
 
-  useResetOnChange([visible, editing, defaultDateKey], visible, () => {
+  useResetOnChange([visible, editing, defaultDateKey], () => {
     setDateKey(editing?.dateKey ?? defaultDateKey ?? toDateKey(new Date()));
     setWeight(editing?.weightKg != null ? String(editing.weightKg) : '');
     setChest(editing?.chestCm != null ? String(editing.chestCm) : '');
@@ -49,7 +49,7 @@ export function MeasurementFormModal({
     setThigh(editing?.thighCm != null ? String(editing.thighCm) : '');
     setNotes(editing?.notes ?? '');
     setError(null);
-  });
+  }, visible);
 
   if (!profile) return null;
 

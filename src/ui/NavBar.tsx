@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { useTheme } from '../theme';
+import { useTheme, disabledOpacity } from '../theme';
 import { AppText } from './Text';
 import { Ionicons } from './icons';
 
@@ -62,7 +62,7 @@ export function NavBar({
             accessibilityState={{ disabled: Boolean(rightDisabled) }}
             accessibilityLabel={rightLabel}
           >
-            <AppText style={[styles.actionText, { color: colors.systemBlue }, rightDisabled && { opacity: 0.4 }]}>
+            <AppText style={[styles.actionText, { color: colors.systemBlue }, rightDisabled && { opacity: disabledOpacity }]}>
               {rightLabel}
             </AppText>
           </Pressable>

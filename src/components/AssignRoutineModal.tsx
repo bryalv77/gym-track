@@ -39,12 +39,12 @@ export function AssignRoutineModal({
   const [memberQuery, setMemberQuery] = useState('');
   const { saving, error, setError, submit } = useSubmit('AssignRoutineModal');
 
-  useResetOnChange([visible, initialMemberId], visible, () => {
+  useResetOnChange([visible, initialMemberId], () => {
     setRoutineId(null);
     setMemberIds(initialMemberId ? [initialMemberId] : []);
     setMemberQuery('');
     setError(null);
-  });
+  }, visible);
 
   const visibleMembers = useMemo(
     () => gymMembers.filter((member) => matchesQuery(memberQuery, member.name, member.email)),

@@ -1,6 +1,6 @@
 import React from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, ViewStyle } from 'react-native';
-import { radius, useTheme } from '../theme';
+import { radius, useTheme, disabledOpacity } from '../theme';
 import { Ionicons, type IconName } from './icons';
 import { AppText } from './Text';
 
@@ -104,5 +104,5 @@ const styles = StyleSheet.create({
     gap: 6,
     width: '100%',
   },
-  dimmed: { opacity: 0.4 },
+  dimmed: { opacity: disabledOpacity },
 });

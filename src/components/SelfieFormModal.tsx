@@ -32,11 +32,11 @@ export function SelfieFormModal({
   const { saving, error, setError, submit } = useSubmit('SelfieFormModal');
   const [picking, setPicking] = useState(false);
 
-  useResetOnChange([visible, editing, dateKey], visible, () => {
+  useResetOnChange([visible, editing, dateKey], () => {
     setPhotoData(editing?.photoData ?? null);
     setNotes(editing?.notes ?? '');
     setError(null);
-  });
+  }, visible);
 
   if (!profile) return null;
 

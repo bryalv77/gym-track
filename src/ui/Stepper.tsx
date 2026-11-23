@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { tabularNums, useTheme } from '../theme';
+import { tabularNums, useTheme, disabledOpacity, radius } from '../theme';
 import { AppText } from './Text';
 import { Ionicons } from './icons';
 import { useResetOnChange } from '../utils/useResetOnChange';
@@ -39,7 +39,7 @@ export function Stepper({
   const holdTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const holdTicksRef = useRef(0);
 
-  useResetOnChange([value, editing], !editing, () => setDraft(String(value)));
+  useResetOnChange([value, editing], () => setDraft(String(value)), !editing);
 
   const stopHold = useCallback(() => {
     if (holdTimerRef.current) {
@@ -190,7 +190,7 @@ export function Stepper({
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  control: { flexDirection: 'row', alignItems: 'center', borderRadius: 10, overflow: 'hidden' },
+  control: { flexDirection: 'row', alignItems: 'center', borderRadius: radius.md, overflow: 'hidden' },
   segment: { minWidth: 42, minHeight: 44, paddingHorizontal: 10, alignItems: 'center', justifyContent: 'center' },
   divider: { width: StyleSheet.hairlineWidth, alignSelf: 'stretch' },
   readoutCell: {
@@ -209,5 +209,5 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     paddingHorizontal: 2,
   },
-  dimmed: { opacity: 0.35 },
+  dimmed: { opacity: disabledOpacity },
 });

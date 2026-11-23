@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { exerciseName } from '../../utils/defaultExerciseData';
 import { Image, Pressable, StyleSheet, Vibration, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { tabularNums, radius, useTheme } from '../../theme';
+import { tabularNums, radius, useTheme, pressedOpacity } from '../../theme';
 import {
   AppText,
   Card,
@@ -82,14 +82,14 @@ export function TodayScreen() {
     detailAssignment ? selectExerciseById(state, detailAssignment.exerciseId) : undefined,
   );
 
-  useResetOnChange([dateKey, profile?.uid], true, () => {
+  useResetOnChange([dateKey, profile?.uid], () => {
     setOptimistic({});
     setToggleError(null);
   });
 
   // Drop an optimistic override once the store reflects the intended state,
   // so the subscription's eventual update doesn't cause a visible flicker.
-  useResetOnChange([completions], true, () => {
+  useResetOnChange([completions], () => {
     setOptimistic((prev) => {
       let changed = false;
       const next: Record<string, number | null> = {};
@@ -530,7 +530,7 @@ const styles = StyleSheet.create({
   checkBadge: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: radius.xxl,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -548,7 +548,7 @@ const styles = StyleSheet.create({
   hint: { marginLeft: 4, marginTop: 2 },
   exerciseCard: { overflow: 'hidden' },
   cardPressable: { gap: 12 },
-  pressed: { opacity: 0.7 },
+  pressed: { opacity: pressedOpacity },
   cardTopRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   exerciseIcon: {
     width: 40,

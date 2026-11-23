@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { useTheme } from '../theme';
+import { useTheme, disabledOpacity, radius } from '../theme';
 import { AppText } from './Text';
 import { Ionicons, type IconName } from './icons';
 
@@ -126,7 +126,7 @@ export function ListRow({
 }
 
 const styles = StyleSheet.create({
-  group: { borderRadius: 10, overflow: 'hidden' },
+  group: { borderRadius: radius.md, overflow: 'hidden' },
   separator: { height: StyleSheet.hairlineWidth, marginLeft: 16 },
   header: { marginLeft: 32, marginBottom: 7, marginTop: 8 },
   footer: { marginHorizontal: 32, marginTop: 7 },
@@ -140,5 +140,5 @@ const styles = StyleSheet.create({
   },
   iconBox: { width: 29, height: 29, borderRadius: 7, alignItems: 'center', justifyContent: 'center' },
   texts: { flex: 1, gap: 2 },
-  dimmed: { opacity: 0.55 },
+  dimmed: { opacity: disabledOpacity },
 });

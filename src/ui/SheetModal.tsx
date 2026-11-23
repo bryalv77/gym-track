@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     paddingBottom: 16,
   },
-  sheetWeb: { borderRadius: 16, maxWidth: 460 },
+  sheetWeb: { borderRadius: radius.xl, maxWidth: 460 },
   grabber: { alignSelf: 'center', width: 36, height: 5, borderRadius: radius.pill, marginTop: 6 },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8 },
   close: { position: 'absolute', right: 12, top: 10, padding: 6 },

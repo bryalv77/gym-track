@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, StyleSheet } from 'react-native';
-import { radius, useTheme } from '../theme';
+import { radius, useTheme, pressedOpacity } from '../theme';
 import { AppText } from './Text';
 
 /** Toggleable capsule used for filters and pickers. */
@@ -28,7 +28,7 @@ export function Chip({
       style={({ pressed }) => [
         styles.chip,
         { backgroundColor: selected ? colors.systemBlue : colors.fill },
-        (pressed || disabled) && { opacity: 0.6 },
+        (pressed || disabled) && { opacity: pressedOpacity },
       ]}
     >
       <AppText

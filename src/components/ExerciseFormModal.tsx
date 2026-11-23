@@ -56,7 +56,7 @@ export function ExerciseFormModal({
 
   const [initialSnapshot, setInitialSnapshot] = useState('');
 
-  useResetOnChange([visible, editing], visible, () => {
+  useResetOnChange([visible, editing], () => {
     const nextType = editing?.type ?? 'strength';
     const nextFields =
       editing && editing.metricFields.length > 0
@@ -84,7 +84,7 @@ export function ExerciseFormModal({
       description: nextDescription,
       met: nextMet,
     }));
-  });
+  }, visible);
 
   const dirty = useMemo(
     () =>

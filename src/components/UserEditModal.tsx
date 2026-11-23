@@ -33,7 +33,7 @@ export function UserEditModal({
 
   const [initialSnapshot, setInitialSnapshot] = useState('');
 
-  useResetOnChange([visible, user], visible && !!user, () => {
+  useResetOnChange([visible, user], () => {
     if (!user) return;
     setRole(user.role);
     setGymId(user.gymId);
@@ -44,7 +44,7 @@ export function UserEditModal({
       gymId: user.gymId ?? null,
       coachId: user.coachId ?? null,
     }));
-  });
+  }, visible && !!user);
 
   const dirty = useMemo(
     () =>

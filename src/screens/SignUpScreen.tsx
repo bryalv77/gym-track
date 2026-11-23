@@ -34,7 +34,7 @@ export function SignUpScreen({ navigation }: SignUpScreenProps) {
   useEffect(() => subscribeToGyms((value) => setGyms(Object.values(value))), []);
 
   // A code only means anything for a coach — clear it if the role changes back.
-  useResetOnChange([role], role === 'member', () => setCoachCode(''));
+  useResetOnChange([role], () => setCoachCode(''), role === 'member');
 
   const sortedGyms = gyms.slice().sort((a, b) => a.name.localeCompare(b.name));
 

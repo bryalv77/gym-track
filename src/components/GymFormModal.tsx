@@ -27,11 +27,11 @@ export function GymFormModal({
   const { saving, error, setError, submit } = useSubmit('GymFormModal');
   const [initialSnapshot, setInitialSnapshot] = useState('');
 
-  useResetOnChange([visible, gym], visible, () => {
+  useResetOnChange([visible, gym], () => {
     setName(gym?.name ?? '');
     setError(null);
     setInitialSnapshot(gym?.name ?? '');
-  });
+  }, visible);
 
   const dirty = useMemo(() => name !== initialSnapshot, [name, initialSnapshot]);
 

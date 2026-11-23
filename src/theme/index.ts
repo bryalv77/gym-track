@@ -129,6 +129,10 @@ export const darkColors: ThemeColors = {
   tabBarInactive: 'rgba(235, 235, 245, 0.60)',
 };
 
+/** Opacity of a pressed control and of a disabled/dimmed one. */
+export const pressedOpacity = 0.6;
+export const disabledOpacity = 0.4;
+
 export const radius = {
   sm: 8,
   md: 10,

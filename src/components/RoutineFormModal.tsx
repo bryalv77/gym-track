@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { radius, useTheme } from '../theme';
+import { radius, useTheme, disabledOpacity } from '../theme';
 import {
   AppText,
   Button,
@@ -68,7 +68,7 @@ export function RoutineFormModal({
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
   const { saving, error, setError, submit } = useSubmit('RoutineFormModal');
 
-  useResetOnChange([visible, routine], visible, () => {
+  useResetOnChange([visible, routine], () => {
     setName(routine?.name ?? '');
     setItems(
       (routine?.items ?? []).map((item, index) => ({
@@ -83,7 +83,7 @@ export function RoutineFormModal({
     setQuery('');
     setTypeFilter('all');
     setError(null);
-  });
+  }, visible);
 
   const visibleExercises = useMemo(() => {
     return exercises
@@ -361,7 +361,7 @@ function IconButton({
       disabled={disabled}
       hitSlop={8}
       accessibilityLabel={label}
-      style={[styles.iconButton, disabled && { opacity: 0.3 }]}
+      style={[styles.iconButton, disabled && { opacity: disabledOpacity }]}
     >
       <Ionicons name={name} size={20} color={color ?? colors.systemBlue} />
     </Pressable>

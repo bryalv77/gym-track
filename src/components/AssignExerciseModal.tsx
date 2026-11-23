@@ -86,7 +86,7 @@ export function AssignExerciseModal({
       .filter((exercise) => matchesQuery(exerciseQuery, exerciseName(exercise)));
   }, [exercises, exerciseQuery, typeFilter]);
 
-  useResetOnChange([visible, assignment, initialMemberId], visible, () => {
+  useResetOnChange([visible, assignment, initialMemberId], () => {
     setMemberId(assignment?.memberId ?? initialMemberId ?? null);
     setExerciseId(assignment?.exerciseId ?? null);
     setNotes(assignment?.notes ?? '');
@@ -94,11 +94,11 @@ export function AssignExerciseModal({
     setExerciseQuery('');
     setTypeFilter('all');
     setError(null);
-  });
+  }, visible);
 
   // When an exercise is picked, initialize metrics with the assignment's
   // existing values or the exercise defaults.
-  useResetOnChange([visible, selectedExercise, assignment], !!selectedExercise, () => {
+  useResetOnChange([visible, selectedExercise, assignment], () => {
     if (!visible || !selectedExercise) return;
     const initial: Record<string, number> = {};
     for (const field of selectedExercise.metricFields) {
@@ -108,7 +108,7 @@ export function AssignExerciseModal({
           : field.defaultValue;
     }
     setMetrics(initial);
-  });
+  }, !!selectedExercise);
 
   if (!coach) return null;
 

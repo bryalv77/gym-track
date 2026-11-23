@@ -40,7 +40,7 @@ export function ExerciseDetailSheet({
   const [toggleError, setToggleError] = useState<string | null>(null);
   const [toggling, setToggling] = useState(false);
 
-  useResetOnChange([visible, assignment?.id], true, () => {
+  useResetOnChange([visible, assignment?.id], () => {
     setToggleError(null);
     setToggling(false);
   });

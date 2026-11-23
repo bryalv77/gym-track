@@ -1,173 +1,207 @@
-# Graph Report - gym-track  (2026-11-16)
+# Graph Report - gym-track  (2026-11-23)
 
 ## Corpus Check
-- 131 files · ~72,120 words
+- 116 files · ~50,104 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 814 nodes · 2431 edges · 23 communities (19 shown, 4 thin omitted)
-- Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 29 edges (avg confidence: 0.81)
+- 782 nodes · 2776 edges · 36 communities (26 shown, 10 thin omitted)
+- Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 53 edges (avg confidence: 0.86)
 - Token cost: 0 input · 0 output
 
-## Graph Freshness
-- Built from commit: `4554fba4`
-- Run `git rev-parse HEAD` and compare to check if the graph is stale.
-- Run `graphify update .` after code changes (no API cost).
-
 ## Community Hubs (Navigation)
-- TodayScreen.tsx
-- i18n/index.ts
-- useTheme
-- schema.sql
-- DataSync.tsx
-- services/auth.ts
-- types/index.ts
-- slices/exercisesSlice.ts
-- expo
-- Realtime Database Data Model
-- Firebase → Hono (Cloudflare Workers / Wrangler) + Neon Postgres Migration Plan
-- Migration Status Tracker (`status_migration_plan.md`)
-- dependencies
-- compilerOptions
-- migrate.mjs
-- scripts
-- eslint.config.js
-- tsconfig.json
-- defaultExerciseData.ts
-- graphify.js
-- Q: Why does useTheme() connect to 7 communities?
-- rules/graphify.md
-- workflows/graphify.md
+- useTheme() cluster
+- types/index.ts cluster
+- TodayScreen.tsx cluster
+- ui/index.ts cluster
+- DataSync.tsx cluster
+- RootNavigator.tsx cluster
+- i18n/index.ts cluster
+- store/index.ts cluster
+- expo cluster
+- dependencies cluster
+- package.json cluster
+- compilerOptions cluster
+- scripts cluster
+- GymTrack cluster
+- photo.ts cluster
+- 2026-11-16T23-33-51Z__src.md cluster
+- migrate.mjs cluster
+- eslint.config.js cluster
+- tsconfig.json cluster
+- Q: Why does useTheme() connect to 7 comm cluster
+- Splash icon image (light gray grid with  cluster
+- Android adaptive icon background (light  cluster
+- Android adaptive icon foreground (blue g cluster
+- Android monochrome adaptive icon (gray c cluster
+- Favicon (blue chevron/caret-up icon on w cluster
+- App icon: blue 3D glossy chevron (caret/ cluster
+- Personas: Casey, Alex, Jordan, Sam cluster
+- node-crypto.d.ts cluster
+- expo-localization cluster
+- expo-status-bar cluster
+- @expo/vector-icons cluster
+- react-dom@19.2.3 cluster
+- @react-navigation/native cluster
+- P1: Dead-end member directory and chip c cluster
+- P1: Silent mutation failures and invisib cluster
+- Render-phase setState anti-pattern in se cluster
 
 ## God Nodes (most connected - your core abstractions)
-1. `useTheme()` - 100 edges
-2. `useAppSelector` - 50 edges
-3. `apiRequest()` - 43 edges
-4. `emitSyncInvalidate()` - 37 edges
-5. `AppText()` - 36 edges
-6. `isRecord()` - 25 edges
-7. `Button()` - 22 edges
-8. `asNumber()` - 21 edges
-9. `createPoller()` - 20 edges
-10. `exerciseName()` - 20 edges
+1. `useTheme()` - 101 edges
+2. `AppText()` - 76 edges
+3. `react` - 53 edges
+4. `react-native` - 52 edges
+5. `Button()` - 40 edges
+6. `react-i18next` - 31 edges
+7. `mutate()` - 31 edges
+8. `NavBar()` - 28 edges
+9. `radius` - 26 edges
+10. `SheetModal()` - 26 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `AuthUser` --references--> `Role`  [EXTRACTED]
-  api/src/types.ts → src/types/index.ts
-- `IconButton()` --calls--> `useTheme()`  [EXTRACTED]
-  src/components/RoutineFormModal.tsx → src/theme/ThemeProvider.tsx
-- `GymsScreen()` --indirect_call--> `selectGymsSorted()`  [INFERRED]
-  src/screens/admin/GymsScreen.tsx → src/store/slices/gymsSlice.ts
-- `Metric()` --calls--> `useTheme()`  [EXTRACTED]
-  src/screens/member/ProgressScreen.tsx → src/theme/ThemeProvider.tsx
-- `ExercisesLibraryScreen()` --indirect_call--> `selectExercisesSorted()`  [INFERRED]
-  src/screens/shared/ExercisesLibraryScreen.tsx → src/store/slices/exercisesSlice.ts
+- `Questions to Consider` --references--> `selectGymMembers()`  [INFERRED]
+  .impeccable/critique/2026-11-16T23-33-51Z__src.md → src/store/slices/membersSlice.ts
+- `What's Working` --references--> `useTheme()`  [INFERRED]
+  .impeccable/critique/2026-11-16T23-33-51Z__src.md → src/theme/ThemeProvider.tsx
+- `Priority Issues` --references--> `RoutineFormModal()`  [INFERRED]
+  .impeccable/critique/2026-11-16T23-33-51Z__src.md → src/components/RoutineFormModal.tsx
+- `Priority Issues` --references--> `MemberRow()`  [INFERRED]
+  .impeccable/critique/2026-11-16T23-33-51Z__src.md → src/screens/coach/MembersScreen.tsx
+- `Priority Issues` --references--> `TodayScreen()`  [INFERRED]
+  .impeccable/critique/2026-11-16T23-33-51Z__src.md → src/screens/member/TodayScreen.tsx
 
 ## Import Cycles
 - 2-file cycle: `src/theme/ThemeProvider.tsx -> src/theme/index.ts -> src/theme/ThemeProvider.tsx`
 
 ## Hyperedges (group relationships)
-- **Coach-to-Member Daily Training Flow** — readme_admin_role, readme_coach_role, readme_member_role, readme_exercise_library, readme_prescription, readme_completion_tracking [EXTRACTED 0.95]
-- **Firebase Backend Layer** — readme_firebase_auth, readme_realtime_database_model, readme_rtdb_live_sync, readme_database_rules, readme_firebase_config [EXTRACTED 0.95]
-- **Native iOS-Style Presentation Stack** — readme_react_native_expo_platform, readme_react_native_web, readme_ios_ui_kit, readme_ios_design_tokens [INFERRED 0.85]
+- **Impeccable critique priority issues** — impeccable_critique_2026_11_16t23_33_51z_src_p0_workout_checklist, impeccable_critique_2026_11_16t23_33_51z_src_p1_stepper, impeccable_critique_2026_11_16t23_33_51z_src_p1_members_dead_end, impeccable_critique_2026_11_16t23_33_51z_src_p1_silent_failures, impeccable_critique_2026_11_16t23_33_51z_src_p2_accessibility [EXTRACTED 0.95]
 
-## Communities (23 total, 4 thin omitted)
+## Communities (36 total, 10 thin omitted)
 
-### Community 0 - "TodayScreen.tsx"
+### Community 0 - "useTheme() cluster"
+Cohesion: 0.09
+Nodes (86): AssignExerciseModal(), styles, TYPE_FILTERS, TypeFilter, AssignRoutineModal(), styles, ExerciseDetailSheet(), defaultMetrics() (+78 more)
+
+### Community 1 - "types/index.ts cluster"
+Cohesion: 0.07
+Nodes (77): generateId(), getSql(), SqlClient, cleanRoutineItems(), indexBy(), mapAssignmentRow(), mapAssignmentsToByDate(), mapCompletionsToByDate() (+69 more)
+
+### Community 2 - "TodayScreen.tsx cluster"
 Cohesion: 0.06
-Nodes (93): AssignRoutineModal(), styles, DatePager(), ExerciseDetailSheet(), styles, AuthStack, Tab, GymsScreen() (+85 more)
+Nodes (75): Priority Issues, react-i18next, DatePager(), styles, styles, MeasurementFormModal(), NUMERIC, styles (+67 more)
 
-### Community 1 - "i18n/index.ts"
+### Community 3 - "ui/index.ts cluster"
+Cohesion: 0.06
+Nodes (59): react, react-native, react-native-safe-area-context, ExerciseMediaView(), styles, darkColors, disabledOpacity, lightColors (+51 more)
+
+### Community 4 - "DataSync.tsx cluster"
+Cohesion: 0.07
+Nodes (44): ExerciseFormModal(), styles, TYPE_OPTIONS, GymFormModal(), styles, SelfieFormModal(), styles, mutate() (+36 more)
+
+### Community 5 - "RootNavigator.tsx cluster"
+Cohesion: 0.06
+Nodes (47): App(), @react-navigation/native-stack, API_BASE_URL, ApiError, apiRequest(), ChannelListener, channelListeners, createPoller() (+39 more)
+
+### Community 6 - "i18n/index.ts cluster"
+Cohesion: 0.07
+Nodes (31): hasVideo(), seedExercises(), deviceLanguage(), getLanguageOverride(), isSupported(), LanguageCode, LANGUAGES, SECTIONS (+23 more)
+
+### Community 7 - "store/index.ts cluster"
 Cohesion: 0.08
-Nodes (25): App(), deviceLanguage(), getLanguageOverride(), isSupported(), LanguageCode, LANGUAGES, SECTIONS, setLanguage() (+17 more)
+Nodes (29): @reduxjs/toolkit@^2.12.0, @reduxjs/toolkit, AppDispatch, RootState, store, assignmentsReducer, assignmentsSlice, AssignmentsState (+21 more)
 
-### Community 2 - "useTheme"
-Cohesion: 0.06
-Nodes (68): styles, ExerciseMediaView(), styles, ROLE_OPTIONS, styles, UserEditModal(), updateUserProfile(), selectGymsSorted() (+60 more)
-
-### Community 3 - "schema.sql"
-Cohesion: 0.33
-Nodes (9): app_meta, assignments, completions, exercises, gyms, measurements, routines, selfies (+1 more)
-
-### Community 4 - "DataSync.tsx"
-Cohesion: 0.06
-Nodes (78): AssignExerciseModal(), styles, DataSync(), ExerciseFormModal(), styles, TYPE_OPTIONS, GymFormModal(), styles (+70 more)
-
-### Community 5 - "services/auth.ts"
-Cohesion: 0.09
-Nodes (37): ApiError, getAuthToken(), isFirebaseConfigured, setAuthToken(), AuthStackParamList, RootNavigator(), LoginScreen(), LoginScreenProps (+29 more)
-
-### Community 6 - "types/index.ts"
+### Community 8 - "expo cluster"
 Cohesion: 0.07
-Nodes (81): generateId(), getSql(), SqlClient, mapAssignmentRow(), mapAssignmentsToByDate(), mapCompletionsToByDate(), mapCompletionsToByUser(), mapExerciseRow() (+73 more)
+Nodes (27): backgroundColor, backgroundImage, foregroundImage, monochromeImage, adaptiveIcon, predictiveBackGestureEnabled, projectId, expo (+19 more)
 
-### Community 7 - "slices/exercisesSlice.ts"
-Cohesion: 0.07
-Nodes (53): exercisesSlice, ExercisesState, initialState, normalizeExercises(), normalizeFields(), VALID_TYPES, AppDispatch, RootState (+45 more)
+### Community 9 - "dependencies cluster"
+Cohesion: 0.08
+Nodes (25): dependencies, expo@~57.0.24, @expo/metro-runtime@~57.0.16, expo-updates@~57.0.25, hono@^4.13.19, i18next@^26.4.2, react@19.2.3, react-i18next@^17.0.16 (+17 more)
 
-### Community 8 - "expo"
-Cohesion: 0.07
-Nodes (28): backgroundColor, backgroundImage, foregroundImage, monochromeImage, adaptiveIcon, predictiveBackGestureEnabled, projectId, expo (+20 more)
+### Community 10 - "package.json cluster"
+Cohesion: 0.15
+Nodes (16): devDependencies, @cloudflare/workers-types@^5.20261116.1, husky@^9.1.7, @types/react@~19.2.2, typescript@~6.0.3, wrangler@^4.163.0, main, name (+8 more)
 
-### Community 9 - "Realtime Database Data Model"
+### Community 11 - "compilerOptions cluster"
 Cohesion: 0.14
-Nodes (25): Admin Role, Day-and-Member Assignment Workflow (Coach Plan Screen), Weight and Body Measurement Tracking (Progress), Coach Role, Private Coach Routines, Completion Tracking with Timestamps, database.rules.json (Realtime Database Security Rules), Exercise Library (+17 more)
+Nodes (13): compilerOptions, esModuleInterop, isolatedModules, lib, module, moduleResolution, noEmit, resolveJsonModule (+5 more)
 
-### Community 10 - "Firebase → Hono (Cloudflare Workers / Wrangler) + Neon Postgres Migration Plan"
-Cohesion: 0.09
-Nodes (22): 1. Executive Summary & Target Architecture, 2. Blast Radius Analysis (From Knowledge Graph), 3. Postgres Schema Design (NeonDB), 4. Parallel Execution Strategy for Agents & Subagents, 5. Detailed Tasks & Subtasks Breakdown, Firebase → Hono (Cloudflare Workers / Wrangler) + Neon Postgres Migration Plan, Task `T10` (Agent C3) — Routines, Assignments & Completions Client Services, Task `T11` (Agent C4) — Measurements, Selfies & UI/DataSync Wiring (+14 more)
+### Community 12 - "scripts cluster"
+Cohesion: 0.14
+Nodes (14): scripts, android, api:deploy, api:dev, build:web, db:migrate, deploy:mobile, deploy:web (+6 more)
 
-### Community 11 - "Migration Status Tracker (`status_migration_plan.md`)"
-Cohesion: 0.10
-Nodes (20): Agent Activity Log, Migration Status Tracker (`status_migration_plan.md`), Overall Progress Summary, Status Legend, `T10` (Agent Track `C3`) — Routines, Assignments & Completions Client Services, `T11` (Agent Track `C4`) — Measurements, Selfies & UI/DataSync Wiring, `T12` — Firebase Removal, Env/Docs Update & End-to-End Verification, `T1` — Workspace, Cloudflare Wrangler & Hono Scaffold (+12 more)
+### Community 13 - "GymTrack cluster"
+Cohesion: 0.17
+Nodes (11): Runtime import cycle theme/index.ts and ThemeProvider.tsx, useTheme() hook (degree 100 chokepoint), Query: Why does useTheme() connect to 7 communities?, What's Working (theme tokens, routine snapshot, calorie context), Backend Setup (Neon + Wrangler), Backend Setup (NeonDB + Cloudflare Wrangler), GymTrack, Project Structure (+3 more)
 
-### Community 12 - "dependencies"
-Cohesion: 0.04
-Nodes (49): expo, expo-image-manipulator, expo-image-picker, expo-localization, @expo/metro-runtime, expo-status-bar, expo-updates, @expo/vector-icons (+41 more)
+### Community 14 - "photo.ts cluster"
+Cohesion: 0.29
+Nodes (10): expo-image-manipulator@~57.0.19, expo-image-picker@~57.0.19, expo-image-manipulator, expo-image-picker, assetToDataUrl(), pickAvatarDataUrl(), pickSelfieDataUrl(), toDataUrl() (+2 more)
 
-### Community 13 - "compilerOptions"
-Cohesion: 0.11
-Nodes (18): compilerOptions, esModuleInterop, isolatedModules, lib, module, moduleResolution, noEmit, resolveJsonModule (+10 more)
+### Community 15 - "2026-11-16T23-33-51Z__src.md cluster"
+Cohesion: 0.20
+Nodes (9): Design Health Score, Design Specificity Verdict, Minor Observations, Overall Impression, P0: Workout execution is binary checklist under selfie card, Persona Red Flags, Questions to Consider, iOS Settings app wearing a barbell icon verdict (+1 more)
 
-### Community 15 - "scripts"
-Cohesion: 0.06
-Nodes (34): @cloudflare/workers-types, eslint, eslint-config-expo, husky, devDependencies, @cloudflare/workers-types, eslint, eslint-config-expo (+26 more)
+### Community 16 - "migrate.mjs cluster"
+Cohesion: 0.33
+Nodes (4): loadDatabaseUrl(), main(), @neondatabase/serverless@^1.2.1, @neondatabase/serverless
 
-### Community 21 - "tsconfig.json"
-Cohesion: 0.22
-Nodes (8): api, dist, expo/tsconfig.base, node_modules, compilerOptions, strict, exclude, extends
+### Community 17 - "eslint.config.js cluster"
+Cohesion: 0.29
+Nodes (6): { defineConfig }, expoConfig, eslint@^9.0.0, eslint-config-expo@~57.0.2, eslint, eslint-config-expo
 
-### Community 22 - "defaultExerciseData.ts"
-Cohesion: 0.27
-Nodes (10): DEFAULT_EXERCISES, DefaultExercise, exerciseDescription(), findDefaultByName(), Lang, LANGS, matchesDefault(), normalize() (+2 more)
+### Community 18 - "tsconfig.json cluster"
+Cohesion: 0.33
+Nodes (5): expo/tsconfig.base, compilerOptions, strict, exclude, extends
 
-### Community 25 - "graphify.js"
-Cohesion: 0.47
-Nodes (5): hasGraph(), location, IMPORTANT: keep the reminder string free of backticks and $(...) constructs., server(), setup()
-
-### Community 26 - "Q: Why does useTheme() connect to 7 communities?"
+### Community 19 - "Q: Why does useTheme() connect to 7 comm cluster"
 Cohesion: 0.40
 Nodes (4): Answer, Outcome, Q: Why does useTheme() connect to 7 communities?, Source Nodes
 
+### Community 20 - "Splash icon image (light gray grid with  cluster"
+Cohesion: 0.50
+Nodes (4): Concentric circles motif (target/radar), Square grid background pattern, Splash icon image (light gray grid with three concentric circles on white), App splash screen placeholder
+
+### Community 21 - "Android adaptive icon background (light  cluster"
+Cohesion: 0.67
+Nodes (3): Android adaptive icon background layer, Concentric circles, dashed triangle and crosshair guide lines, Android adaptive icon background (light blue with construction guide lines)
+
+### Community 23 - "Android monochrome adaptive icon (gray c cluster"
+Cohesion: 0.67
+Nodes (3): Rounded upward chevron glyph, Android monochrome adaptive icon (gray chevron/caret glyph on white), Android themed (monochrome) app icon
+
+### Community 24 - "Favicon (blue chevron/caret-up icon on w cluster"
+Cohesion: 0.67
+Nodes (3): App branding / browser tab icon, Blue upward chevron logo mark, Favicon (blue chevron/caret-up icon on white rounded square)
+
+### Community 25 - "App icon: blue 3D glossy chevron (caret/ cluster"
+Cohesion: 0.67
+Nodes (3): Blueprint construction guides (concentric circles, dashed diagonals, baseline), gym-track app branding (blue gradient chevron mark), App icon: blue 3D glossy chevron (caret/A shape) on light blue background
+
+### Community 26 - "Personas: Casey, Alex, Jordan, Sam cluster"
+Cohesion: 0.67
+Nodes (3): P1: Stepper-only weight programming and modal backdrop dismissal, P2: Accessibility gaps and low-contrast tertiary text, Personas: Casey, Alex, Jordan, Sam
+
 ## Knowledge Gaps
-- **234 isolated node(s):** `location`, `exercises`, `assignments`, `app_meta`, `SqlClient` (+229 more)
-  These have ≤1 connection - possible missing edges or undocumented components.
-- **4 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **22 isolated node(s):** `expo/tsconfig.base`, `iOS Settings app wearing a barbell icon verdict`, `P1: Stepper-only weight programming and modal backdrop dismissal`, `P1: Dead-end member directory and chip clouds`, `P1: Silent mutation failures and invisible hydration` (+17 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 216 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **10 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `useTheme()` connect `useTheme` to `TodayScreen.tsx`, `DataSync.tsx`, `services/auth.ts`?**
-  _High betweenness centrality (0.053) - this node is a cross-community bridge._
-- **Why does `expo-localization` connect `expo` to `i18n/index.ts`?**
-  _High betweenness centrality (0.049) - this node is a cross-community bridge._
-- **What connects `location`, `exercises`, `assignments` to the rest of the system?**
-  _234 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `TodayScreen.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.05868653935724266 - nodes in this community are weakly interconnected._
-- **Should `i18n/index.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.07692307692307693 - nodes in this community are weakly interconnected._
-- **Should `useTheme` be split into smaller, more focused modules?**
-  _Cohesion score 0.05605670103092784 - nodes in this community are weakly interconnected._
-- **Should `DataSync.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.05891016200294551 - nodes in this community are weakly interconnected._
+- **Why does `react` connect `ui/index.ts cluster` to `useTheme() cluster`, `TodayScreen.tsx cluster`, `DataSync.tsx cluster`, `RootNavigator.tsx cluster`, `dependencies cluster`, `package.json cluster`?**
+  _High betweenness centrality (0.058) - this node is a cross-community bridge._
+- **What connects `expo/tsconfig.base`, `iOS Settings app wearing a barbell icon verdict`, `P1: Stepper-only weight programming and modal backdrop dismissal` to the rest of the system?**
+  _22 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `useTheme() cluster` be split into smaller, more focused modules?**
+  _Cohesion score 0.09175824175824175 - nodes in this community are weakly interconnected._
+- **Why does `useTheme()` connect `useTheme() cluster` to `TodayScreen.tsx cluster`, `ui/index.ts cluster`, `DataSync.tsx cluster`, `RootNavigator.tsx cluster`, `2026-11-16T23-33-51Z__src.md cluster`?**
+  _High betweenness centrality (0.054) - this node is a cross-community bridge._
+- **Should `types/index.ts cluster` be split into smaller, more focused modules?**
+  _Cohesion score 0.06973684210526315 - nodes in this community are weakly interconnected._
+- **Why does `react-native` connect `ui/index.ts cluster` to `useTheme() cluster`, `TodayScreen.tsx cluster`, `DataSync.tsx cluster`, `RootNavigator.tsx cluster`, `dependencies cluster`, `package.json cluster`, `photo.ts cluster`?**
+  _High betweenness centrality (0.051) - this node is a cross-community bridge._
+- **Should `TodayScreen.tsx cluster` be split into smaller, more focused modules?**
+  _Cohesion score 0.05942571785268414 - nodes in this community are weakly interconnected._

@@ -14,7 +14,7 @@ export function getSql(env: EnvBindings): SqlClient {
   return neon(env.DATABASE_URL);
 }
 
-/** Generates a URL-safe unique ID similar to Firebase push keys. */
+/** Generates a URL-safe unique ID. */
 export function generateId(): string {
   const bytes = new Uint8Array(12);
   crypto.getRandomValues(bytes);

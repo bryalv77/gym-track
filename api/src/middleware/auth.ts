@@ -6,8 +6,7 @@ import { getSql } from '../db/client';
 
 /**
  * Verifies the `Authorization: Bearer <token>` header and loads the latest user
- * role from the database (so admin role promotions/demotions take effect immediately,
- * matching Firebase RTDB `root.child('users').child(auth.uid).child('role')`).
+ * role from the database (so role promotions/demotions take effect immediately).
  */
 export async function requireAuth(c: Context<AppEnv>, next: Next) {
   const authHeader = c.req.header('Authorization');

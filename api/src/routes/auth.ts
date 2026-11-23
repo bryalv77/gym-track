@@ -10,7 +10,7 @@ import {
 import type { Role } from '../../../src/types';
 import { getSql, generateId } from '../db/client';
 import { mapUserRow } from '../db/mappers';
-import { hashPassword, verifyPassword, signAuthToken, LEGACY_PREFIX } from '../utils/crypto';
+import { hashPassword, verifyPassword, signAuthToken } from '../utils/crypto';
 import { requireAuth } from '../middleware/auth';
 
 export const authRouter = new Hono<AppEnv>();
@@ -75,14 +75,9 @@ authRouter.post('/login', async (c) => {
 
   const row = rows[0];
   const storedHash = String(row.password_hash ?? '');
-  const valid = await verifyPassword(body.password ?? '', storedHash, c.env);
+  const valid = await verifyPassword(body.password ?? '', storedHash);
   if (!valid) {
     return c.json({ error: 'Invalid credentials', code: 'auth/invalid-credential' }, 401);
-  }
-  // Upgrade users migrated from Firebase to the native hash on their first login.
-  if (storedHash.startsWith(LEGACY_PREFIX)) {
-    const upgraded = await hashPassword(body.password);
-    await sql`UPDATE users SET password_hash = ${upgraded} WHERE uid = ${row.uid}`;
   }
 
   const profile = mapUserRow(row);
@@ -119,7 +114,6 @@ authRouter.post('/change-password', requireAuth, async (c) => {
   const valid = await verifyPassword(
     body.currentPassword ?? '',
     String(rows[0].password_hash ?? ''),
-    c.env,
   );
   if (!valid) {
     return c.json({ error: 'Current password incorrect', code: 'auth/wrong-password' }, 401);

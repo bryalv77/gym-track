@@ -1,6 +1,5 @@
 /** GymTrack UI kit — iOS-styled, theme-aware components with no app/domain
- *  knowledge. Screens compose these; nothing in here imports Redux or
- *  Firebase. */
+ *  knowledge. Screens compose these; nothing in here imports Redux. */
 export { Ionicons, type IconName } from './icons';
 export { AppText, type AppTextProps } from './Text';
 export { Button, type ButtonProps } from './Button';

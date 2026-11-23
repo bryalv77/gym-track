@@ -141,7 +141,7 @@ export function emitSyncInvalidate(...channels: SyncChannel[]): void {
 }
 
 /**
- * Creates a live subscription (compatible with Firebase's `Unsubscribe` return type)
+ * Creates a live subscription (returns an unsubscribe function)
  * that fetches immediately, polls every `intervalMs` (default 10s), and immediately
  * refetches whenever `emitSyncInvalidate(channel)` is triggered locally.
  */

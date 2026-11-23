@@ -1,15 +1,7 @@
 import { sign, verify } from 'hono/jwt';
 import type { AuthUser } from '../types';
 import { isRole } from '../../../src/types';
-import { verifyFirebaseScrypt } from './firebaseScrypt';
 import { timingSafeEqual } from './timingSafeEqual';
-
-export const LEGACY_PREFIX = 'fbscrypt:';
-
-export interface LegacyHashConfig {
-  FIREBASE_SCRYPT_SIGNER_KEY?: string;
-  FIREBASE_SCRYPT_SALT_SEPARATOR?: string;
-}
 
 const ITERATIONS = 100_000;
 const KEY_LENGTH = 32;
@@ -55,14 +47,7 @@ export async function hashPassword(password: string): Promise<string> {
 export async function verifyPassword(
   password: string,
   storedHash: string,
-  legacy: LegacyHashConfig = {},
 ): Promise<boolean> {
-  if (storedHash.startsWith(LEGACY_PREFIX)) {
-    const [, salt, hash] = storedHash.split(':');
-    const { FIREBASE_SCRYPT_SIGNER_KEY: key, FIREBASE_SCRYPT_SALT_SEPARATOR: sep } = legacy;
-    if (!salt || !hash || !key || sep === undefined) return false;
-    return verifyFirebaseScrypt(password, salt, hash, key, sep);
-  }
   const [saltHex, expectedHashHex] = storedHash.split(':');
   if (!saltHex || !expectedHashHex) return false;
   return timingSafeEqual(await derivePbkdf2(password, hexToBytes(saltHex)), expectedHashHex);

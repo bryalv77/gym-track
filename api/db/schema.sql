@@ -1,5 +1,5 @@
 -- GymTrack Neon Postgres Schema (Serverless Postgres)
--- Replaces Firebase Realtime Database trees & security rules
+-- Tables for users, gyms, exercises, routines and tracking data
 
 CREATE TABLE IF NOT EXISTS gyms (
   id TEXT PRIMARY KEY,

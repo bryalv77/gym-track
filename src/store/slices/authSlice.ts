@@ -14,7 +14,7 @@ import {
 import type { Role, UserProfile } from '../../types';
 
 interface AuthState {
-  /** True once the Firebase auth listener has run at least once. */
+  /** True once the auth session restore has run at least once. */
   initialized: boolean;
   profile: UserProfile | null;
   loading: boolean;

@@ -1,4 +1,4 @@
-# GymTrack
+# Fitlance
 
 A multi-gym, multi-role training app built with **React Native + Expo + TypeScript**, styled after the **native iOS UI**, powered by **Hono on Cloudflare Workers (Wrangler)** and **Neon Serverless Postgres**, and running on **iOS, Android and the Web** from one codebase.
 

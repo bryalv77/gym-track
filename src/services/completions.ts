@@ -1,4 +1,5 @@
 import { mutate, subscribeToPath } from '../config/api';
+import { GUEST_UID, setGuestCompletion } from './guest';
 import type { CompletionsByDate, CompletionsByUser } from '../types';
 
 /** Live subscription to one member's completions (member view). */
@@ -21,6 +22,7 @@ export function setCompletion(
   taskId: string,
   done: boolean,
 ): Promise<void> {
+  if (uid === GUEST_UID) return setGuestCompletion(dateKey, taskId, done);
   const path = [uid, dateKey, taskId].map(encodeURIComponent).join('/');
   return mutate('PUT', `/api/completions/${path}`, { done }, 'completions');
 }

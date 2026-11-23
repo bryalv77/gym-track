@@ -37,7 +37,7 @@ export function LoginScreen({ navigation }: LoginScreenProps) {
         <View style={[styles.logo, { backgroundColor: colors.systemBlue }]}>
           <Ionicons name="barbell" size={42} color={colors.onAccent} />
         </View>
-        <AppText variant="largeTitle">GymTrack</AppText>
+        <AppText variant="largeTitle">Fitlance</AppText>
         <AppText variant="subheadline" color={colors.secondaryLabel}>
           {t('auth.tagline')}
         </AppText>
@@ -76,6 +76,16 @@ export function LoginScreen({ navigation }: LoginScreenProps) {
           onPress={() => {
             dispatch(clearAuthError());
             navigation.navigate('SignUp');
+          }}
+        />
+        <Button
+          label={t('guest.useWithoutAccount')}
+          variant="tinted"
+          size="md"
+          icon="key-outline"
+          onPress={() => {
+            dispatch(clearAuthError());
+            navigation.navigate('GuestCode');
           }}
         />
       </View>

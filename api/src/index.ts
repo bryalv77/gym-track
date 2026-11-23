@@ -10,6 +10,7 @@ import { assignmentsRouter } from './routes/assignments';
 import { completionsRouter } from './routes/completions';
 import { measurementsRouter } from './routes/measurements';
 import { selfiesRouter } from './routes/selfies';
+import { guestRouter, shareRouter } from './routes/share';
 
 const app = new Hono<AppEnv>();
 
@@ -41,5 +42,7 @@ app.route('/api/assignments', assignmentsRouter);
 app.route('/api/completions', completionsRouter);
 app.route('/api/measurements', measurementsRouter);
 app.route('/api/selfies', selfiesRouter);
+app.route('/api/share', shareRouter);
+app.route('/api/guest', guestRouter);
 
 export default app;

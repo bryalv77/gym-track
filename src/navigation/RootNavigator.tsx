@@ -16,6 +16,9 @@ import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { authStateChanged } from '../store/slices/authSlice';
 import { fetchProfile, listenToAuth } from '../services/auth';
 import { DataSync } from '../store/DataSync';
+import { GuestCodeScreen } from '../screens/GuestCodeScreen';
+import { GuestProfileScreen } from '../screens/member/GuestProfileScreen';
+import { clearGuest, guestProfile, loadGuest } from '../services/guest';
 import { LoginScreen } from '../screens/LoginScreen';
 import { SignUpScreen } from '../screens/SignUpScreen';
 import { TodayScreen } from '../screens/member/TodayScreen';
@@ -37,6 +40,7 @@ function AuthNavigator() {
     <AuthStack.Navigator screenOptions={{ headerShown: false }}>
       <AuthStack.Screen name="Login" component={LoginScreen} />
       <AuthStack.Screen name="SignUp" component={SignUpScreen} />
+      <AuthStack.Screen name="GuestCode" component={GuestCodeScreen} />
     </AuthStack.Navigator>
   );
 }
@@ -72,13 +76,19 @@ const TABS_BY_ROLE: Record<Role, TabSpec[]> = {
   ],
 };
 
-function RoleTabs({ role }: { role: Role }) {
+const GUEST_TABS: TabSpec[] = [
+  { name: 'Today', component: TodayScreen, icon: 'today-outline' },
+  { name: 'Dashboard', component: DashboardScreen, icon: 'stats-chart-outline' },
+  { name: 'Profile', component: GuestProfileScreen, icon: 'person-circle-outline' },
+];
+
+function RoleTabs({ role, guest = false }: { role: Role; guest?: boolean }) {
   return (
     <Tab.Navigator
       screenOptions={{ headerShown: false, tabBarHideOnKeyboard: Platform.OS !== 'web' }}
       tabBar={(props) => <TabBar {...props} />}
     >
-      {TABS_BY_ROLE[role].map(({ name, component, icon }) => (
+      {(guest ? GUEST_TABS : TABS_BY_ROLE[role]).map(({ name, component, icon }) => (
         <Tab.Screen
           key={name}
           name={name}
@@ -116,9 +126,12 @@ export function RootNavigator() {
   useEffect(() => {
     const unsubscribe = listenToAuth(async (user) => {
       if (!user) {
-        dispatch(authStateChanged({ profile: null }));
+        // No account session: resume an offline guest plan if this device has one.
+        const guest = await loadGuest();
+        dispatch(authStateChanged({ profile: guest ? guestProfile() : null }));
         return;
       }
+      void clearGuest();
       try {
         const loaded = await fetchProfile();
         dispatch(authStateChanged({ profile: loaded }));
@@ -139,7 +152,7 @@ export function RootNavigator() {
       <StatusBar style={mode === 'dark' ? 'light' : 'dark'} />
       <DataSync />
       <NavigationContainer theme={navigationTheme}>
-        {profile === null ? <AuthNavigator /> : <RoleTabs role={profile.role} />}
+        {profile === null ? <AuthNavigator /> : <RoleTabs role={profile.role} guest={profile.guest === true} />}
       </NavigationContainer>
     </>
   );

@@ -16,6 +16,7 @@ import {
 import { useAppSelector } from '../../store/hooks';
 import { selectRoutinesSorted } from '../../store/slices/routinesSlice';
 import { RoutineFormModal } from '../../components/RoutineFormModal';
+import { ShareCodesModal } from '../../components/ShareCodesModal';
 import { exerciseName } from '../../utils/defaultExerciseData';
 import type { Routine } from '../../types';
 import { matchesQuery } from '../../utils/search';
@@ -30,6 +31,7 @@ export function RoutinesScreen() {
   const [query, setQuery] = useState('');
   const [formVisible, setFormVisible] = useState(false);
   const [editing, setEditing] = useState<Routine | null>(null);
+  const [shareVisible, setShareVisible] = useState(false);
 
   const visible = useMemo(() => routines.filter((routine) => matchesQuery(query, routine.name)), [routines, query]);
 
@@ -53,6 +55,16 @@ export function RoutinesScreen() {
         onPress={() => openForm(null)}
         style={styles.newButton}
       />
+      {routines.length > 0 ? (
+        <Button
+          label={t('guest.share.button')}
+          icon="key-outline"
+          variant="tinted"
+          size="md"
+          onPress={() => setShareVisible(true)}
+          style={styles.newButton}
+        />
+      ) : null}
 
       {routines.length > 0 ? (
         <View style={styles.filters}>
@@ -92,6 +104,7 @@ export function RoutinesScreen() {
         </View>
       )}
 
+      <ShareCodesModal visible={shareVisible} onClose={() => setShareVisible(false)} />
       <RoutineFormModal
         visible={formVisible}
         onClose={() => setFormVisible(false)}

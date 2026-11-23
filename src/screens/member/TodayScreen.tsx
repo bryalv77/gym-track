@@ -311,6 +311,7 @@ export function TodayScreen() {
 
       {/* Daily selfie is deliberately demoted below the workout list so a
           member mid-lift reaches their first exercise without scrolling. */}
+      {profile.guest ? null : (
       <Card style={styles.selfieCard}>
         <View style={styles.selfieRow}>
           {selfie ? (
@@ -371,6 +372,7 @@ export function TodayScreen() {
           )}
         </View>
       </Card>
+      )}
 
       <ExerciseDetailSheet
         visible={detailAssignment != null}

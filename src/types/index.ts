@@ -1,4 +1,4 @@
-/** Shared domain types for the GymTrack app. */
+/** Shared domain types for the Fitlance app. */
 
 export const ROLES = ['admin', 'coach', 'member'] as const;
 
@@ -18,6 +18,8 @@ export interface UserProfile {
   /** Profile photo as a small base64 data URL (avatar-sized). */
   photoData?: string;
   createdAt: number;
+  /** Offline guest session (plan code, no account). */
+  guest?: boolean;
 }
 
 export interface Gym {

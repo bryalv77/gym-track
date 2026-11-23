@@ -57,3 +57,19 @@ export interface SaveRoutineRequest {
 export interface SeedExercisesRequest {
   language: Lang;
 }
+
+/** A plan code a coach shared (coach view). */
+export interface ShareCode {
+  code: string;
+  routineId: string;
+  routineName: string;
+  createdAt: number;
+  expiresAt?: number;
+}
+
+/** What a public plan code unlocks: one routine with the exercises it uses. */
+export interface GuestPlan {
+  coachName: string;
+  routine: { name: string; items: RoutineItem[] };
+  exercises: Record<string, import('./index').Exercise>;
+}

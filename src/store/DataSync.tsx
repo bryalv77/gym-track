@@ -19,6 +19,13 @@ import { measurementsUpdated } from './slices/measurementsSlice';
 import { selfiesUpdated } from './slices/selfiesSlice';
 import { routinesUpdated } from './slices/routinesSlice';
 import { membersUpdated, userUpdated } from './slices/membersSlice';
+import { AppState } from 'react-native';
+import {
+  GUEST_UID,
+  buildGuestAssignments,
+  refreshGuest,
+  subscribeToGuest,
+} from '../services/guest';
 
 /**
  * Invisible component that keeps the Redux store in sync with the Hono
@@ -35,8 +42,32 @@ export function DataSync() {
     profile?.role === 'member' ? state.members.byUid[profile.uid]?.coachId : undefined,
   );
 
+  // Guest (plan code, offline): the store is fed from the on-device copy, never the API.
+  const isGuest = profile?.guest === true;
   useEffect(() => {
-    if (!profile) return;
+    if (!isGuest) return;
+    const unsubscribe = subscribeToGuest((guest) => {
+      if (!guest) return;
+      dispatch(exercisesUpdated(guest.exercises));
+      dispatch(assignmentsUpdated(buildGuestAssignments(guest)));
+      dispatch(completionsUserUpdated({ uid: GUEST_UID, value: guest.completions }));
+    });
+    // Pull coach edits whenever a connection happens to be there; failures are silent.
+    void refreshGuest();
+    const appState = AppState.addEventListener('change', (state) => {
+      if (state === 'active') void refreshGuest();
+    });
+    return () => {
+      unsubscribe();
+      appState.remove();
+      dispatch(exercisesUpdated({}));
+      dispatch(assignmentsUpdated({}));
+      dispatch(completionsUserUpdated({ uid: GUEST_UID, value: {} }));
+    };
+  }, [isGuest, dispatch]);
+
+  useEffect(() => {
+    if (!profile || profile.guest) return;
     const unsubscribers: Array<() => void> = [
       subscribeToAssignments((value) => dispatch(assignmentsUpdated(value))),
       subscribeToExercises((value) => dispatch(exercisesUpdated(value))),
@@ -71,7 +102,7 @@ export function DataSync() {
     return () => {
       unsubscribers.forEach((unsubscribe) => unsubscribe());
     };
-  }, [profile?.uid, profile?.role, dispatch]);
+  }, [profile?.uid, profile?.role, profile?.guest, dispatch]);
 
   // Coaches and admins seed the suggested starter exercises (once, if missing).
   const canSeedExercises = profile?.role === 'coach' || profile?.role === 'admin';

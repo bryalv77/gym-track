@@ -53,7 +53,7 @@ export async function verifyPassword(
   return timingSafeEqual(await derivePbkdf2(password, hexToBytes(saltHex)), expectedHashHex);
 }
 
-/** Signs a 30-day JWT for an authenticated GymTrack user. */
+/** Signs a 30-day JWT for an authenticated Fitlance user. */
 export async function signAuthToken(user: AuthUser, secret: string): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
   return sign(

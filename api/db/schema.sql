@@ -1,4 +1,4 @@
--- GymTrack Neon Postgres Schema (Serverless Postgres)
+-- Fitlance Neon Postgres Schema (Serverless Postgres)
 -- Tables for users, gyms, exercises, routines and tracking data
 
 CREATE TABLE IF NOT EXISTS gyms (
@@ -107,3 +107,16 @@ CREATE TABLE IF NOT EXISTS app_meta (
   value JSONB NOT NULL,
   updated_at BIGINT NOT NULL
 );
+
+-- Plan codes a coach hands out so someone can use the app without an account.
+-- A code unlocks one routine (read-only snapshot) and follows later edits to it.
+CREATE TABLE IF NOT EXISTS share_codes (
+  code TEXT PRIMARY KEY,
+  coach_id TEXT NOT NULL REFERENCES users(uid) ON DELETE CASCADE,
+  routine_id TEXT NOT NULL REFERENCES routines(id) ON DELETE CASCADE,
+  created_at BIGINT NOT NULL,
+  expires_at BIGINT,
+  revoked BOOLEAN NOT NULL DEFAULT FALSE
+);
+
+CREATE INDEX IF NOT EXISTS idx_share_codes_coach_id ON share_codes(coach_id);

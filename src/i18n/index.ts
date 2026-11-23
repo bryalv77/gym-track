@@ -10,6 +10,7 @@ import { admin } from './locales/admin';
 import { library } from './locales/library';
 import { profile } from './locales/profile';
 import { routines } from './locales/routines';
+import { guest } from './locales/guest';
 
 export const LANGUAGES = [
   { code: 'en', label: 'English' },
@@ -22,7 +23,7 @@ export const LANGUAGES = [
 export type LanguageCode = (typeof LANGUAGES)[number]['code'];
 
 const LANGUAGE_KEY = 'gymtrack.language';
-const SECTIONS = { common, auth, member, coach, admin, library, profile, routines };
+const SECTIONS = { common, auth, member, coach, admin, library, profile, routines, guest };
 
 function build(lang: LanguageCode) {
   const translation: Record<string, unknown> = {};

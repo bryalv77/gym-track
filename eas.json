@@ -6,7 +6,10 @@
   "build": {
     "production": {
       "channel": "production",
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://gym-track-api.bryalv77.workers.dev"
+      }
     }
   },
   "submit": {

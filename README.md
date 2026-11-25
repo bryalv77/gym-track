@@ -65,6 +65,7 @@ src/
    ```bash
    npx wrangler secret put DATABASE_URL
    npx wrangler secret put JWT_SECRET
+   npx wrangler secret put TURNSTILE_SECRET_KEY   # site key lives in wrangler.toml
    pnpm api:deploy
    ```
 

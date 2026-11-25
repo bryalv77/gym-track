@@ -15,11 +15,13 @@ export interface RegisterRequest {
   role: Role;
   gymId?: string;
   coachCode?: string;
+  turnstileToken: string;
 }
 
 export interface LoginRequest {
   email: string;
   password: string;
+  turnstileToken: string;
 }
 
 export interface ChangePasswordRequest {

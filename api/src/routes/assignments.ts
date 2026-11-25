@@ -5,6 +5,7 @@ import type { Assignment } from '../../../src/types';
 import { getSql, generateId } from '../db/client';
 import { cleanRoutineItems, mapAssignmentRow, mapAssignmentsToByDate } from '../db/mappers';
 import { requireAuth, requireRole } from '../middleware/auth';
+import { coachOrSelf } from '../middleware/coachOrSelf';
 
 /** Empty strings from the form mean "no value". */
 const emptyToNull = (value: string | null | undefined) => (value ? value : null);
@@ -59,7 +60,7 @@ assignmentsRouter.post('/', requireRole('admin', 'coach'), async (c) => {
   return c.json(mapAssignmentRow(rows[0]), 201);
 });
 
-assignmentsRouter.post('/routine', requireRole('admin', 'coach'), async (c) => {
+assignmentsRouter.post('/routine', coachOrSelf, async (c) => {
   const { routine, memberIds, dateKey, coachId } = await c.req.json<AssignRoutineRequest>();
   if (!Array.isArray(memberIds) || memberIds.length === 0) return c.json({ ok: true });
 
@@ -97,7 +98,7 @@ assignmentsRouter.post('/routine', requireRole('admin', 'coach'), async (c) => {
   return c.json({ ok: true });
 });
 
-assignmentsRouter.post('/routine/unassign', requireRole('admin', 'coach'), async (c) => {
+assignmentsRouter.post('/routine/unassign', coachOrSelf, async (c) => {
   const body = await c.req.json<UnassignRoutineRequest>();
   const sql = getSql(c.env);
   await sql`

@@ -1,6 +1,7 @@
 import { mutate, subscribeToPath } from '../config/api';
 import type { SaveRoutineRequest } from '../types/api';
 import type { RoutinesById } from '../types';
+import { GUEST_UID, deleteGuestRoutine, saveGuestRoutine } from './guest';
 
 /** Live subscription to one coach's own routines. */
 export function subscribeToRoutines(
@@ -12,6 +13,7 @@ export function subscribeToRoutines(
 
 /** Creates a routine (no `id`) or updates an existing one. */
 export function saveRoutine(coachId: string, input: SaveRoutineRequest): Promise<void> {
+  if (coachId === GUEST_UID) return saveGuestRoutine(input);
   const base = `/api/routines/${encodeURIComponent(coachId)}`;
   return input.id
     ? mutate('PUT', `${base}/${encodeURIComponent(input.id)}`, input, 'routines')
@@ -20,6 +22,7 @@ export function saveRoutine(coachId: string, input: SaveRoutineRequest): Promise
 
 /** Deleting a routine keeps what was already assigned from it. */
 export function deleteRoutine(coachId: string, routineId: string): Promise<void> {
+  if (coachId === GUEST_UID) return deleteGuestRoutine(routineId);
   const path = [coachId, routineId].map(encodeURIComponent).join('/');
   return mutate('DELETE', `/api/routines/${path}`, undefined, 'routines');
 }

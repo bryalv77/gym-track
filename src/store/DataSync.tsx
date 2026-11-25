@@ -23,6 +23,7 @@ import { AppState } from 'react-native';
 import {
   GUEST_UID,
   buildGuestAssignments,
+  isSelfCoached,
   refreshGuest,
   subscribeToGuest,
 } from '../services/guest';
@@ -44,6 +45,7 @@ export function DataSync() {
 
   // Guest (plan code, offline): the store is fed from the on-device copy, never the API.
   const isGuest = profile?.guest === true;
+  const selfCoached = isSelfCoached(profile);
   useEffect(() => {
     if (!isGuest) return;
     const unsubscribe = subscribeToGuest((guest) => {
@@ -51,6 +53,7 @@ export function DataSync() {
       dispatch(exercisesUpdated(guest.exercises));
       dispatch(assignmentsUpdated(buildGuestAssignments(guest)));
       dispatch(completionsUserUpdated({ uid: GUEST_UID, value: guest.completions }));
+      dispatch(routinesUpdated(guest.routines ?? {}));
     });
     // Pull coach edits whenever a connection happens to be there; failures are silent.
     void refreshGuest();
@@ -63,6 +66,7 @@ export function DataSync() {
       dispatch(exercisesUpdated({}));
       dispatch(assignmentsUpdated({}));
       dispatch(completionsUserUpdated({ uid: GUEST_UID, value: {} }));
+      dispatch(routinesUpdated({}));
     };
   }, [isGuest, dispatch]);
 
@@ -98,14 +102,21 @@ export function DataSync() {
           dispatch(selfiesUpdated(value)),
         ),
       );
+      // No coach: they write their own routines.
+      if (selfCoached) {
+        unsubscribers.push(
+          subscribeToRoutines(profile.uid, (value) => dispatch(routinesUpdated(value))),
+        );
+      }
     }
     return () => {
       unsubscribers.forEach((unsubscribe) => unsubscribe());
     };
-  }, [profile?.uid, profile?.role, profile?.guest, dispatch]);
+  }, [profile?.uid, profile?.role, profile?.guest, selfCoached, dispatch]);
 
   // Coaches and admins seed the suggested starter exercises (once, if missing).
-  const canSeedExercises = profile?.role === 'coach' || profile?.role === 'admin';
+  const canSeedExercises =
+    profile?.role === 'coach' || profile?.role === 'admin' || (selfCoached && !isGuest);
   useEffect(() => {
     if (!canSeedExercises) return;
     ensureDefaultExercises().catch((error) =>

@@ -12,10 +12,18 @@ import { getSql, generateId } from '../db/client';
 import { mapUserRow } from '../db/mappers';
 import { hashPassword, verifyPassword, signAuthToken } from '../utils/crypto';
 import { requireAuth } from '../middleware/auth';
+import { requireHuman, turnstilePage } from '../middleware/turnstile';
 
 export const authRouter = new Hono<AppEnv>();
 
-authRouter.post('/register', async (c) => {
+authRouter.get('/turnstile', (c) => {
+  const origins = (c.env.CORS_ORIGIN ?? '').split(',').map((o) => o.trim()).join(' ');
+  c.header('Content-Security-Policy', `frame-ancestors ${origins || "'none'"}`);
+  const theme = c.req.query('theme') === 'dark' ? 'dark' : 'light';
+  return c.html(turnstilePage(c.env.TURNSTILE_SITE_KEY, theme));
+});
+
+authRouter.post('/register', requireHuman, async (c) => {
   const body = await c.req.json<RegisterRequest>();
   if (!body.password || body.password.length < MIN_PASSWORD_LENGTH) {
     return c.json({ error: 'Weak password', code: 'auth/weak-password' }, 400);
@@ -63,7 +71,7 @@ authRouter.post('/register', async (c) => {
   return c.json(response, 201);
 });
 
-authRouter.post('/login', async (c) => {
+authRouter.post('/login', requireHuman, async (c) => {
   const body = await c.req.json<LoginRequest>();
   const email = (body.email ?? '').trim().toLowerCase();
   const sql = getSql(c.env);

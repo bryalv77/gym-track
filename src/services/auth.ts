@@ -56,10 +56,11 @@ export function authErrorMessage(error: unknown): string {
   return i18n.exists(key) ? i18n.t(key) : i18n.t('common.authErrors.default');
 }
 
-export async function signIn(email: string, password: string): Promise<void> {
+export async function signIn(email: string, password: string, turnstileToken: string): Promise<void> {
   const body: LoginRequest = {
     email: email.trim(),
     password,
+    turnstileToken,
   };
   const res = await apiRequest<AuthResponse>('/api/auth/login', {
     method: 'POST',
@@ -77,12 +78,14 @@ export async function registerAccount(params: {
   gymId?: string;
   /** Gym's coach code; required (and checked by the API) for coaches. */
   coachCode?: string;
+  turnstileToken: string;
 }): Promise<void> {
   const body: RegisterRequest = {
     name: params.name.trim(),
     email: params.email.trim().toLowerCase(),
     password: params.password,
     role: params.role,
+    turnstileToken: params.turnstileToken,
     ...(params.gymId ? { gymId: params.gymId } : {}),
     ...(params.coachCode ? { coachCode: params.coachCode } : {}),
   };

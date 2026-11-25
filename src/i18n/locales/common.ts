@@ -25,6 +25,7 @@ export const common = {
       Plan: 'Plan', Routines: "Routines", Exercises: 'Exercises', Members: 'Members', Gyms: 'Gyms', Users: 'Users',
     },
     authErrors: {
+      "auth/captcha-failed": "Please complete the security check and try again.",
       "auth/invalid-coach-code": "That coach code is not valid for this gym. Leave it empty to join as a member.",
       'auth/invalid-email': 'That email address looks invalid.',
       'auth/user-not-found': 'No account found with this email.',
@@ -65,6 +66,7 @@ export const common = {
       Plan: 'Plan', Routines: "Rutinas", Exercises: 'Ejercicios', Members: 'Miembros', Gyms: 'Gimnasios', Users: 'Usuarios',
     },
     authErrors: {
+      "auth/captcha-failed": "Completa la verificación de seguridad e inténtalo de nuevo.",
       "auth/invalid-coach-code": "Ese código de entrenador no es válido para este gimnasio. Déjalo vacío para unirte como miembro.",
       'auth/invalid-email': 'Ese correo electrónico no parece válido.',
       'auth/user-not-found': 'No se encontró ninguna cuenta con este correo.',
@@ -105,6 +107,7 @@ export const common = {
       Plan: 'Plano', Routines: "Rotinas", Exercises: 'Exercícios', Members: 'Membros', Gyms: 'Academias', Users: 'Usuários',
     },
     authErrors: {
+      "auth/captcha-failed": "Conclua a verificação de segurança e tente novamente.",
       "auth/invalid-coach-code": "Esse código de treinador não é válido para esta academia. Deixe vazio para entrar como membro.",
       'auth/invalid-email': 'Esse e-mail parece inválido.',
       'auth/user-not-found': 'Nenhuma conta encontrada com este e-mail.',
@@ -145,6 +148,7 @@ export const common = {
       Plan: 'Plan', Routines: "Routinen", Exercises: 'Übungen', Members: 'Mitglieder', Gyms: 'Studios', Users: 'Nutzer',
     },
     authErrors: {
+      "auth/captcha-failed": "Bitte schließe die Sicherheitsprüfung ab und versuche es erneut.",
       "auth/invalid-coach-code": "Dieser Trainer-Code ist für dieses Studio ungültig. Lass ihn leer, um als Mitglied beizutreten.",
       'auth/invalid-email': 'Diese E-Mail-Adresse scheint ungültig zu sein.',
       'auth/user-not-found': 'Mit dieser E-Mail wurde kein Konto gefunden.',
@@ -193,6 +197,7 @@ export const common = {
       "Users": "Utilisateurs"
     },
     "authErrors": {
+      "auth/captcha-failed": "Termine la vérification de sécurité et réessaie.",
       "auth/invalid-coach-code": "Ce code coach n'est pas valide pour cette salle. Laisse-le vide pour rejoindre en tant que membre.",
       "auth/invalid-email": "Cette adresse e-mail semble invalide.",
       "auth/user-not-found": "Aucun compte trouvé avec cet e-mail.",

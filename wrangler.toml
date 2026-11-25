@@ -4,8 +4,10 @@ compatibility_date = "2025-01-01"
 compatibility_flags = ["nodejs_compat"]
 
 [vars]
-CORS_ORIGIN = "https://gym-track-web.bryalv77.workers.dev,http://localhost:8081"
+CORS_ORIGIN = "https://fitlance.devalv.com,https://gym.devalv.com,https://gym.bryanalvarado.com,https://gym-track-web.bryalv77.workers.dev,http://localhost:8081"
+TURNSTILE_SITE_KEY = "0x4AAAAAAGSp3q0g-utc2GeN"
 
 # Secrets (set locally in .dev.vars or via `wrangler secret put`):
 # DATABASE_URL = "postgresql://..."
 # JWT_SECRET = "your-secret-key"
+# TURNSTILE_SECRET_KEY = "..."

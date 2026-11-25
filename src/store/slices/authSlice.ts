@@ -30,8 +30,8 @@ const initialState: AuthState = {
 
 export const signInThunk = createAsyncThunk(
   'auth/signIn',
-  async (params: { email: string; password: string }) => {
-    await signIn(params.email, params.password);
+  async (params: { email: string; password: string; turnstileToken: string }) => {
+    await signIn(params.email, params.password, params.turnstileToken);
   },
 );
 
@@ -44,6 +44,7 @@ export const signUpThunk = createAsyncThunk(
     role: Role;
     gymId?: string;
     coachCode?: string;
+    turnstileToken: string;
   }) => {
     await registerAccount(params);
   },

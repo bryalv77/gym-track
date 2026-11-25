@@ -45,7 +45,7 @@ export function GuestCodeScreen({ navigation }: Props) {
   };
 
   return (
-    <Screen scroll contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}>
+    <Screen scroll maxWidth={420} contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}>
       <NavBar title={t('guest.enter.title')} />
       <View style={styles.header}>
         <View style={[styles.logo, { backgroundColor: colors.systemBlue }]}>

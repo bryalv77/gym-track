@@ -2,14 +2,18 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Directory, File, Paths } from 'expo-file-system';
 import { apiRequest } from '../config/api';
 import i18n from '../i18n';
-import type { GuestPlan } from '../types/api';
+import type { GuestPlan, SaveRoutineRequest } from '../types/api';
 import type {
   AssignmentsByDate,
   CompletionsByDate,
   ExercisesById,
+  Routine,
   RoutineItem,
+  RoutinesById,
   UserProfile,
 } from '../types';
+import { DEFAULT_EXERCISES, matchesDefault, starterMetricFields } from '../shared/exerciseDefaults';
+import { currentLang } from '../utils/defaultExerciseData';
 import { addDays, toDateKey } from '../utils/date';
 
 /**
@@ -35,6 +39,10 @@ export interface GuestData {
   /** The coach revoked the code; the cached plan keeps working. */
   revoked?: boolean;
   completions: CompletionsByDate;
+  /** Self-coached offline mode: no code, the person builds and schedules their own routines. */
+  solo?: boolean;
+  routines?: RoutinesById;
+  assignments?: AssignmentsByDate;
 }
 
 let data: GuestData | null = null;
@@ -99,6 +107,7 @@ export function subscribeToGuest(callback: (value: GuestData | null) => void): (
 
 /** The daily routine expressed as ordinary assignments, so the member screens work unchanged. */
 export function buildGuestAssignments(guest: GuestData, today = new Date()): AssignmentsByDate {
+  if (guest.solo) return guest.assignments ?? {};
   const byDate: AssignmentsByDate = {};
   for (let offset = -WINDOW_DAYS; offset <= WINDOW_DAYS; offset++) {
     const dateKey = toDateKey(addDays(today, offset));
@@ -191,7 +200,7 @@ export function isOfflineError(error: unknown): boolean {
 /** Silently pulls the latest version of the plan. Offline or failing, the cached copy stays. */
 export async function refreshGuest(): Promise<'updated' | 'revoked' | 'offline'> {
   const current = data;
-  if (!current) return 'offline';
+  if (!current || current.solo) return 'offline';
   try {
     const plan = await fetchPlan(current.code);
     data = {
@@ -245,4 +254,141 @@ export async function clearGuest(): Promise<void> {
     // Best effort.
   }
   emit();
+}
+
+/* ─── Self-coached offline mode ───────────────────────────────────────────── */
+
+/** A member trains on their own: routines they write themselves, no coach needed. */
+export function isSelfCoached(profile: UserProfile | null): boolean {
+  if (profile?.role !== 'member') return false;
+  return profile.guest ? data?.solo === true : !profile.coachId;
+}
+
+async function update(patch: Partial<GuestData>): Promise<void> {
+  if (!data) return;
+  data = { ...data, ...patch };
+  await persist();
+  emit();
+}
+
+/** The starter library, bundled with the app so it works without a connection. */
+function starterLibrary(): ExercisesById {
+  const lang = currentLang();
+  return Object.fromEntries(
+    DEFAULT_EXERCISES.map((item) => [
+      item.id,
+      {
+        id: item.id,
+        name: item.text[lang].name,
+        type: 'strength' as const,
+        description: item.text[lang].description,
+        videoUrl: item.videoUrl,
+        suggestedOrder: item.order,
+        metricFields: starterMetricFields(item),
+        createdBy: GUEST_UID,
+        createdAt: 0,
+      },
+    ]),
+  );
+}
+
+export async function startSolo(): Promise<void> {
+  data = {
+    solo: true,
+    code: '',
+    coachName: '',
+    routineName: '',
+    items: [],
+    exercises: starterLibrary(),
+    fetchedAt: Date.now(),
+    completions: {},
+    routines: {},
+    assignments: {},
+  };
+  loaded = true;
+  await persist();
+  emit();
+}
+
+let localId = 0;
+const newId = () => `local-${Date.now().toString(36)}-${(localId++).toString(36)}`;
+
+export function saveGuestRoutine(input: SaveRoutineRequest): Promise<void> {
+  const routines = data?.routines ?? {};
+  const id = input.id ?? newId();
+  const routine: Routine = {
+    id,
+    name: input.name.trim(),
+    coachId: GUEST_UID,
+    items: input.items,
+    createdAt: routines[id]?.createdAt ?? Date.now(),
+  };
+  return update({ routines: { ...routines, [id]: routine } });
+}
+
+/** Like the API: already scheduled days keep their exercises. */
+export function deleteGuestRoutine(routineId: string): Promise<void> {
+  const routines = { ...(data?.routines ?? {}) };
+  delete routines[routineId];
+  return update({ routines });
+}
+
+/** Replaces any earlier copy of the routine on that day (same as the API). */
+export function assignGuestRoutine(routine: Routine, dateKey: string): Promise<void> {
+  const assignments = data?.assignments ?? {};
+  const day = Object.fromEntries(
+    Object.entries(assignments[dateKey] ?? {}).filter(([, a]) => a.routineId !== routine.id),
+  );
+  const now = Date.now();
+  routine.items.forEach((item, index) => {
+    const id = newId();
+    day[id] = {
+      id,
+      dateKey,
+      exerciseId: item.exerciseId,
+      memberId: GUEST_UID,
+      coachId: GUEST_UID,
+      metrics: item.metrics,
+      ...(item.notes ? { notes: item.notes } : {}),
+      routineId: routine.id,
+      routineName: routine.name,
+      createdAt: now + index,
+    };
+  });
+  return update({ assignments: { ...assignments, [dateKey]: day } });
+}
+
+export function unassignGuestRoutine(routineId: string, dateKey: string): Promise<void> {
+  const assignments = { ...(data?.assignments ?? {}) };
+  const day = Object.fromEntries(
+    Object.entries(assignments[dateKey] ?? {}).filter(([, a]) => a.routineId !== routineId),
+  );
+  if (Object.keys(day).length > 0) assignments[dateKey] = day;
+  else delete assignments[dateKey];
+  return update({ assignments });
+}
+
+/**
+ * On sign-in, copies the routines written offline into the account so they are
+ * not lost. Starter exercises are matched to the server library by name.
+ * shortcut: scheduled days and completion history stay local, upload them too if people ask.
+ */
+export async function importSoloRoutines(
+  save: (input: SaveRoutineRequest) => Promise<unknown>,
+): Promise<void> {
+  const routines = Object.values((await loadGuest())?.solo ? data?.routines ?? {} : {});
+  if (routines.length === 0) return;
+  const server = Object.values(await apiRequest<ExercisesById>('/api/exercises'));
+  const serverId = (id: string): string | undefined => {
+    if (server.some((exercise) => exercise.id === id)) return id;
+    const starter = DEFAULT_EXERCISES.find((item) => item.id === id);
+    return starter && server.find((exercise) => matchesDefault(starter, exercise.name))?.id;
+  };
+  for (const routine of routines) {
+    const items = routine.items.flatMap((item) => {
+      const exerciseId = serverId(item.exerciseId);
+      return exerciseId ? [{ ...item, exerciseId }] : [];
+    });
+    await save({ name: routine.name, items });
+  }
 }

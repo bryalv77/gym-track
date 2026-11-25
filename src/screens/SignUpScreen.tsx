@@ -7,6 +7,7 @@ import { AppText, Button, Chip, NavBar, Screen, SegmentedControl, TextField } fr
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { clearAuthError, signUpThunk } from '../store/slices/authSlice';
 import { subscribeToGyms } from '../services/gyms';
+import { Turnstile } from '../components/Turnstile';
 import type { AuthStackParamList } from '../navigation/types';
 import { normalizeCoachCode } from '../utils/coachCode';
 import type { Gym } from '../types';
@@ -24,6 +25,8 @@ export function SignUpScreen({ navigation }: SignUpScreenProps) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState('');
+  const [turnstileKey, setTurnstileKey] = useState(0);
   const [role, setRole] = useState<SignUpRole>('member');
   const [coachCode, setCoachCode] = useState('');
   const [gymId, setGymId] = useState<string | null>(null);
@@ -37,6 +40,12 @@ export function SignUpScreen({ navigation }: SignUpScreenProps) {
   useResetOnChange([role], () => setCoachCode(''), role === 'member');
 
   const sortedGyms = gyms.slice().sort((a, b) => a.name.localeCompare(b.name));
+
+  // Tokens are single-use, so every attempt needs a new one.
+  const resetTurnstile = () => {
+    setTurnstileToken('');
+    setTurnstileKey((key) => key + 1);
+  };
 
   const handleSignUp = () => {
     setLocalError(null);
@@ -63,12 +72,13 @@ export function SignUpScreen({ navigation }: SignUpScreenProps) {
         role: isCoach ? 'coach' : 'member',
         ...(gymId ? { gymId } : {}),
         ...(isCoach ? { coachCode: code } : {}),
+        turnstileToken,
       }),
-    );
+    ).then(resetTurnstile);
   };
 
   return (
-    <Screen scroll contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}>
+    <Screen scroll maxWidth={420} contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}>
       <NavBar
         title={t('auth.createAccount')}
         large={false}
@@ -163,6 +173,7 @@ export function SignUpScreen({ navigation }: SignUpScreenProps) {
           </View>
         ) : null}
 
+        <Turnstile key={turnstileKey} onToken={setTurnstileToken} />
         {localError ?? error ? (
           <AppText variant="footnote" color={colors.systemRed}>
             {localError ?? error}

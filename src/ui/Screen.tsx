@@ -19,14 +19,18 @@ export function Screen({
   padded = true,
   refreshControl,
   contentContainerStyle,
+  maxWidth = 720,
 }: {
   children: React.ReactNode;
   scroll?: boolean;
   padded?: boolean;
   refreshControl?: React.ComponentProps<typeof ScrollView>['refreshControl'];
   contentContainerStyle?: StyleProp<ViewStyle>;
+  /** Caps content width so buttons and fields don't stretch on wide screens. */
+  maxWidth?: number;
 }) {
   const { colors } = useTheme();
+  const content = <View style={[styles.content, { maxWidth }, !scroll && styles.flex]}>{children}</View>;
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]} edges={['top']}>
       <KeyboardAvoidingView
@@ -42,10 +46,10 @@ export function Screen({
             showsVerticalScrollIndicator={false}
             refreshControl={refreshControl}
           >
-            {children}
+            {content}
           </ScrollView>
         ) : (
-          <View style={[styles.flex, padded && styles.padded]}>{children}</View>
+          <View style={[styles.flex, padded && styles.padded]}>{content}</View>
         )}
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -55,5 +59,6 @@ export function Screen({
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   flex: { flex: 1 },
+  content: { width: '100%', alignSelf: 'center' },
   padded: { padding: 16, paddingBottom: 40 },
 });

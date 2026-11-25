@@ -18,7 +18,8 @@ exercisesRouter.get('/', async (c) => {
   return c.json(mapExercisesToRecord(rows));
 });
 
-exercisesRouter.post('/seed', requireRole('admin', 'coach'), async (c) => {
+// Members may trigger it too (self-coached ones need the starter library); it only runs once per version.
+exercisesRouter.post('/seed', async (c) => {
   const body = await c.req.json<SeedExercisesRequest>().catch(() => null);
   const language = LANGS.find((lang) => lang === body?.language) ?? 'en';
   const seeded = await seedExercises(getSql(c.env), c.get('user').uid, language);

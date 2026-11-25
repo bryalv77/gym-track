@@ -18,7 +18,9 @@ import { fetchProfile, listenToAuth } from '../services/auth';
 import { DataSync } from '../store/DataSync';
 import { GuestCodeScreen } from '../screens/GuestCodeScreen';
 import { GuestProfileScreen } from '../screens/member/GuestProfileScreen';
-import { clearGuest, guestProfile, loadGuest } from '../services/guest';
+import { clearGuest, guestProfile, importSoloRoutines, isSelfCoached, loadGuest } from '../services/guest';
+import { saveRoutine } from '../services/routines';
+import type { UserProfile } from '../types';
 import { LoginScreen } from '../screens/LoginScreen';
 import { SignUpScreen } from '../screens/SignUpScreen';
 import { TodayScreen } from '../screens/member/TodayScreen';
@@ -76,19 +78,24 @@ const TABS_BY_ROLE: Record<Role, TabSpec[]> = {
   ],
 };
 
+const SELF_ROUTINES_TAB: TabSpec = { name: 'Routines', component: RoutinesScreen, icon: 'albums-outline' };
+
 const GUEST_TABS: TabSpec[] = [
   { name: 'Today', component: TodayScreen, icon: 'today-outline' },
   { name: 'Dashboard', component: DashboardScreen, icon: 'stats-chart-outline' },
   { name: 'Profile', component: GuestProfileScreen, icon: 'person-circle-outline' },
 ];
 
-function RoleTabs({ role, guest = false }: { role: Role; guest?: boolean }) {
+function RoleTabs({ profile }: { profile: UserProfile }) {
+  const tabs = profile.guest ? GUEST_TABS : TABS_BY_ROLE[profile.role];
+  // No coach: the member writes their own routines, right after Today.
+  const visible = isSelfCoached(profile) ? [tabs[0], SELF_ROUTINES_TAB, ...tabs.slice(1)] : tabs;
   return (
     <Tab.Navigator
       screenOptions={{ headerShown: false, tabBarHideOnKeyboard: Platform.OS !== 'web' }}
       tabBar={(props) => <TabBar {...props} />}
     >
-      {(guest ? GUEST_TABS : TABS_BY_ROLE[role]).map(({ name, component, icon }) => (
+      {visible.map(({ name, component, icon }) => (
         <Tab.Screen
           key={name}
           name={name}
@@ -131,9 +138,13 @@ export function RootNavigator() {
         dispatch(authStateChanged({ profile: guest ? guestProfile() : null }));
         return;
       }
-      void clearGuest();
       try {
         const loaded = await fetchProfile();
+        // Routines written offline move into the account before the local copy is wiped.
+        await importSoloRoutines((input) => saveRoutine(loaded.uid, input)).catch((error) =>
+          console.warn('[auth] importing offline routines failed', error),
+        );
+        void clearGuest();
         dispatch(authStateChanged({ profile: loaded }));
       } catch (error) {
         console.warn('[auth] failed to load profile', error);
@@ -152,7 +163,7 @@ export function RootNavigator() {
       <StatusBar style={mode === 'dark' ? 'light' : 'dark'} />
       <DataSync />
       <NavigationContainer theme={navigationTheme}>
-        {profile === null ? <AuthNavigator /> : <RoleTabs role={profile.role} guest={profile.guest === true} />}
+        {profile === null ? <AuthNavigator /> : <RoleTabs profile={profile} />}
       </NavigationContainer>
     </>
   );

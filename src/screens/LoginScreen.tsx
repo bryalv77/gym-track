@@ -13,6 +13,7 @@ import {
 } from '../ui';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { clearAuthError, signInThunk } from '../store/slices/authSlice';
+import { Turnstile } from '../components/Turnstile';
 import type { AuthStackParamList } from '../navigation/types';
 
 type LoginScreenProps = NativeStackScreenProps<AuthStackParamList, 'Login'>;
@@ -24,14 +25,22 @@ export function LoginScreen({ navigation }: LoginScreenProps) {
   const { loading, error } = useAppSelector((state) => state.auth);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState('');
+  const [turnstileKey, setTurnstileKey] = useState(0);
+
+  // Tokens are single-use, so every attempt needs a new one.
+  const resetTurnstile = () => {
+    setTurnstileToken('');
+    setTurnstileKey((key) => key + 1);
+  };
 
   const handleSignIn = () => {
     if (!email.trim() || !password) return;
-    dispatch(signInThunk({ email, password }));
+    dispatch(signInThunk({ email, password, turnstileToken })).then(resetTurnstile);
   };
 
   return (
-    <Screen scroll contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}>
+    <Screen scroll maxWidth={420} contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}>
       <NavBar title={t('auth.signIn')} />
       <View style={styles.header}>
         <View style={[styles.logo, { backgroundColor: colors.systemBlue }]}>
@@ -63,6 +72,7 @@ export function LoginScreen({ navigation }: LoginScreenProps) {
           returnKeyType="done"
           onSubmitEditing={handleSignIn}
         />
+        <Turnstile key={turnstileKey} onToken={setTurnstileToken} />
         {error ? (
           <AppText variant="footnote" color={colors.systemRed}>
             {error}

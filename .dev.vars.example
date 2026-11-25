@@ -1,3 +1,6 @@
 # Cloudflare Wrangler Local Worker Secrets (.dev.vars)
 DATABASE_URL=postgresql://user:password@ep-your-neon-host.region.aws.neon.tech/neondb?sslmode=require
+# Cloudflare's always-pass test keys; production uses wrangler.toml + `wrangler secret put`
+TURNSTILE_SITE_KEY=1x00000000000000000000AA
+TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA
 JWT_SECRET=replace-with-a-random-32-byte-secret
